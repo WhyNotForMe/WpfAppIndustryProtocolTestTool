@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using WpfAppIndustryProtocolTestTool.Model.Enum;
 
-namespace WpfAppIndustryProtocolTestTool.BLL.CRC
+namespace WpfAppIndustryProtocolTestTool.BLL
 {
     public class CRCHelper
     {

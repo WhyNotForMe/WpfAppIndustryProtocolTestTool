@@ -5,10 +5,11 @@
     <TargetFramework>net5.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
+    <Platforms>AnyCPU;x86</Platforms>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Asset\Images\Ethernet.png" />
+    <None Remove="Asset\Images\Ethernet.ico" />
   </ItemGroup>
 
   <ItemGroup>
@@ -41,7 +42,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="Asset\Images\Ethernet.png">
+    <Resource Include="Asset\Images\Ethernet.ico">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
   </ItemGroup>

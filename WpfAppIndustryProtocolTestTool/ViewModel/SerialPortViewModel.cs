@@ -8,7 +8,6 @@ using System.IO.Ports;
 using System.Timers;
 using System.Windows;
 using WpfAppIndustryProtocolTestTool.BLL;
-using WpfAppIndustryProtocolTestTool.BLL.CRC;
 using WpfAppIndustryProtocolTestTool.BLL.SerialPortProtocol;
 using WpfAppIndustryProtocolTestTool.Model;
 using WpfAppIndustryProtocolTestTool.Model.Enum;

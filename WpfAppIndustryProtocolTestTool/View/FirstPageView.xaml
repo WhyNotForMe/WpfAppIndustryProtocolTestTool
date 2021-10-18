@@ -116,11 +116,11 @@
         <materialDesign:Snackbar Grid.Row="1" 
                                  Background="{StaticResource PrimaryHueLightBrush}"
                                  IsActive="{Binding IsActive}" >
-            <materialDesign:SnackbarMessage Width="800">
+            <materialDesign:SnackbarMessage Width="400">
                 <TextBlock Margin="10" VerticalAlignment="Center"> 
                  Glad to meet you !  The source code  is shared at 
-                    <Hyperlink NavigateUri="https://github.com/WhyNotForMe/WpfApp_IndustryProtocolTestTool" Click="Hyperlink_Click">
-                        Github Repository
+                    <Hyperlink NavigateUri="https://github.com/WhyNotForMe/WpfAppIndustryProtocolTestTool" Click="Hyperlink_Click">
+                        Github 
                     </Hyperlink>
                 </TextBlock>
             </materialDesign:SnackbarMessage>

@@ -19,7 +19,7 @@
         Height="700" Width="1300" 
         WindowStartupLocation="CenterScreen" 
         ShowInTaskbar="True" 
-        Icon="/Asset/Images/Ethernet.png" 
+        Icon="/Asset/Images/Ethernet.ico" 
         AllowsTransparency="True" 
         WindowStyle="None" >
 
