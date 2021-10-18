@@ -21,11 +21,11 @@
     <TabControl>
         <!--Server/Client: TCP/UDP-->
         <TabItem  Style="{StaticResource MaterialDesignNavigationRailTabItem}" 
-                  Width="auto" Height="50">
+                  Width="auto" Height="40" Padding="0">
             <TabItem.Header>
-                <StackPanel Orientation="Horizontal">
-                    <materialDesign:PackIcon Kind="ServerNetwork" Margin="10,0" />
-                    <TextBlock Text="UDP / TCP" />
+                <StackPanel Orientation="Horizontal" Margin="30,0">
+                    <materialDesign:PackIcon Kind="ServerNetwork" Margin="5,0" />
+                    <TextBlock Text="TCP / UDP  (IOCP)" />
                 </StackPanel>
             </TabItem.Header>
             <Grid>
@@ -769,10 +769,10 @@
 
         <!--Log Table-->
         <TabItem  Style="{StaticResource MaterialDesignNavigationRailTabItem}" 
-                  Width="auto" Height="50" >
+                  Width="auto" Height="40" Padding="0" >
             <TabItem.Header >
-                <StackPanel Orientation="Horizontal">
-                    <materialDesign:PackIcon Kind="TableNetwork" Margin="10,0" />
+                <StackPanel Orientation="Horizontal" Margin="30,0">
+                    <materialDesign:PackIcon Kind="TableNetwork" Margin="5,0" />
                     <TextBlock Text="Log" />
                 </StackPanel>
             </TabItem.Header>

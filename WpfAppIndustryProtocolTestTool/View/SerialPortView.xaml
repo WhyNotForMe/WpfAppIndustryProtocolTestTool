@@ -19,10 +19,10 @@
     <TabControl >
         <!--Configuration-->
         <TabItem  Style="{StaticResource MaterialDesignNavigationRailTabItem}" 
-                  Width="auto" Height="50">
+                  Width="auto" Height="40" Padding="0">
             <TabItem.Header>
-                <StackPanel Orientation="Horizontal">
-                    <materialDesign:PackIcon Kind="Cog" Margin="10,0" />
+                <StackPanel Orientation="Horizontal" Margin="30,0">
+                    <materialDesign:PackIcon Kind="Cog" Margin="5,0" />
                     <TextBlock Text="Configuration" />
                 </StackPanel>
             </TabItem.Header>
@@ -235,10 +235,10 @@
         </TabItem>
         <!--Communicate-->
         <TabItem  Style="{StaticResource MaterialDesignNavigationRailTabItem}" 
-                  Width="auto" Height="50">
+                  Width="auto" Height="40" Padding="0">
             <TabItem.Header>
-                <StackPanel Orientation="Horizontal">
-                    <materialDesign:PackIcon Kind="LanConnect" Margin="10,0" />
+                <StackPanel Orientation="Horizontal" Margin="30,0">
+                    <materialDesign:PackIcon Kind="LanConnect" Margin="5,0" />
                     <TextBlock Text="Communication" />
                 </StackPanel>
             </TabItem.Header>
@@ -421,11 +421,11 @@
         </TabItem>
         <!--Log Table-->
         <TabItem  Style="{StaticResource MaterialDesignNavigationRailTabItem}" 
-                  Width="auto" Height="50"
+                  Width="auto" Height="40" Padding="0"
                   IsEnabled="{Binding ElementName=checkBoxSQLite,Path=IsChecked}">
             <TabItem.Header>
-                <StackPanel Orientation="Horizontal">
-                    <materialDesign:PackIcon Kind="TableLarge" Margin="10,0" />
+                <StackPanel Orientation="Horizontal" Margin="30,0">
+                    <materialDesign:PackIcon Kind="TableLarge" Margin="5,0" />
                     <TextBlock Text="Log Table" />
                 </StackPanel>
             </TabItem.Header>
@@ -488,11 +488,11 @@
         </TabItem>
         <!--Log File-->
         <TabItem  Style="{StaticResource MaterialDesignNavigationRailTabItem}" 
-                  Width="200" Height="50"
+                  Width="auto" Height="40" Padding="0"
                   IsEnabled="{Binding ElementName=checkBoxFile,Path=IsChecked}">
             <TabItem.Header>
-                <StackPanel Orientation="Horizontal">
-                    <materialDesign:PackIcon Kind="TextBoxOutline" Margin="10,0" />
+                <StackPanel Orientation="Horizontal" Margin="30,0">
+                    <materialDesign:PackIcon Kind="TextBoxOutline" Margin="5,0" />
                     <TextBlock Text="Log File" />
                 </StackPanel>
             </TabItem.Header>
