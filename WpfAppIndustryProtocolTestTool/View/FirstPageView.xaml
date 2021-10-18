@@ -1,0 +1,136 @@
+﻿<UserControl x:Class="WpfAppIndustryProtocolTestTool.View.FirstPageView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+             xmlns:local="clr-namespace:WpfAppIndustryProtocolTestTool.View"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+             TextElement.FontWeight="Regular"
+             TextElement.FontSize="13"
+             TextOptions.TextFormattingMode="Ideal"
+             TextOptions.TextRenderingMode="Auto"
+             Background="{DynamicResource MaterialDesignPaper}"
+             FontFamily="{DynamicResource MaterialDesignFont}"
+             DataContext="{Binding FirstPage,Source={StaticResource Locator}}"
+             mc:Ignorable="d" 
+             d:DesignHeight="600" d:DesignWidth="1000">
+
+
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="auto" />
+        </Grid.RowDefinitions>
+
+        <!--Gateway-->
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Width="350">
+            <!--Work Mode-->
+            <materialDesign:Card  Background="{DynamicResource PrimaryHueLightBrush}"
+                                  Foreground="{DynamicResource MaterialDesignDarkForeground}"
+                                  Width="350"
+                                  Padding="10">
+                <TextBlock FontSize="16" Text="Tool Work Mode"  HorizontalAlignment="Center"/>
+            </materialDesign:Card>
+            <StackPanel Orientation="Horizontal" 
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        IsEnabled="{Binding ResetMode}">
+                <RadioButton  Style="{StaticResource MaterialDesignTabRadioButton}"
+                          Margin="10"
+                          IsChecked="{Binding SingleModule}"
+                          Content="Single Module" />
+                <RadioButton  Style="{StaticResource MaterialDesignTabRadioButton}"
+                          Margin="10"
+                          IsChecked="{Binding GatewayModule}"
+                          Content="Gateway Module" 
+                          x:Name="radioBtnGateway"/>
+            </StackPanel>
+            <DockPanel Visibility="{Binding ElementName=radioBtnGateway,
+                                            Path=IsChecked,
+                                            Converter={StaticResource B12Visi}}"
+                       IsEnabled="{Binding ResetMode}">
+                <!--Input-->
+                <ComboBox materialDesign:HintAssist.Hint="Input" 
+                                  materialDesign:HintAssist.FloatingScale="1.1"
+                                  materialDesign:HintAssist.IsFloating="True"
+                                  Margin="2"
+                                  DockPanel.Dock="Left"
+                                  ItemsSource="{Binding GatewayModuleCollection}" 
+                                  SelectedIndex="{Binding SelectedInputModule,
+                                                          UpdateSourceTrigger=PropertyChanged}" >
+                    <i:Interaction.Triggers>
+                        <i:EventTrigger EventName="SelectionChanged">
+                            <i:InvokeCommandAction Command="{Binding CmdChangeMode}" />
+                        </i:EventTrigger>
+                    </i:Interaction.Triggers>
+                </ComboBox>
+                <!--Output-->
+                <ComboBox materialDesign:HintAssist.Hint="Output" 
+                                  materialDesign:HintAssist.FloatingScale="1.1"
+                                  materialDesign:HintAssist.IsFloating="True"
+                                  Margin="2"
+                                  DockPanel.Dock="Right"
+                                  ItemsSource="{Binding GatewayModuleCollection}" 
+                                  SelectedIndex="{Binding SelectedOutputModule,
+                                                          UpdateSourceTrigger=PropertyChanged}" >
+                    <i:Interaction.Triggers>
+                        <i:EventTrigger EventName="SelectionChanged">
+                            <i:InvokeCommandAction Command="{Binding CmdChangeMode}" />
+                        </i:EventTrigger>
+                    </i:Interaction.Triggers>
+                </ComboBox>
+                <!--Exchange-->
+                <materialDesign:PackIcon Kind="ArrowRightBoldOutline" 
+                                         VerticalAlignment="Bottom" 
+                                         HorizontalAlignment="Center"
+                                         Margin="10"
+                                         RenderTransformOrigin="0.5,0.5">
+                    <materialDesign:PackIcon.RenderTransform>
+                        <TransformGroup>
+                            <ScaleTransform ScaleX="2" ScaleY="2"/>
+                            <SkewTransform/>
+                            <RotateTransform/>
+                            <TranslateTransform/>
+                        </TransformGroup>
+                    </materialDesign:PackIcon.RenderTransform>
+                </materialDesign:PackIcon>
+            </DockPanel>
+
+            <!--Confirm-->
+            <Button  Style="{StaticResource MaterialDesignRaisedButton}"
+                         materialDesign:ButtonProgressAssist.Value="-1"
+                         materialDesign:ButtonProgressAssist.IsIndicatorVisible="{Binding ResetMode,Converter={StaticResource B10Swap}}"
+                         materialDesign:ButtonProgressAssist.IsIndeterminate="{Binding ResetMode,Converter={StaticResource B10Swap}}"
+                         Content="{Binding StartOrStop}"
+                         Width="220"
+                         Margin="10" 
+                         IsDefault="True"
+                         Command="{Binding CmdStartStop}"/>
+        </StackPanel>
+
+
+        <!--Snackbar-->
+        <materialDesign:Snackbar Grid.Row="1" 
+                                 Background="{StaticResource PrimaryHueLightBrush}"
+                                 IsActive="{Binding IsActive}" >
+            <materialDesign:SnackbarMessage Width="800">
+                <TextBlock Margin="10" VerticalAlignment="Center"> 
+                 Glad to meet you !  The source code  is shared at 
+                    <Hyperlink NavigateUri="https://github.com/WhyNotForMe/WpfApp_IndustryProtocolTestTool" Click="Hyperlink_Click">
+                        Github Repository
+                    </Hyperlink>
+                </TextBlock>
+            </materialDesign:SnackbarMessage>
+        </materialDesign:Snackbar>
+
+
+
+
+
+    </Grid>
+
+
+</UserControl>

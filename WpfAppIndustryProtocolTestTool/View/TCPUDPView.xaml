@@ -1,0 +1,796 @@
+﻿<UserControl x:Class="WpfAppIndustryProtocolTestTool.View.TcpUdpView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:WpfAppIndustryProtocolTestTool.View"
+             xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+             TextElement.FontWeight="Regular"
+             TextElement.FontSize="13"
+             TextOptions.TextFormattingMode="Ideal"
+             TextOptions.TextRenderingMode="Auto"
+             Background="{DynamicResource MaterialDesignPaper}"
+             FontFamily="{DynamicResource MaterialDesignFont}"
+             DataContext="{Binding TcpUdp,Source={StaticResource Locator}}"   
+             mc:Ignorable="d" 
+             d:DesignHeight="650" d:DesignWidth="1200">
+
+
+    <TabControl>
+        <!--Server/Client: TCP/UDP-->
+        <TabItem  Style="{StaticResource MaterialDesignNavigationRailTabItem}" 
+                  Width="auto" Height="50">
+            <TabItem.Header>
+                <StackPanel Orientation="Horizontal">
+                    <materialDesign:PackIcon Kind="ServerNetwork" Margin="10,0" />
+                    <TextBlock Text="UDP / TCP" />
+                </StackPanel>
+            </TabItem.Header>
+            <Grid>
+                <Grid.Resources>
+                    <!--Expander with Auto Collapsed-->
+                    <Style TargetType="{x:Type Expander}" x:Key="clientList" 
+                           BasedOn="{StaticResource MaterialDesignExpander}">
+                        <Setter Property="Visibility">
+                            <Setter.Value>
+                                <MultiBinding Converter="{StaticResource B112Visi}">
+                                    <Binding ElementName="toggleButtonClientServer" Path="IsChecked" />
+                                    <Binding ElementName="toggleButtonUDPTCP" Path="IsChecked" />
+                                </MultiBinding>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                    <!--TextBox with Auto Collapsed-->
+                    <Style TargetType="{x:Type TextBox}" x:Key="maiximumClients" 
+                           BasedOn="{StaticResource MaterialDesignFloatingHintTextBox}">
+                        <Setter Property="Visibility">
+                            <Setter.Value>
+                                <MultiBinding Converter="{StaticResource B112Visi}">
+                                    <Binding ElementName="toggleButtonClientServer" Path="IsChecked" />
+                                    <Binding ElementName="toggleButtonUDPTCP" Path="IsChecked" />
+                                </MultiBinding>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                    <!--StackPanel with Auto Collapsed-->
+                    <Style TargetType="{x:Type StackPanel}" x:Key="endPointPara">
+                        <Setter Property="Visibility">
+                            <Setter.Value>
+                                <MultiBinding Converter="{StaticResource B002Visi}">
+                                    <Binding ElementName="toggleButtonClientServer" Path="IsChecked" />
+                                    <Binding ElementName="toggleButtonUDPTCP" Path="IsChecked" />
+                                </MultiBinding>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+
+                </Grid.Resources>
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto" />
+                    <ColumnDefinition Width="2" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0"  Orientation="Horizontal">
+                    <!--Settings-->
+                    <Expander ExpandDirection="Right" IsExpanded="True" >
+                        <Expander.Header>
+                            <TextBlock  Text="Settings"
+                                        FontSize="20"
+                                        RenderTransformOrigin=".5,.5"
+                                        Foreground="{DynamicResource PrimaryHueDarkBrush}">
+                                <TextBlock.LayoutTransform>
+                                    <RotateTransform Angle="270" />
+                                </TextBlock.LayoutTransform>
+                            </TextBlock>
+                        </Expander.Header>
+
+                        <StackPanel>
+                            <Expander  HorizontalAlignment="Stretch" 
+                                       IsExpanded="{Binding IsRunning,Mode=OneWay,Converter={StaticResource B10Swap}}" >
+                                <Expander.Header>
+                                    <TextBlock Text="Connection" FontSize="18" 
+                                       Foreground="{DynamicResource PrimaryHueDarkBrush}"/>
+                                </Expander.Header>
+                                <StackPanel  TextBlock.Foreground="{DynamicResource MaterialDesignBody}"
+                                             TextBlock.FontSize="13"
+                                             Margin="30,0">
+                                    <!--Setting-->
+                                    <StackPanel IsEnabled="{Binding IsRunning,Converter={StaticResource B10Swap}}" 
+                                                Width="200">
+                                        <!--Server/Client-->
+                                        <DockPanel Margin="5,10" TextBlock.FontSize="16" >
+                                            <TextBlock Text="Client" DockPanel.Dock="Left"/>
+                                            <TextBlock Text="Server" DockPanel.Dock="Right"/>
+                                            <ToggleButton  Style="{StaticResource MaterialDesignSwitchToggleButton}"
+                                                           x:Name="toggleButtonClientServer"
+                                                           IsChecked="{Binding ClientOrServer}">
+                                                <materialDesign:PackIcon Kind="Pin" RenderTransformOrigin=".5,.5">
+                                                    <materialDesign:PackIcon.RenderTransform>
+                                                        <RotateTransform   Angle="45" />
+                                                    </materialDesign:PackIcon.RenderTransform>
+                                                </materialDesign:PackIcon>
+                                                <materialDesign:ToggleButtonAssist.OnContent>
+                                                    <materialDesign:PackIcon   Kind="Pin" />
+                                                </materialDesign:ToggleButtonAssist.OnContent>
+                                            </ToggleButton>
+                                        </DockPanel>
+                                        <!--TCP/UDP-->
+                                        <DockPanel Margin="5,10" TextBlock.FontSize="16">
+                                            <TextBlock Text="U D P" DockPanel.Dock="Left"/>
+                                            <TextBlock Text=" T C P" DockPanel.Dock="Right"/>
+                                            <ToggleButton  Style="{StaticResource MaterialDesignSwitchToggleButton}"
+                                                           IsChecked="{Binding UDPOrTCP}"
+                                                           x:Name="toggleButtonUDPTCP">
+                                                <materialDesign:PackIcon Kind="Pin" RenderTransformOrigin=".5,.5">
+                                                    <materialDesign:PackIcon.RenderTransform>
+                                                        <RotateTransform   Angle="45" />
+                                                    </materialDesign:PackIcon.RenderTransform>
+                                                </materialDesign:PackIcon>
+                                                <materialDesign:ToggleButtonAssist.OnContent>
+                                                    <materialDesign:PackIcon   Kind="Pin" />
+                                                </materialDesign:ToggleButtonAssist.OnContent>
+                                            </ToggleButton>
+                                        </DockPanel>
+                                        <!--Para List-->
+                                        <StackPanel Style="{StaticResource endPointPara}">
+                                            <!--IP Address-->
+                                            <TextBox Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                                                     Text="{Binding IPAddress,UpdateSourceTrigger=PropertyChanged}"
+                                                     VerticalAlignment="Center"
+                                                     materialDesign:TextFieldAssist.HasClearButton="True"
+                                                     materialDesign:TextFieldAssist.PrefixText="-> "
+                                                     materialDesign:TextFieldAssist.SuffixText="" 
+                                                     materialDesign:HintAssist.FloatingScale="1.1"                                  
+                                                     Margin="5">
+                                                <materialDesign:HintAssist.Hint>
+                                                    <StackPanel  Orientation="Horizontal" >
+                                                        <materialDesign:PackIcon  Kind="IpNetwork" 
+                                                              VerticalAlignment="Center"/>
+                                                        <TextBlock  Text=" IPv4 Address" />
+                                                    </StackPanel>
+                                                </materialDesign:HintAssist.Hint>
+                                            </TextBox>
+                                            <!--Port-->
+                                            <TextBox Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                                                     Text="{Binding Port,UpdateSourceTrigger=PropertyChanged}"
+                                                     VerticalAlignment="Center"
+                                                     materialDesign:TextFieldAssist.HasClearButton="True"
+                                                     materialDesign:TextFieldAssist.PrefixText="-> "
+                                                     materialDesign:TextFieldAssist.SuffixText=""
+                                                     materialDesign:HintAssist.FloatingScale="1.1"                                  
+                                                     Margin="5">
+                                                <materialDesign:HintAssist.Hint>
+                                                    <StackPanel  Orientation="Horizontal" >
+                                                        <materialDesign:PackIcon  Kind="HelpNetwork" 
+                                                              VerticalAlignment="Center"/>
+                                                        <TextBlock  Text=" Port (0-65535)" />
+                                                    </StackPanel>
+                                                </materialDesign:HintAssist.Hint>
+                                            </TextBox>
+                                            <!--Maximum length of the pending connections queue-->
+                                            <TextBox Style="{StaticResource maiximumClients}"
+                                                     Text="{Binding MaxiConnections,UpdateSourceTrigger=PropertyChanged}"
+                                                     VerticalAlignment="Center"
+                                                     materialDesign:TextFieldAssist.HasClearButton="False"
+                                                     materialDesign:TextFieldAssist.PrefixText="-> "
+                                                     materialDesign:TextFieldAssist.SuffixText=""
+                                                     materialDesign:HintAssist.FloatingScale="1.1"                                  
+                                                     Margin="5">
+                                                <materialDesign:HintAssist.Hint>
+                                                    <StackPanel  Orientation="Horizontal" >
+                                                        <materialDesign:PackIcon  Kind="CheckNetwork" 
+                                                                              VerticalAlignment="Center"/>
+                                                        <TextBlock  Text=" TCP MaxiClients" />
+                                                    </StackPanel>
+                                                </materialDesign:HintAssist.Hint>
+                                            </TextBox>
+                                        </StackPanel>
+                                        <!--ReceiveBufferSize-->
+                                        <TextBox Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                                                 Text="{Binding ReceiveBufferSize,UpdateSourceTrigger=PropertyChanged}"
+                                                 VerticalAlignment="Center"
+                                                 materialDesign:TextFieldAssist.HasClearButton="True"
+                                                 materialDesign:TextFieldAssist.PrefixText="-> "
+                                                 materialDesign:TextFieldAssist.SuffixText="KB"
+                                                 materialDesign:HintAssist.FloatingScale="1.1"                                 
+                                                 Margin="5">
+                                            <materialDesign:HintAssist.Hint>
+                                                <StackPanel  Orientation="Horizontal" >
+                                                    <materialDesign:PackIcon  Kind="TableNetwork" 
+                                                              VerticalAlignment="Center"/>
+                                                    <TextBlock  Text=" RcvBufferSize" />
+                                                </StackPanel>
+                                            </materialDesign:HintAssist.Hint>
+                                        </TextBox>
+
+                                        <!--Alias-->
+                                        <StackPanel Width="auto" Margin="5" >
+                                            <CheckBox x:Name="MaterialDesignFilledTextBoxEnabled"
+                                                      Content="Alias" />
+                                            <TextBox  Style="{StaticResource MaterialDesignFilledTextBox}"
+                                                      VerticalAlignment="Center"
+                                                      Background="Transparent"
+                                                      materialDesign:HintAssist.Hint="Name"
+                                                      Visibility="{Binding Path=IsChecked, 
+                                                                   Converter={StaticResource B12Visi},
+                                                                   ElementName=MaterialDesignFilledTextBoxEnabled}" 
+                                              Text="{Binding Alias,UpdateSourceTrigger=PropertyChanged}">
+                                            </TextBox>
+                                        </StackPanel>
+                                    </StackPanel>
+                                    <!--Json Serialize-->
+                                    <DockPanel Margin="5,10">
+                                        <TextBlock Text="Common" 
+                                                   DockPanel.Dock="Left"
+                                                   HorizontalAlignment="Left"
+                                                   Margin="5,0"/>
+                                        <TextBlock Text="Serialized" 
+                                                   DockPanel.Dock="Right" 
+                                                   HorizontalAlignment="Right"
+                                                   Margin="5,0"/>
+                                        <ToggleButton Style="{StaticResource MaterialDesignSwitchLightToggleButton}"
+                                                      ToolTip="Transfer via Json Serialized"
+                                                      IsChecked="{Binding JsonSerialized}" />
+                                    </DockPanel>
+
+
+                                    <!--Start-->
+                                    <Button Style="{StaticResource MaterialDesignOutlinedButton}"
+                                        Content="{Binding StartStop}" 
+                                        Command="{Binding CmdStartOrStop}"
+                                        Margin="5"
+                                        IsDefault="True"/>
+                                </StackPanel>
+                            </Expander>
+                            <!--Display Settings-->
+                            <Expander  HorizontalAlignment="Stretch" 
+                                       Foreground="{DynamicResource PrimaryHueDarkBrush}">
+                                <Expander.Header>
+                                    <TextBlock Text="Display" FontSize="18" />
+                                </Expander.Header>
+
+                                <StackPanel >
+                                    <CheckBox Style="{StaticResource MaterialDesignFilterChipPrimaryCheckBox}"
+                                              IsChecked="{Binding WordWrap}" 
+                                              IsEnabled="{Binding ElementName=checkBoxDisplaySendingLog,
+                                                                  Path=IsChecked,
+                                                                  Converter={StaticResource B10Swap}}"
+                                              HorizontalAlignment="Center"
+                                              Content="Auto Word Wrap" 
+                                              Margin="5"/>
+                                    <CheckBox Style="{StaticResource MaterialDesignFilterChipPrimaryCheckBox}"
+                                              IsChecked="{Binding DisplayDatetime}" 
+                                              IsEnabled="{Binding ElementName=checkBoxDisplaySendingLog,
+                                                                  Path=IsChecked,
+                                                                  Converter={StaticResource B10Swap}}"
+                                              HorizontalAlignment="Center"
+                                              Content="Display Datetime" 
+                                              Margin="5"/>
+                                    <CheckBox Style="{StaticResource MaterialDesignFilterChipPrimaryCheckBox}"
+                                              IsChecked="{Binding RxCountIncrement}" 
+                                              HorizontalAlignment="Center"
+                                              Content="Rx Count Increment" 
+                                              Margin="5"/>
+                                    <CheckBox Style="{StaticResource MaterialDesignFilterChipPrimaryCheckBox}"
+                                              IsChecked="{Binding TxCountIncrement}" 
+                                              HorizontalAlignment="Center"
+                                              Content="Tx Count Increment" 
+                                              Margin="5"/>
+                                    <CheckBox Style="{StaticResource MaterialDesignFilterChipPrimaryCheckBox}"
+                                              x:Name="checkBoxDisplaySendingLog"
+                                              IsChecked="{Binding DisplayTxRxLog}" 
+                                              HorizontalAlignment="Center"
+                                              Content="Display Tx/Rx Log" 
+                                              Margin="5"/>
+                                </StackPanel>
+                            </Expander>
+                            <!--Format Settings-->
+                            <Expander  HorizontalAlignment="Stretch" 
+                                       Foreground="{DynamicResource PrimaryHueDarkBrush}"
+                                       IsExpanded="{Binding IsRunning,Mode=OneWay}">
+                                <Expander.Header>
+                                    <TextBlock Text="Format" FontSize="18" />
+                                </Expander.Header>
+                                
+                                <StackPanel   >
+                                    <RadioButton  Style="{StaticResource MaterialDesignTabRadioButton}"
+                                              Width="100"
+                                              Margin="5" 
+                                              GroupName="format"
+                                              IsChecked="True"
+                                              Content="DEFAULT" />
+                                    <RadioButton  Style="{StaticResource MaterialDesignTabRadioButton}"
+                                              Width="100"
+                                              Margin="5" 
+                                              GroupName="format"
+                                              IsChecked="{Binding FormatASCII}"
+                                              Content="ASCII" />
+                                    <RadioButton  Style="{StaticResource MaterialDesignTabRadioButton}"
+                                              Width="100"
+                                              Margin="5" 
+                                              GroupName="format"
+                                              IsChecked="{Binding FormatHEX}"
+                                              Content="HEX" />
+                                    <RadioButton  Style="{StaticResource MaterialDesignTabRadioButton}"
+                                              Width="100"
+                                              Margin="5" 
+                                              GroupName="format"
+                                              IsChecked="{Binding FormatUTF8}"
+                                              Content="UTF-8" />
+                                </StackPanel>
+                            </Expander>
+                            <!--Save to File-->
+                            <Expander  HorizontalAlignment="Stretch" 
+                                       Foreground="{DynamicResource PrimaryHueDarkBrush}">
+                                <Expander.Header>
+                                    <TextBlock Text="Save to File" FontSize="18" />
+                                </Expander.Header>
+                                <StackPanel Width="200" TextBlock.FontSize="14">
+                                    <CheckBox  IsChecked="{Binding SaveToSQlite}"
+                                               Content="SQLite Database"
+                                               Style="{StaticResource MaterialDesignLightCheckBox}"
+                                               Margin="5" />
+                                    <CheckBox  IsChecked="{Binding SaveToTxtFile}"
+                                               Content=" .txt File"
+                                               Style="{StaticResource MaterialDesignLightCheckBox}"
+                                               Margin="5" />
+                                </StackPanel>
+                            </Expander>
+                        </StackPanel>
+                    </Expander>
+
+                    <!--Client List-->
+                    <Expander ExpandDirection="Right" 
+                              IsExpanded="{Binding IsRunning,Mode=OneWay}" 
+                              Foreground="{DynamicResource PrimaryHueDarkBrush}" 
+                              Padding="5"
+                              Style="{StaticResource clientList}">
+                        <Expander.Header>
+                            <TextBlock  Text="Client List"
+                                        FontSize="20"
+                                        RenderTransformOrigin=".5,.5"
+                                        Foreground="{DynamicResource PrimaryHueDarkBrush}">
+                                <TextBlock.LayoutTransform>
+                                    <RotateTransform Angle="270" />
+                                </TextBlock.LayoutTransform>
+                            </TextBlock>
+                        </Expander.Header>
+
+                        <Grid >
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="20" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+
+                            <!-- Select All-->
+                            <DockPanel LastChildFill="False" >
+                                <CheckBox Content="Select All" 
+                                          Grid.Row="0" 
+                                          DockPanel.Dock="Right" 
+                                          Margin="10,0"
+                                          Checked="CheckBox_Checked"
+                                          Unchecked="CheckBox_Unchecked" />
+                                <TextBlock  DockPanel.Dock="Left" 
+                                            Margin="10,0"
+                                            VerticalAlignment="Center">
+                                <Run Text="Total " />
+                                <Run Text="{Binding ClientTotal}" />
+                                </TextBlock>
+                            </DockPanel>
+
+                            <!--List -->
+                            <ItemsControl  ItemsSource="{Binding TcpClientViewModelCollection}"  
+                                           Grid.IsSharedSizeScope="True"
+                                           Margin="10" 
+                                           Grid.Row="1"                                           
+                                           x:Name="ItemsControl">
+
+                                <ItemsControl.Template>
+                                    <ControlTemplate >
+                                        <Border Background="{TemplateBinding Background}" 
+                                                    BorderBrush="{TemplateBinding BorderBrush}" 
+                                                    BorderThickness="{TemplateBinding BorderThickness}" 
+                                                    Padding="{TemplateBinding Padding}" 
+                                                    SnapsToDevicePixels="true">
+                                            <ScrollViewer VerticalScrollBarVisibility="Visible">
+                                                <ItemsPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                                            </ScrollViewer>
+                                        </Border>
+                                    </ControlTemplate>
+                                </ItemsControl.Template>
+
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate  >
+                                        <Border  x:Name="Border" 
+                                                     Padding="8" 
+                                                     BorderThickness="0 0 0 1" 
+                                                     BorderBrush="{DynamicResource MaterialDesignDivider}">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition   SharedSizeGroup="Checkerz" />
+                                                    <ColumnDefinition />
+                                                </Grid.ColumnDefinitions>
+                                                <ToggleButton   VerticalAlignment="Center"
+                                                                    IsChecked="{Binding IsChecked}"
+                                                                    Style="{StaticResource 
+                                                                            MaterialDesignActionLightToggleButton}"
+                                                                    Content="{Binding Code}" />
+                                                <StackPanel     Margin="8 0 0 0" Grid.Column="1">
+                                                    <TextBlock  Text="{Binding Name}" FontWeight="Bold" />
+                                                    <TextBlock  Text="{Binding EndPoint}" />
+                                                </StackPanel>
+                                            </Grid>
+                                        </Border>
+                                        <DataTemplate.Triggers>
+                                            <DataTrigger  Binding="{Binding IsChecked}"  Value="True">
+                                                <Setter TargetName="Border" 
+                                                        Property="Background" 
+                                                        Value="{DynamicResource PrimaryHueLightBrush}" />
+                                            </DataTrigger>
+                                        </DataTemplate.Triggers>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+
+
+                        </Grid>
+                    </Expander>
+
+                    <!--UDP Operation-->
+                    <Expander ExpandDirection="Right" 
+                              IsExpanded="True" 
+                              Foreground="{DynamicResource PrimaryHueDarkBrush}" 
+                              Padding="5"
+                              Visibility="{Binding UdpOperationEnable,
+                                                   Converter={StaticResource B12Visi}}">
+                        <Expander.Header >
+                            <TextBlock  Text="UDP Operation " 
+                                        FontSize="20"
+                                        RenderTransformOrigin=".5,.5"
+                                        Foreground="{DynamicResource PrimaryHueDarkBrush}">
+                                <TextBlock.LayoutTransform>
+                                    <RotateTransform Angle="270" />
+                                </TextBlock.LayoutTransform>
+                            </TextBlock>
+                        </Expander.Header>
+
+                        <StackPanel >
+                            <!--Cast Mode-->
+                            <Expander IsExpanded="True" HorizontalAlignment="Stretch" Margin="5">
+                                <Expander.Header>
+                                    <TextBlock Text="Cast Mode" FontSize="18" 
+                                       Foreground="{DynamicResource PrimaryHueDarkBrush}"/>
+                                </Expander.Header>
+                                <StackPanel   >
+                                    <RadioButton  Style="{StaticResource MaterialDesignTabRadioButton}"
+                                                  Width="100"
+                                                  Margin="5" 
+                                                  GroupName="cast"
+                                                  IsChecked="True"
+                                                  Content="Singlecast" 
+                                                  x:Name="radioBtnSinglecast"/>
+                                    <RadioButton  Style="{StaticResource MaterialDesignTabRadioButton}"
+                                                  Width="100"
+                                                  Margin="5" 
+                                                  GroupName="cast"
+                                                  IsChecked="{Binding Broadcast}"
+                                                  Content="Broadcast" 
+                                                  x:Name="radioBtnBroadcast"/>
+                                    <RadioButton  Style="{StaticResource MaterialDesignTabRadioButton}"
+                                                  Width="100"
+                                                  Margin="5" 
+                                                  GroupName="cast"
+                                                  IsChecked="{Binding Multicast}"
+                                                  Content="Multicast" 
+                                                  x:Name="radioBtnMulticast"/>
+                                </StackPanel>
+                            </Expander>
+                            <!--EndPoint-->
+                            <Expander IsExpanded="True" HorizontalAlignment="Stretch" Margin="5">
+                                <Expander.Header>
+                                    <TextBlock Text="Destination" FontSize="18" 
+                                               Foreground="{DynamicResource PrimaryHueDarkBrush}"/>
+                                </Expander.Header>
+
+                                <StackPanel Width="150" >
+                                    <!--IP Address-->
+                                    <TextBox Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                                             Text="{Binding CastIPAddress,UpdateSourceTrigger=PropertyChanged}"
+                                             VerticalAlignment="Center"
+                                             materialDesign:TextFieldAssist.HasClearButton="True"
+                                             materialDesign:TextFieldAssist.PrefixText="-> "
+                                             materialDesign:TextFieldAssist.SuffixText="" 
+                                             materialDesign:HintAssist.FloatingScale="1.1"                                 
+                                             Margin="5">
+
+                                        <!--CmdReviewConfirm,due to TextBox.TextChanged-->
+                                        <i:Interaction.Triggers>
+                                            <i:EventTrigger EventName="TextChanged" >
+                                                <i:InvokeCommandAction Command="{Binding CmdReviewConfirm}" />
+                                            </i:EventTrigger>
+                                        </i:Interaction.Triggers>
+
+                                        <materialDesign:HintAssist.Hint>
+                                            <StackPanel  Orientation="Horizontal" >
+                                                <materialDesign:PackIcon  Kind="IpNetwork" 
+                                                              VerticalAlignment="Center"/>
+                                                <TextBlock  Text=" IPv4 Address" />
+                                            </StackPanel>
+                                        </materialDesign:HintAssist.Hint>
+                                    </TextBox>
+                                    <!--Port-->
+                                    <TextBox Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                                             Text="{Binding CastPort,UpdateSourceTrigger=PropertyChanged}"
+                                             VerticalAlignment="Center"
+                                             materialDesign:TextFieldAssist.HasClearButton="True"
+                                             materialDesign:TextFieldAssist.PrefixText="-> "
+                                             materialDesign:TextFieldAssist.SuffixText=""
+                                             materialDesign:HintAssist.FloatingScale="1.1"                                 
+                                             Margin="5">
+
+                                        <!--CmdReviewConfirm,due to TextBox.TextChanged-->
+                                        <i:Interaction.Triggers>
+                                            <i:EventTrigger EventName="TextChanged" >
+                                                <i:InvokeCommandAction Command="{Binding CmdReviewConfirm}" />
+                                            </i:EventTrigger>
+                                        </i:Interaction.Triggers>
+
+                                        <materialDesign:HintAssist.Hint>
+                                            <StackPanel  Orientation="Horizontal" >
+                                                <materialDesign:PackIcon  Kind="HelpNetwork" 
+                                                              VerticalAlignment="Center"/>
+                                                <TextBlock  Text=" Port" />
+                                            </StackPanel>
+                                        </materialDesign:HintAssist.Hint>
+                                    </TextBox>
+                                    <!--Confirm Singlecast-->
+                                    <Button Style="{StaticResource MaterialDesignFlatButton}" 
+                                            Padding="1"
+                                            Content="Singlecast Confirm" 
+                                            Margin="5,10"
+                                            Command="{Binding CmdSetCastMode}"
+                                            CommandParameter="Singlecast"
+                                            Visibility="{Binding ElementName=radioBtnSinglecast,
+                                                                 Path=IsChecked,
+                                                                 Converter={StaticResource B12Visi}}"/>
+                                    <!--Confirm Broadcast-->
+                                    <Button Style="{StaticResource MaterialDesignFlatButton}" 
+                                            Padding="1"
+                                            Content="Broadcast Confirm" 
+                                            Margin="5,10"
+                                            Command="{Binding CmdSetCastMode}"
+                                            CommandParameter="Broadcast"
+                                            Visibility="{Binding ElementName=radioBtnBroadcast,
+                                                                 Path=IsChecked,
+                                                                 Converter={StaticResource B12Visi}}"/>
+                                    <!--AddMembership-->
+                                    <Button Style="{StaticResource MaterialDesignFlatButton}"
+                                            Content="AddMembership" 
+                                            Margin="5,10"
+                                            Command="{Binding CmdSetCastMode}"
+                                            CommandParameter="Multicast"
+                                            Visibility="{Binding ElementName=radioBtnMulticast,
+                                                                 Path=IsChecked,
+                                                                 Converter={StaticResource B12Visi}}"/>
+                                    <!--DropMembership-->
+                                    <Button Style="{StaticResource MaterialDesignFlatButton}"
+                                            Content="DropMembership" 
+                                            Margin="5,10"
+                                            Command="{Binding CmdSetCastMode}"
+                                            CommandParameter="ExitMulticast"
+                                            Visibility="{Binding ElementName=radioBtnMulticast,
+                                                                 Path=IsChecked,
+                                                                 Converter={StaticResource B12Visi}}"/>
+                                </StackPanel>
+                            </Expander>
+                        </StackPanel>
+
+
+                    </Expander>
+                </StackPanel>
+                <!--Server Running-->
+                <ProgressBar Grid.Column="1"  Orientation="Vertical" 
+                             IsIndeterminate="{Binding IsRunning}" 
+                             Visibility="{Binding ElementName=toggleButtonClientServer,
+                                                  Path=IsChecked,
+                                                  Converter={StaticResource B12Visi}}"/>
+
+                <!--RCV/SND Area-->
+                <Grid Grid.Column="2">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="2" />
+                        <RowDefinition Height="8*" />
+                        <RowDefinition Height="40" />
+                        <RowDefinition Height="8*" />
+                    </Grid.RowDefinitions>
+
+                    <!--Client Connected-->
+                    <ProgressBar Grid.Row="0" IsIndeterminate="{Binding IsRunning}" 
+                                 Visibility="{Binding ElementName=toggleButtonClientServer,
+                                                      Path=IsChecked,
+                                                      Converter={StaticResource B02Visi}}"/>
+
+                    <!--Receive Area-->
+                    <Border Grid.Row="1" Background="{DynamicResource MaterialDesignBackground}">
+                        <GroupBox   Header="Receive Message"
+                                    Style="{DynamicResource MaterialDesignGroupBox}"
+                                    Margin="16"
+                                    UseLayoutRounding="True">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="auto" />
+                                </Grid.RowDefinitions>
+                                <materialDesign:Card  Foreground="{DynamicResource PrimaryHueLightForegroundBrush}" >
+                                    <local:TextScrollBlock TextContent="{Binding ReceivedText,NotifyOnTargetUpdated=True}" />
+                                </materialDesign:Card>
+
+                                <DockPanel Grid.Row="1" LastChildFill="False" Margin="10,10,10,0" >
+                                    <!--Clear Button-->
+                                    <Button Style="{StaticResource MaterialDesignFlatButton}"
+                                            DockPanel.Dock="Right"
+                                            Margin="5,0"
+                                            Content="Clear" 
+                                            Command="{Binding CmdClearReceiveArea}"/>
+                                    <!--Rx Count-->
+                                    <materialDesign:Chip  DockPanel.Dock="Right"
+                                                          Icon="Rx"  
+                                                          IsDeletable="True"
+                                                          DeleteCommand="{Binding CmdResetRxCount}"
+                                                          HorizontalAlignment="Center"
+                                                          IconForeground="{DynamicResource PrimaryHueLightBrush}" 
+                                                          Margin="10,0">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="{Binding RxPieces}" />
+                                            <TextBlock Text=" Pieces" />
+                                            <TextBlock Text="/ " />
+                                            <TextBlock Text="{Binding RxCount}" />
+                                            <TextBlock Text=" Bytes" />
+                                        </StackPanel>
+                                    </materialDesign:Chip>
+                                    <!--Remote Endpoint-->
+                                    <TextBlock DockPanel.Dock="Left" VerticalAlignment="Center" Margin="10,0">
+                                        <Run Text="{Binding RemoteName}" />
+                                        <Run Text="{Binding RemoteEndPoint}" />
+                                    </TextBlock>
+
+                                </DockPanel>
+                            </Grid>
+                        </GroupBox>
+                    </Border>
+
+                    <!--Message Area-->
+                    <materialDesign:Card Grid.Row="2" 
+                                     Background="{DynamicResource PrimaryHueMidBrush}"
+                                     Foreground="{DynamicResource MaterialDesignDarkForeground}"
+                                     Margin="20,0" >
+                        <i:Interaction.Triggers>
+                            <i:EventTrigger EventName="MouseLeftButtonDown">
+                                <i:InvokeCommandAction Command="{Binding CmdClearInfoMessage}" />
+                            </i:EventTrigger>
+                        </i:Interaction.Triggers>
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon Kind="MessageArrowRightOutline" 
+                                                     VerticalAlignment="Center" 
+                                                     Margin="5,0" />
+                            <TextBlock  FontSize="13"  
+                                        Text="{Binding InfoMessage}" 
+                                        VerticalAlignment="Center" 
+                                        Foreground="{Binding InfoMessage,Converter={StaticResource text2foreground}}"/>
+                        </StackPanel>
+                    </materialDesign:Card>
+
+                    <!--Send Area-->
+                    <Border  Grid.Row="3" Background="{DynamicResource MaterialDesignBackground}">
+                        <GroupBox Header="Send Message"
+                                  Style="{DynamicResource MaterialDesignGroupBox}"
+                                  Margin="16"
+                                  UseLayoutRounding="True" >
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="auto" />
+                                </Grid.RowDefinitions>
+
+                                <TextBox    Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                            VerticalAlignment="Center"
+                                            Height="auto" MinHeight="80" 
+                                            AcceptsReturn="True"
+                                            TextWrapping="WrapWithOverflow"
+                                            VerticalScrollBarVisibility="Auto"
+                                            materialDesign:HintAssist.Hint="Input Message Here" 
+                                            IsEnabled="{Binding IsRunning}"
+                                            Text="{Binding SendingText,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}">
+                                    <i:Interaction.Triggers>
+                                        <i:EventTrigger EventName="TextChanged">
+                                            <i:InvokeCommandAction Command="{Binding CmdReviewText}"/>
+                                        </i:EventTrigger>
+                                    </i:Interaction.Triggers>
+                                </TextBox>
+                                <DockPanel Grid.Row="1" LastChildFill="False">
+                                    <!--clear-->
+                                    <Button  Style="{StaticResource MaterialDesignFlatButton}"
+                                             Content="Clear" 
+                                             DockPanel.Dock="Right"
+                                             Margin="10,0"
+                                             Command="{Binding CmdClearSendArea}"/>
+                                    <!--Tx Count-->
+                                    <materialDesign:Chip  DockPanel.Dock="Right"
+                                                          Icon="Tx"  
+                                                          IsDeletable="True"
+                                                          DeleteCommand="{Binding CmdResetTxCount}"
+                                                          HorizontalAlignment="Center"
+                                                          IconForeground="{DynamicResource PrimaryHueLightBrush}" 
+                                                          Margin="10,0">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="{Binding TxPieces}" />
+                                            <TextBlock Text=" Pieces" />
+                                            <TextBlock Text="/ " />
+                                            <TextBlock Text="{Binding TxCount}" />
+                                            <TextBlock Text=" Bytes" />
+                                        </StackPanel>
+                                    </materialDesign:Chip>
+                                    <!--send-->
+                                    <Button  Style="{StaticResource MaterialDesignFlatButton}"
+                                             Content="Send" 
+                                             DockPanel.Dock="Left"
+                                             Margin="5,0"
+                                             Command="{Binding CmdSendMessage}"
+                                             x:Name="btnSend"/>
+                                    <!--Auto Send-->
+                                    <StackPanel  Orientation="Horizontal" DockPanel.Dock="Left">
+                                        <CheckBox   x:Name="checkBoxAutoSend"
+                                                    Content="Auto Send " 
+                                                    Margin="5,0" 
+                                                    VerticalAlignment="Center"
+                                                    IsChecked="{Binding AutoSend,UpdateSourceTrigger=PropertyChanged}"
+                                                    IsEnabled="{Binding ElementName=btnSend,Path=IsEnabled,
+                                                                        NotifyOnSourceUpdated=True}"/>
+                                        <TextBox    materialDesign:HintAssist.Hint="CycleTime(ms)"
+                                                    Text="{Binding SendCycleTime,UpdateSourceTrigger=PropertyChanged}"
+                                                    VerticalAlignment="Center" 
+                                                    IsEnabled="{Binding ElementName=checkBoxAutoSend,Path=IsChecked}"/>
+
+                                    </StackPanel>
+                                </DockPanel>
+                            </Grid>
+                        </GroupBox>
+                    </Border>
+
+                </Grid>
+            </Grid>
+
+        </TabItem>
+
+
+        <!--Log Table-->
+        <TabItem  Style="{StaticResource MaterialDesignNavigationRailTabItem}" 
+                  Width="auto" Height="50" >
+            <TabItem.Header >
+                <StackPanel Orientation="Horizontal">
+                    <materialDesign:PackIcon Kind="TableNetwork" Margin="10,0" />
+                    <TextBlock Text="Log" />
+                </StackPanel>
+            </TabItem.Header>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="3*"/>
+                    <ColumnDefinition Width="86*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition />
+                    <RowDefinition />
+                </Grid.RowDefinitions>
+
+
+            </Grid>
+
+        </TabItem>
+
+
+    </TabControl>
+</UserControl>

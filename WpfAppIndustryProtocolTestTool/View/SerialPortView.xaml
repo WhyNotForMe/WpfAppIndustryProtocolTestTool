@@ -1,0 +1,514 @@
+﻿<UserControl x:Class="WpfAppIndustryProtocolTestTool.View.SerialPortView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:WpfAppIndustryProtocolTestTool.View"
+             xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"             
+             TextElement.FontWeight="Regular"
+             TextElement.FontSize="13"
+             TextOptions.TextFormattingMode="Ideal"
+             TextOptions.TextRenderingMode="Auto"
+             Background="{DynamicResource MaterialDesignPaper}"
+             FontFamily="{DynamicResource MaterialDesignFont}"
+             DataContext="{Binding SerialPort,Source={StaticResource Locator}}"             
+             mc:Ignorable="d" 
+             d:DesignHeight="600" d:DesignWidth="1200">
+    
+    <TabControl >
+        <!--Configuration-->
+        <TabItem  Style="{StaticResource MaterialDesignNavigationRailTabItem}" 
+                  Width="auto" Height="50">
+            <TabItem.Header>
+                <StackPanel Orientation="Horizontal">
+                    <materialDesign:PackIcon Kind="Cog" Margin="10,0" />
+                    <TextBlock Text="Configuration" />
+                </StackPanel>
+            </TabItem.Header>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*" />
+                    <ColumnDefinition Width="3*" />
+                </Grid.ColumnDefinitions>
+
+                <!--Serial Port Parameters-->
+                <GroupBox Grid.Column="0" Header="Port Settings"  Margin="10"
+                          Style="{DynamicResource MaterialDesignGroupBox}"
+                          materialDesign:ShadowAssist.ShadowDepth="Depth3">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="auto" />
+                        </Grid.RowDefinitions>
+
+                        <ItemsControl ItemsSource="{Binding SerialPortCfgCollection}"  >
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate >
+                                    <DockPanel Margin="1">                                        
+                                        <ComboBox DockPanel.Dock="Right"
+                                                  materialDesign:HintAssist.Hint="Input or Select"
+                                                  materialDesign:HintAssist.HintOpacity=".46"
+                                                  IsEditable="True" 
+                                                  Margin="25,2" 
+                                                  ItemsSource="{Binding ContentList}"
+                                                  SelectedValue="{Binding SelectedValue,Mode=TwoWay,
+                                                                    UpdateSourceTrigger=PropertyChanged}">
+                                        </ComboBox>
+                                        <materialDesign:Chip  Content="{Binding ChipContent}"  
+                                                              Icon="{Binding ChipIcon}" 
+                                                              Margin="10,2" />
+                                    </DockPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <!--Load Default-->
+                        <Button Grid.Row="1"
+                                Padding="1"
+                                Margin="2"
+                                Style="{StaticResource MaterialDesignFlatButton}"
+                                Content="Load Default Parameters" 
+                                Command="{Binding CmdLoadDefaultPara}"/>
+                    </Grid>
+
+
+                </GroupBox>
+
+                <Grid Grid.Column="1" >
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="3*"/>
+                        <RowDefinition Height="2*"/>
+                    </Grid.RowDefinitions>
+                    <!--Data Settings-->
+                    <GroupBox Grid.Row="0" Header="Data Settings" Margin="10"
+                              Style="{DynamicResource MaterialDesignGroupBox}"
+                              materialDesign:ShadowAssist.ShadowDepth="Depth3">
+                        <StackPanel Margin="5,0" VerticalAlignment="Center" HorizontalAlignment="Center">
+                            <!--Data Format-->
+                            <StackPanel Orientation="Horizontal" Height="50" Margin="5">
+                                <materialDesign:Card Background="{DynamicResource PrimaryHueLightBrush}"
+                                                     Foreground="{DynamicResource PrimaryHueLightForegroundBrush}"
+                                                     Width="100" Padding="5" Height="30">
+                                    <TextBlock FontSize="15" Text="Data Format" VerticalAlignment="Center"/>
+                                </materialDesign:Card>
+                                <UniformGrid Columns="4" Rows="1" Margin="10" >
+                                    <RadioButton Style="{StaticResource MaterialDesignTabRadioButton}"
+                                             GroupName="Format" VerticalAlignment="Center"
+                                             IsChecked="{Binding FormatASCII,Mode=TwoWay,
+                                                                 UpdateSourceTrigger=PropertyChanged}" 
+                                             Content="ASCII" />
+                                    <RadioButton Style="{StaticResource MaterialDesignTabRadioButton}"
+                                             GroupName="Format" VerticalAlignment="Center" 
+                                             IsChecked="{Binding FormatHEX,Mode=OneWayToSource,
+                                                                 UpdateSourceTrigger=PropertyChanged}" 
+                                             Content="HEX" />
+                                    <RadioButton Style="{StaticResource MaterialDesignTabRadioButton}"
+                                             GroupName="Format" VerticalAlignment="Center"
+                                             IsChecked="{Binding FormatUTF8,Mode=OneWayToSource,
+                                                                 UpdateSourceTrigger=PropertyChanged}" 
+                                             Content="UTF-8"  />
+                                    <RadioButton Style="{StaticResource MaterialDesignTabRadioButton}"
+                                             GroupName="Format" VerticalAlignment="Center"
+                                             IsChecked="True" 
+                                             Content="Default" />
+                                </UniformGrid>
+                            </StackPanel>
+
+                            <!--CRC-->
+                            <StackPanel Orientation="Horizontal" Height="50" Margin="5">
+                                <materialDesign:Card Background="{DynamicResource PrimaryHueLightBrush}"
+                                                     Foreground="{DynamicResource PrimaryHueLightForegroundBrush}"
+                                                     Width="100" Padding="5" Height="30">
+                                    <TextBlock FontSize="15" Text="Check" VerticalAlignment="Center"/>
+                                </materialDesign:Card>
+                                <UniformGrid Columns="4" Rows="1" Margin="10">
+                                    <RadioButton Style="{StaticResource MaterialDesignTabRadioButton}"
+                                             GroupName="CRC" VerticalAlignment="Center"
+                                             IsChecked="{Binding CRC8,Mode=OneWayToSource,
+                                                                 UpdateSourceTrigger=PropertyChanged}" 
+                                             Content="CRC8" />
+                                    <RadioButton Style="{StaticResource MaterialDesignTabRadioButton}"
+                                            GroupName="CRC" VerticalAlignment="Center"
+                                             IsChecked="{Binding CRC16,Mode=OneWayToSource,
+                                                                 UpdateSourceTrigger=PropertyChanged}" 
+                                             Content="CRC16" />
+                                    <RadioButton Style="{StaticResource MaterialDesignTabRadioButton}"
+                                             GroupName="CRC" VerticalAlignment="Center"
+                                             IsChecked="{Binding CRC32,Mode=OneWayToSource,
+                                                                 UpdateSourceTrigger=PropertyChanged}" 
+                                             Content="CRC32" />
+                                    <RadioButton Style="{StaticResource MaterialDesignTabRadioButton}"
+                                             GroupName="CRC" VerticalAlignment="Center"
+                                             IsChecked="True" 
+                                             Content="None" />
+                                </UniformGrid>
+                            </StackPanel>
+
+                            <!--Save Data-->
+                            <StackPanel Orientation="Horizontal" Height="50" Margin="5">
+                                <materialDesign:Card Background="{DynamicResource PrimaryHueLightBrush}"
+                                                     Foreground="{DynamicResource PrimaryHueLightForegroundBrush}"
+                                                     Width="100" Padding="5" Height="30">
+                                    <TextBlock FontSize="15" Text="Save Data" VerticalAlignment="Center"/>
+                                </materialDesign:Card>
+                                <UniformGrid Columns="2" Rows="1" Margin="10">
+                                    <CheckBox   x:Name="checkBoxSQLite" VerticalAlignment="Center"
+                                                IsChecked="{Binding SaveToSQLite,Mode=OneWayToSource,
+                                                               UpdateSourceTrigger=PropertyChanged}"  
+                                                Content="SQlite" HorizontalAlignment="Center"
+                                                Margin="10,0"
+                                                Style="{StaticResource MaterialDesignLightCheckBox}" />
+                                    <CheckBox   x:Name="checkBoxFile" VerticalAlignment="Center"
+                                                IsChecked="{Binding SaveToTxtFile,Mode=OneWayToSource,
+                                                               UpdateSourceTrigger=PropertyChanged}"  
+                                                Margin="10,0"
+                                                Content="txt File" HorizontalAlignment="Center"
+                                                Style="{StaticResource MaterialDesignLightCheckBox}" />
+
+                                </UniformGrid>
+                            </StackPanel>
+
+
+                        </StackPanel>
+                    </GroupBox>
+
+                    <Grid Grid.Row="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+
+                        <!--Send Settings-->
+                        <GroupBox Grid.Column="0" Header="Send Settings" Margin="10"
+                              Style="{DynamicResource MaterialDesignGroupBox}"
+                              materialDesign:ShadowAssist.ShadowDepth="Depth3">
+                            <StackPanel>
+                                <CheckBox VerticalAlignment="Center" HorizontalAlignment="Left"
+                                          IsChecked="{Binding SendWithWordWrap}"  
+                                          Content="With Word Wrap" Margin="10"
+                                          Style="{StaticResource MaterialDesignLightCheckBox}" />
+                                <CheckBox VerticalAlignment="Center" HorizontalAlignment="Left"
+                                          IsChecked="{Binding SendWithDateTime}"  
+                                          Content="With DateTime" Margin="10"
+                                          Style="{StaticResource MaterialDesignLightCheckBox}" />
+                                <CheckBox VerticalAlignment="Center" HorizontalAlignment="Left"
+                                          IsChecked="{Binding TxCountIncrement}"  
+                                          Content="Count Increment" Margin="10"
+                                          Style="{StaticResource MaterialDesignLightCheckBox}" />
+                                <CheckBox VerticalAlignment="Center" HorizontalAlignment="Left"
+                                          IsChecked="{Binding DisplayInRcvArea}"  
+                                          Content="Display Log in Receive Area" Margin="10"
+                                          Style="{StaticResource MaterialDesignLightCheckBox}" />
+                            </StackPanel>
+                        </GroupBox>
+
+                        <!--Receive Settings-->
+                        <GroupBox Grid.Column="1" Header="Receive Settings" Margin="10"
+                              Style="{DynamicResource MaterialDesignGroupBox}"
+                              materialDesign:ShadowAssist.ShadowDepth="Depth3">
+                            <StackPanel>
+                                <CheckBox VerticalAlignment="Center" HorizontalAlignment="Left"
+                                          IsChecked="{Binding ReceiveWordWrap}"  
+                                          Content="Auto Word Wrap" Margin="10"
+                                          Style="{StaticResource MaterialDesignLightCheckBox}" />
+                                <CheckBox VerticalAlignment="Center" HorizontalAlignment="Left"
+                                          IsChecked="{Binding DisplayDateTime}"  
+                                          Content="Display DateTime" Margin="10"
+                                          Style="{StaticResource MaterialDesignLightCheckBox}" />
+                                <CheckBox VerticalAlignment="Center" HorizontalAlignment="Left"
+                                          IsChecked="{Binding RxCountIncrement}"  
+                                          Content="Count Increment" Margin="10"
+                                          Style="{StaticResource MaterialDesignLightCheckBox}" />
+                                <CheckBox x:Name="checkBoxReceivePause"
+                                          VerticalAlignment="Center" HorizontalAlignment="Left"
+                                          IsChecked="{Binding ReceivePause,Mode=TwoWay,
+                                                              UpdateSourceTrigger=PropertyChanged}"  
+                                          Content="Pause Receive" Margin="10"
+                                          Style="{StaticResource MaterialDesignLightCheckBox}" />
+                            </StackPanel>
+                        </GroupBox>
+                    </Grid>
+                </Grid>
+            </Grid>
+
+        </TabItem>
+        <!--Communicate-->
+        <TabItem  Style="{StaticResource MaterialDesignNavigationRailTabItem}" 
+                  Width="auto" Height="50">
+            <TabItem.Header>
+                <StackPanel Orientation="Horizontal">
+                    <materialDesign:PackIcon Kind="LanConnect" Margin="10,0" />
+                    <TextBlock Text="Communication" />
+                </StackPanel>
+            </TabItem.Header>
+
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="8*" />
+                    <RowDefinition Height="40" />
+                    <RowDefinition Height="8*" />
+                    <RowDefinition Height="2*" />
+                </Grid.RowDefinitions>
+                <!--Receive Area-->
+                <Border Grid.Row="0" Background="{DynamicResource MaterialDesignBackground}">
+                    <GroupBox Header="Receive Area"
+                              Style="{DynamicResource MaterialDesignGroupBox}"
+                              Margin="16"
+                              UseLayoutRounding="True">
+                        <Grid >
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="2" />
+                            </Grid.RowDefinitions>
+
+                            <materialDesign:Card  Foreground="{DynamicResource PrimaryHueLightForegroundBrush}"
+                                                  Padding="10" >
+                                <Grid >
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <local:TextScrollBlock TextContent="{Binding ReceivedMessage}" />
+
+                                    <Button Grid.Column="1"
+                                            Style="{StaticResource MaterialDesignFlatButton}"
+                                            Content="Clear" 
+                                            Command="{Binding CmdClearReceiveArea}"/>
+                                </Grid>
+                            </materialDesign:Card>
+                            <!--ProgressBar-->
+                            <ProgressBar  Grid.Row="1" 
+                                          IsIndeterminate="{Binding ElementName=checkBoxReceivePause,
+                                                                    Path=IsChecked,
+                                                                    Converter={StaticResource B10Swap}}" 
+                                          Visibility="{Binding IsOpen,Converter={StaticResource B12Visi}}"/>
+
+                        </Grid>
+                    </GroupBox>
+                </Border>
+
+                <!--Message Area-->
+                <materialDesign:Card Grid.Row="1" 
+                                     Background="{DynamicResource PrimaryHueMidBrush}"
+                                     Foreground="{DynamicResource MaterialDesignDarkForeground}"
+                                     Margin="20,0">
+                    <i:Interaction.Triggers>
+                        <i:EventTrigger EventName="MouseLeftButtonDown">
+                            <i:InvokeCommandAction Command="{Binding CmdClearInfoMessage}" />
+                        </i:EventTrigger>
+                    </i:Interaction.Triggers>
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="MessageArrowRightOutline" 
+                                                 VerticalAlignment="Center" 
+                                                 Margin="5,0" />
+                        <TextBlock  FontSize="13"  
+                                    Text="{Binding InfoMessage,NotifyOnSourceUpdated=True}" 
+                                    VerticalAlignment="Center" 
+                                    Foreground="{Binding InfoMessage,Converter={StaticResource text2foreground}}"/>
+                    </StackPanel>
+                </materialDesign:Card>
+
+                <!--Send Area-->
+                <Border Grid.Row="2" Background="{DynamicResource MaterialDesignBackground}">
+                    <GroupBox Header="Send Area"
+                              Style="{DynamicResource MaterialDesignGroupBox}"
+                              Margin="16"
+                              UseLayoutRounding="True" >
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="auto" />
+                            </Grid.RowDefinitions>
+
+                            <TextBox    Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                        VerticalAlignment="Center"
+                                        Height="auto" MinHeight="80"
+                                        AcceptsReturn="True"
+                                        TextWrapping="WrapWithOverflow"
+                                        VerticalScrollBarVisibility="Auto"
+                                        materialDesign:HintAssist.Hint="Input Message Here" 
+                                        Margin="0,5"
+                                        IsEnabled="{Binding IsOpen}"
+                                        Text="{Binding SendingMessage,UpdateSourceTrigger=PropertyChanged}">
+                                <i:Interaction.Triggers>
+                                    <i:EventTrigger EventName="TextChanged">
+                                        <i:InvokeCommandAction Command="{Binding CmdReviewText}"/>
+                                    </i:EventTrigger>
+                                </i:Interaction.Triggers>
+                            </TextBox>
+                            <DockPanel Grid.Row="1" LastChildFill="False">
+                                <StackPanel  Orientation="Horizontal" DockPanel.Dock="Left">
+                                    <CheckBox   x:Name="checkBoxAutoSend"
+                                                Content="Auto Send " 
+                                                Margin="10,0" 
+                                                IsChecked="{Binding AutoSend,Mode=OneWayToSource,
+                                                                    UpdateSourceTrigger=PropertyChanged}"
+                                                IsEnabled="{Binding IsOpen}"/>
+                                    <TextBox    materialDesign:HintAssist.Hint="Cycle Time (Unit: ms)"
+                                                Text="{Binding SendCycleTime,UpdateSourceTrigger=PropertyChanged}"
+                                                VerticalAlignment="Center" 
+                                                IsEnabled="{Binding ElementName=checkBoxAutoSend,Path=IsChecked}"/>
+
+                                </StackPanel>
+                                <Button  Style="{StaticResource MaterialDesignFlatButton}"
+                                         Content="Clear Area" 
+                                         DockPanel.Dock="Right"
+                                         Margin="10,0"
+                                         Command="{Binding CmdClearSendArea}"/>
+                            </DockPanel>
+
+
+                        </Grid>
+                    </GroupBox>
+                </Border>
+                <!--Operation & Count-->
+                <UniformGrid Grid.Row="3" Columns="4" Rows="1">
+                    <!--Open Port-->
+                    <Button      Style="{StaticResource MaterialDesignRaisedButton}"
+                                 materialDesign:ButtonProgressAssist.Value="-1" 
+                                 materialDesign:ButtonProgressAssist.IsIndicatorVisible="{Binding IsOpen}"
+                                 materialDesign:ButtonProgressAssist.IsIndeterminate="True"
+                                 Content="{Binding PortOperation}" 
+                                 Command="{Binding CmdOpenClosePort}"
+                                 Width="100" />
+
+
+                    <!--Rx/Tx Count-->
+                    <materialDesign:Chip  Icon="Rx"  
+                                          IsDeletable="True"
+                                          DeleteCommand="{Binding CmdResetRxCount}"
+                                          HorizontalAlignment="Center"
+                                          IconForeground="{DynamicResource PrimaryHueLightForegroundBrush}" 
+                                          IsEnabled="{Binding IsOpen}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{Binding RxPieces}" />
+                            <TextBlock Text=" Pieces" />
+                            <TextBlock Text="/ " />
+                            <TextBlock Text="{Binding RxCount}" />
+                            <TextBlock Text=" Bytes" />
+                        </StackPanel>
+                    </materialDesign:Chip>
+
+                    <materialDesign:Chip  Icon="Tx"  
+                                          IsDeletable="True"
+                                          DeleteCommand="{Binding CmdResetTxCount}"
+                                          HorizontalAlignment="Center"
+                                          IconForeground="{DynamicResource PrimaryHueLightForegroundBrush}" 
+                                          IsEnabled="{Binding IsOpen}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{Binding TxPieces}" />
+                            <TextBlock Text=" Pieces" />
+                            <TextBlock Text="/ " />
+                            <TextBlock Text="{Binding TxCount}" />
+                            <TextBlock Text=" Bytes" />
+                        </StackPanel>
+                    </materialDesign:Chip>
+                    <!--Send Data-->
+                    <Button  Style="{StaticResource MaterialDesignRaisedButton}"
+                                 materialDesign:ButtonProgressAssist.Value="-1" 
+                                 materialDesign:ButtonProgressAssist.IsIndicatorVisible=
+                                                        "{Binding ElementName=checkBoxAutoSend,Path=IsChecked}"
+                                 materialDesign:ButtonProgressAssist.IsIndeterminate="True"
+                                 Content="Send" 
+                                 Command="{Binding CmdSendMessage}"
+                                 Width="100"/>
+                </UniformGrid>
+
+            </Grid>
+
+        </TabItem>
+        <!--Log Table-->
+        <TabItem  Style="{StaticResource MaterialDesignNavigationRailTabItem}" 
+                  Width="auto" Height="50"
+                  IsEnabled="{Binding ElementName=checkBoxSQLite,Path=IsChecked}">
+            <TabItem.Header>
+                <StackPanel Orientation="Horizontal">
+                    <materialDesign:PackIcon Kind="TableLarge" Margin="10,0" />
+                    <TextBlock Text="Log Table" />
+                </StackPanel>
+            </TabItem.Header>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition />
+                    <RowDefinition />
+                </Grid.RowDefinitions>
+                <!--Log Received-->
+                <Border Grid.Row="0" Background="{DynamicResource MaterialDesignBackground}">
+                    <GroupBox Header="Log Received"
+                              Style="{DynamicResource MaterialDesignGroupBox}"
+                              Margin="16"
+                              UseLayoutRounding="True">
+                        <ListView  ItemsSource="{Binding SerialPortCfgCollection}">
+                            <ListView.View>
+                                <GridView>
+                                    <GridViewColumn  DisplayMemberBinding="{Binding ChipIcon}" Width="auto"
+                                                     Header="No." />
+                                    <GridViewColumn  DisplayMemberBinding="{Binding ChipContent}" Width="auto"
+                                                     Header="DateTime" />
+                                    <GridViewColumn  DisplayMemberBinding="{Binding ContentList}" Width="auto"
+                                                     Header="Message" />
+                                    <GridViewColumn  DisplayMemberBinding="{Binding Description}" Width="500"
+                                                     Header="Source" />
+
+                                </GridView>
+                            </ListView.View>
+                        </ListView>
+
+
+                    </GroupBox>
+                </Border>
+                <!--Log Sended-->
+                <Border Grid.Row="1" Background="{DynamicResource MaterialDesignBackground}">
+                    <GroupBox Header="Log Sended"
+                              Style="{DynamicResource MaterialDesignGroupBox}"
+                              Margin="16"
+                              UseLayoutRounding="True">
+                        <ListView  ItemsSource="{Binding SerialPortCfgCollection}">
+                            <ListView.View>
+                                <GridView>
+                                    <GridViewColumn  DisplayMemberBinding="{Binding ChipIcon}" Width="auto"
+                                                     Header="No." />
+                                    <GridViewColumn  DisplayMemberBinding="{Binding ChipContent}" Width="auto"
+                                                     Header="DateTime" />
+                                    <GridViewColumn  DisplayMemberBinding="{Binding Content}" Width="auto"
+                                                     Header="Message" />
+                                    <GridViewColumn  DisplayMemberBinding="{Binding Description}" Width="500"
+                                                     Header="Destination" />
+
+                                </GridView>
+                            </ListView.View>
+                        </ListView>
+
+
+                    </GroupBox>
+                </Border>
+            </Grid>
+        </TabItem>
+        <!--Log File-->
+        <TabItem  Style="{StaticResource MaterialDesignNavigationRailTabItem}" 
+                  Width="200" Height="50"
+                  IsEnabled="{Binding ElementName=checkBoxFile,Path=IsChecked}">
+            <TabItem.Header>
+                <StackPanel Orientation="Horizontal">
+                    <materialDesign:PackIcon Kind="TextBoxOutline" Margin="10,0" />
+                    <TextBlock Text="Log File" />
+                </StackPanel>
+            </TabItem.Header>
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <TextBox  materialDesign:HintAssist.Hint="Select or Input Route Here"
+                          Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                          VerticalAlignment="Center" 
+                          Margin="20" Width="auto"/>
+                <Button  Style="{StaticResource MaterialDesignFlatButton}"
+                         ToolTip="MaterialDesignFlatButton"
+                         Content="Select" />
+            </StackPanel>
+
+
+        </TabItem>
+    </TabControl>
+
+</UserControl>

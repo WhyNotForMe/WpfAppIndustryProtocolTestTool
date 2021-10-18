@@ -1,0 +1,522 @@
+﻿<UserControl x:Class="WpfAppIndustryProtocolTestTool.View.ModbusView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:WpfAppIndustryProtocolTestTool.View"
+             xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+             TextElement.FontWeight="Regular"
+             TextElement.FontSize="13"
+             TextOptions.TextFormattingMode="Ideal"
+             TextOptions.TextRenderingMode="Auto"
+             Background="{DynamicResource MaterialDesignPaper}"
+             FontFamily="{DynamicResource MaterialDesignFont}"
+             DataContext="{Binding Modbus,Source={StaticResource Locator}}"
+             mc:Ignorable="d" 
+             d:DesignHeight="600" d:DesignWidth="1200">
+
+    <Grid >
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="auto" />
+            <ColumnDefinition Width="2" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <!--Connection Setup-->
+        <Expander ExpandDirection="Right" 
+                  IsExpanded="{Binding IsRunning,Mode=OneWay,Converter={StaticResource B10Swap}}" >
+            <Expander.Header>
+                <TextBlock  Text="Modbus Settings"  RenderTransformOrigin=".5,.5"
+                                    Foreground="{DynamicResource PrimaryHueDarkBrush}"
+                                    FontSize="20">
+                    <TextBlock.LayoutTransform>
+                        <RotateTransform Angle="270" />
+                    </TextBlock.LayoutTransform>
+                </TextBlock>
+            </Expander.Header>
+
+            <StackPanel Margin="10">
+                <!--WorkMode-->
+                <GroupBox Header="Work Mode" Margin="5" >
+                    <StackPanel Orientation="Horizontal" 
+                                IsEnabled="{Binding IsRunning,Converter={StaticResource B10Swap}}">
+                        <RadioButton  Style="{StaticResource MaterialDesignTabRadioButton}"
+                                      Padding="1"
+                                      Margin="5"
+                                      GroupName="workMode"
+                                      IsChecked="{Binding MasterOrClientMode}"
+                                      Content="Master/Client" 
+                                      x:Name="radioBtnMasterOrClient"/>
+                        <RadioButton  Style="{StaticResource MaterialDesignTabRadioButton}"
+                                      Padding="1"
+                                      Margin="5"
+                                      GroupName="workMode"
+                                      IsChecked="{Binding SlaveOrServerMode}"
+                                      Content="Slave/Server"
+                                      x:Name="radioBtnSlaveOrServer"/>
+                    </StackPanel>
+                </GroupBox>
+                <!--Connection-->
+                <GroupBox Header="Connection" Margin="5">
+                    <StackPanel Orientation="Horizontal" 
+                                IsEnabled="{Binding IsRunning,Converter={StaticResource B10Swap}}">
+                        <RadioButton  Style="{StaticResource MaterialDesignTabRadioButton}"
+                                      Padding="1"
+                                      Margin="5"                                          
+                                      GroupName="connectionPort"
+                                      IsChecked="{Binding ModbusRTU}"
+                                      Content="Modbus RTU" 
+                                      x:Name="radioBtnRTU"/>
+                        <RadioButton  Style="{StaticResource MaterialDesignTabRadioButton}"
+                                      Padding="1"
+                                      Margin="5"                                          
+                                      GroupName="connectionPort"
+                                      IsChecked="{Binding ModbusTCP}"
+                                      Content="Modbus TCP" 
+                                      x:Name="radioBtnTCP"/>
+                    </StackPanel>
+                </GroupBox>
+                <!--Serial Port-->
+                <GroupBox Header="Serial Port Configuration" Margin="5" 
+                          Visibility="{Binding ElementName=radioBtnRTU,Path=IsChecked,
+                                               Converter={StaticResource B12Visi}}">
+                    <StackPanel>
+                        <!--Serial Port Para-->
+                        <ItemsControl ItemsSource="{Binding SerialPortCfgCollection}" >
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <ComboBox materialDesign:HintAssist.Hint="{Binding ChipContent}" 
+                                              materialDesign:HintAssist.FloatingScale="1.1"
+                                              materialDesign:HintAssist.IsFloating="True"
+                                              Margin="5,2"
+                                              IsEditable="True"
+                                              ItemsSource="{Binding ContentList}"
+                                              SelectedValue="{Binding SelectedValue,Mode=TwoWay,
+                                                                  UpdateSourceTrigger=PropertyChanged}"/>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <!--Load Default Parameters-->
+                        <Button  Style="{StaticResource MaterialDesignOutlinedButton}"
+                                 Margin="5"
+                                 Padding="0"
+                                 Content="Load Default Parameters" 
+                                 DockPanel.Dock="Bottom"
+                                 Command="{Binding CmdLoadDefaultPara}"/>
+                        <!--Open/Close Button-->
+                        <Button  Style="{StaticResource MaterialDesignOutlinedButton}"
+                                 Margin="5"
+                                 Padding="0"
+                                 Content="{Binding OpenOrClosePort}" 
+                                 DockPanel.Dock="Bottom"
+                                 Command="{Binding CmdOpenOrClosePort}"/>
+                    </StackPanel>
+
+                </GroupBox>
+                <!--TCPConfiguration-->
+                <GroupBox Header="TCP Configuration" Margin="5" 
+                          Visibility="{Binding ElementName=radioBtnTCP,Path=IsChecked,
+                                                         Converter={StaticResource B12Visi}}">
+                    <StackPanel>
+                        <!--IP Address-->
+                        <TextBox Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                                 Text="{Binding IpAddress,UpdateSourceTrigger=PropertyChanged}"
+                                 VerticalAlignment="Center"
+                                 materialDesign:TextFieldAssist.HasClearButton="True"
+                                 materialDesign:TextFieldAssist.PrefixText="-> "
+                                 materialDesign:TextFieldAssist.SuffixText="" 
+                                 materialDesign:HintAssist.FloatingScale="1.1"                                  
+                                 Margin="5">
+                            <materialDesign:HintAssist.Hint>
+                                <StackPanel  Orientation="Horizontal" >
+                                    <materialDesign:PackIcon Kind="IpNetwork" VerticalAlignment="Center"/>
+                                    <TextBlock  Text=" IPv4 Address" />
+                                </StackPanel>
+                            </materialDesign:HintAssist.Hint>
+                        </TextBox>
+                        <!--Port-->
+                        <TextBox Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                                 Text="{Binding Port,UpdateSourceTrigger=PropertyChanged}"
+                                 VerticalAlignment="Center"
+                                 materialDesign:TextFieldAssist.HasClearButton="True"
+                                 materialDesign:TextFieldAssist.PrefixText="-> "
+                                 materialDesign:TextFieldAssist.SuffixText=""
+                                 materialDesign:HintAssist.FloatingScale="1.1"                                
+                                 Margin="5">
+                            <materialDesign:HintAssist.Hint>
+                                <StackPanel  Orientation="Horizontal" >
+                                    <materialDesign:PackIcon Kind="HelpNetwork" VerticalAlignment="Center"/>
+                                    <TextBlock  Text=" Port (default:502)" />
+                                </StackPanel>
+                            </materialDesign:HintAssist.Hint>
+                        </TextBox>
+                        <!--ConnectionTimeout-->
+                        <TextBox Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                                 Text="{Binding ConnectionTimeout,UpdateSourceTrigger=PropertyChanged}"
+                                 VerticalAlignment="Center"
+                                 materialDesign:TextFieldAssist.HasClearButton="True"
+                                 materialDesign:TextFieldAssist.PrefixText="-> "
+                                 materialDesign:TextFieldAssist.SuffixText="ms"
+                                 materialDesign:HintAssist.FloatingScale="1.1"                               
+                                 Margin="5">
+                            <materialDesign:HintAssist.Hint>
+                                <StackPanel  Orientation="Horizontal" >
+                                    <materialDesign:PackIcon  Kind="TableNetwork"  VerticalAlignment="Center"/>
+                                    <TextBlock  Text=" ConnectionTimeout" />
+                                </StackPanel>
+                            </materialDesign:HintAssist.Hint>
+                        </TextBox>
+                        <!--connect-->
+                        <Button  Style="{StaticResource MaterialDesignOutlinedButton}"
+                                 Margin="10"
+                                 Padding="0"
+                                 Content="{Binding StartOrStop}" 
+                                 DockPanel.Dock="Bottom"
+                                 Command="{Binding CmdStartOrStop}"/>
+                    </StackPanel>
+                </GroupBox>
+            </StackPanel>
+
+
+        </Expander>
+        <!--ProgressBar-->
+        <ProgressBar  Grid.Column="1" 
+                      IsIndeterminate="{Binding IsRunning}" Orientation="Vertical"
+                      Visibility="{Binding ElementName=radioBtnSlaveOrServer,
+                                           Path=IsChecked,
+                                           Converter={StaticResource B12Visi}}"/>
+        <!--Data Operation-->
+        <Grid Grid.Column="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="2" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="40" />
+                <RowDefinition Height="auto" />
+            </Grid.RowDefinitions>
+
+            <!--ProgressBar-->
+            <ProgressBar  Grid.Row="0" 
+                          IsIndeterminate="{Binding IsRunning}" 
+                          Visibility="{Binding ElementName=radioBtnMasterOrClient,
+                                           Path=IsChecked,
+                                           Converter={StaticResource B12Visi}}"/>
+            <DockPanel Grid.Row="1" Margin="10,5">
+                <!--Slave Definition-->
+                <GroupBox Header="Slave/Server Definition" 
+                          Margin="2"
+                          DockPanel.Dock="Left"
+                          Visibility="{Binding ElementName=radioBtnSlaveOrServer,Path=IsChecked,
+                                               Converter={StaticResource B12Visi}}">
+                    <StackPanel VerticalAlignment="Center" IsEnabled="{Binding IsRunning}">
+                        <TextBox  materialDesign:HintAssist.Hint="Slave ID"
+                                  materialDesign:HintAssist.FloatingScale="1.1"                                  
+                                  Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                                  VerticalAlignment="Center" 
+                                  Margin="5"
+                                  Text="{Binding SlaveID,UpdateSourceTrigger=PropertyChanged}"/>
+                        <ComboBox materialDesign:HintAssist.Hint="Function" 
+                                  materialDesign:HintAssist.FloatingScale="1.1"
+                                  materialDesign:HintAssist.IsFloating="True"
+                                  Margin="5"
+                                  ItemsSource="{Binding SlaveFunctionList}"
+                                  SelectedIndex="{Binding SelectedSlaveFunction}">
+                            <i:Interaction.Triggers>
+                                <i:EventTrigger EventName="SelectionChanged" >
+                                    <i:InvokeCommandAction Command="{Binding CmdClearDataGrid}" />
+                                </i:EventTrigger>
+                            </i:Interaction.Triggers>
+                        </ComboBox>
+                        <TextBox  materialDesign:HintAssist.Hint="Start Address"
+                                  materialDesign:HintAssist.FloatingScale="1.1"                                  
+                                  Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                                  VerticalAlignment="Center" 
+                                  Margin="5"
+                                  Text="{Binding StartAddress,UpdateSourceTrigger=PropertyChanged}"/>
+                        <TextBox  materialDesign:HintAssist.Hint="Register Quantity"
+                                  materialDesign:HintAssist.FloatingScale="1.1"                                  
+                                  Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                                  VerticalAlignment="Center" 
+                                  Margin="5"
+                                  Text="{Binding RegisterQuantity,UpdateSourceTrigger=PropertyChanged}"/>
+                        <ComboBox materialDesign:HintAssist.Hint="Data Type" 
+                                  materialDesign:HintAssist.FloatingScale="1.1"
+                                  materialDesign:HintAssist.IsFloating="True"
+                                  Margin="5"
+                                  ItemsSource="{Binding SlaveDataTypeList}" 
+                                  SelectedIndex="{Binding SelectedDataType}" >
+                            <i:Interaction.Triggers>
+                                <i:EventTrigger EventName="SelectionChanged" >
+                                    <i:InvokeCommandAction Command="{Binding CmdClearDataGrid}" />
+                                </i:EventTrigger>
+                            </i:Interaction.Triggers>
+                        </ComboBox>
+
+                        <Button  Style="{StaticResource MaterialDesignOutlinedButton}"
+                                 Margin="5,10"
+                                 Padding="0"
+                                 Content="Intialize DataGrid" 
+                                 DockPanel.Dock="Bottom"
+                                 Command="{Binding CmdInitDataGrid}"/>
+
+                    </StackPanel>
+                </GroupBox>
+                <!--Master Definition -->
+                <GroupBox Header="Master/Client Definition" Margin="2" 
+                          DockPanel.Dock="Left" 
+                          Visibility="{Binding ElementName=radioBtnMasterOrClient,Path=IsChecked,
+                                               Converter={StaticResource B12Visi}}">
+                    <DockPanel VerticalAlignment="Center" IsEnabled="{Binding IsRunning}">
+                        <TextBox  materialDesign:HintAssist.Hint="Slave ID"
+                                  materialDesign:HintAssist.FloatingScale="1.1"                                  
+                                  Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                                  VerticalAlignment="Center" 
+                                  Margin="2"
+                                  DockPanel.Dock="Top"
+                                  Text="{Binding SlaveID,UpdateSourceTrigger=PropertyChanged}"/>
+                        <ComboBox materialDesign:HintAssist.Hint="Function" 
+                                  materialDesign:HintAssist.FloatingScale="1.1"
+                                  materialDesign:HintAssist.IsFloating="True"
+                                  Margin="2"
+                                  DockPanel.Dock="Top"
+                                  ItemsSource="{Binding MasterFunctionList}" 
+                                  SelectedIndex="{Binding SelectedMasterFunction,Mode=TwoWay,
+                                                          UpdateSourceTrigger=PropertyChanged}" >
+                            <i:Interaction.Triggers>
+                                <i:EventTrigger EventName="SelectionChanged" >
+                                    <i:InvokeCommandAction Command="{Binding CmdClearDataGrid}" />
+                                </i:EventTrigger>
+                            </i:Interaction.Triggers>
+                        </ComboBox>
+                        <TextBox  materialDesign:HintAssist.Hint="Start Address"
+                                  materialDesign:HintAssist.FloatingScale="1.1"                                  
+                                  Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                                  VerticalAlignment="Center" 
+                                  Margin="2"
+                                  DockPanel.Dock="Top"
+                                  Text="{Binding StartAddress,UpdateSourceTrigger=PropertyChanged}"/>
+                        <TextBox  materialDesign:HintAssist.Hint="Data Quantity"
+                                  materialDesign:HintAssist.FloatingScale="1.1"                                  
+                                  Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                                  VerticalAlignment="Center" 
+                                  Margin="2"
+                                  DockPanel.Dock="Top"
+                                  Text="{Binding RegisterQuantity,UpdateSourceTrigger=PropertyChanged}"/>
+                        <ComboBox materialDesign:HintAssist.Hint="Data Type" 
+                                  materialDesign:HintAssist.FloatingScale="1.1"
+                                  materialDesign:HintAssist.IsFloating="True"                                  
+                                  Margin="2"
+                                  DockPanel.Dock="Top"
+                                  ItemsSource="{Binding MasterDataTypeList}" 
+                                  SelectedIndex="{Binding SelectedDataType}" >
+                            <i:Interaction.Triggers>
+                                <i:EventTrigger EventName="SelectionChanged" >
+                                    <i:InvokeCommandAction Command="{Binding CmdClearDataGrid}" />
+                                </i:EventTrigger>
+                            </i:Interaction.Triggers>
+                        </ComboBox>
+
+                        <Button  Style="{StaticResource MaterialDesignOutlinedButton}"
+                                 Content="Intialize DataGrid" 
+                                 Margin="5,10"
+                                 Padding="0"
+                                 DockPanel.Dock="Bottom"
+                                 Command="{Binding CmdInitDataGrid}"/>
+                    </DockPanel>
+                </GroupBox>
+                <!--Slave Operation-->
+                <GroupBox Header="Slave/Server Operation" Margin="2" 
+                          DockPanel.Dock="Right" 
+                          Visibility="{Binding ElementName=radioBtnSlaveOrServer,Path=IsChecked,
+                                               Converter={StaticResource B12Visi}}">
+                    <DockPanel VerticalAlignment="Center" IsEnabled="{Binding IsRunning}">
+                        <!--RegisterOrderSwap-->
+                        <CheckBox Content="Swap Register Order" 
+                                  DockPanel.Dock="Top"
+                                  Margin="5" 
+                                  HorizontalAlignment="Left"
+                                  IsChecked="{Binding RegisterOrderSwap,UpdateSourceTrigger=PropertyChanged}" />
+                        <!--DisplayTime-->
+                        <CheckBox Content="Display Datetime" 
+                                  DockPanel.Dock="Top"
+                                  Margin="5" 
+                                  HorizontalAlignment="Left"
+                                  IsChecked="{Binding DisplayTime,UpdateSourceTrigger=PropertyChanged}" />
+                        <!--ClearTelegraph-->
+                        <Button  Style="{StaticResource MaterialDesignOutlinedButton}"
+                                 Content="Clear Telegraph" 
+                                 Margin="2,10"                                 
+                                 DockPanel.Dock="Top"
+                                 Command="{Binding CmdClearTelegraph}"/>
+                        <!--UpdateValue-->
+                        <Button  Style="{StaticResource MaterialDesignOutlinedButton}"
+                                 Margin="5"
+                                 Content="Update Register" 
+                                 DockPanel.Dock="Bottom"
+                                 Command="{Binding CmdUpdateRegister}"/>
+                    </DockPanel>
+                </GroupBox>
+                <!--Master Operation-->
+                <GroupBox Header="Master/Client Operation" Margin="2" 
+                          DockPanel.Dock="Right" 
+                          Visibility="{Binding ElementName=radioBtnMasterOrClient,Path=IsChecked,
+                                               Converter={StaticResource B12Visi}}">
+                    <DockPanel VerticalAlignment="Center" IsEnabled="{Binding IsRunning}">
+                        <!--RegisterOrderSwap-->
+                        <CheckBox Content="Swap Register Order" 
+                                  DockPanel.Dock="Top"
+                                  Margin="5" 
+                                  HorizontalAlignment="Left"
+                                  IsChecked="{Binding RegisterOrderSwap,UpdateSourceTrigger=PropertyChanged}" />
+                        <!--DisplayTime-->
+                        <CheckBox Content="Display Datetime" 
+                                  DockPanel.Dock="Top"
+                                  Margin="5" 
+                                  HorizontalAlignment="Left"
+                                  IsChecked="{Binding DisplayTime,UpdateSourceTrigger=PropertyChanged}" />
+                        <!--ClearTelegraph-->
+                        <Button  Style="{StaticResource MaterialDesignOutlinedButton}"
+                                 Content="Clear Telegraph" 
+                                 Margin="2,10"                                 
+                                 DockPanel.Dock="Top"
+                                 Command="{Binding CmdClearTelegraph}"/>
+                        <!--Auto Send-->
+                        <StackPanel  Orientation="Horizontal" DockPanel.Dock="Bottom">
+                            <CheckBox x:Name="checkBoxAutoSend"
+                                      Content="Auto Send " 
+                                      Margin="2" 
+                                      VerticalAlignment="Center"
+                                      IsChecked="{Binding AutoSend,UpdateSourceTrigger=PropertyChanged}"
+                                      IsEnabled="{Binding ElementName=btnSendCommand,Path=IsEnabled,
+                                                          NotifyOnSourceUpdated=True}"/>
+                            <TextBox  materialDesign:HintAssist.Hint="CycleTime(ms)"
+                                      Text="{Binding SendCycleTime,UpdateSourceTrigger=PropertyChanged}"
+                                      VerticalAlignment="Center" 
+                                      IsEnabled="{Binding ElementName=checkBoxAutoSend,Path=IsChecked}"/>
+                        </StackPanel>
+                        <!--SendCommand-->
+                        <Button  Style="{StaticResource MaterialDesignOutlinedButton}"
+                                 Content="Send Command" 
+                                 x:Name="btnSendCommand"
+                                 Margin="2"                                 
+                                 DockPanel.Dock="Bottom"
+                                 Command="{Binding CmdSendCommand}"/>
+
+                    </DockPanel>
+                </GroupBox>
+                <!--Tx Telegraph Structure-->
+                <!--<GroupBox Header="Tx Telegraph " Margin="2" DockPanel.Dock="Right" 
+                          Width="auto" MinWidth="100">
+                    <DataGrid AutoGenerateColumns="False"
+                              CanUserAddRows="True"
+                              CanUserSortColumns="False" 
+                              CanUserResizeColumns="False"
+                              CanUserResizeRows="False"
+                              ItemsSource="{Binding TxTelegraphCollection}">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Field" Width="auto" IsReadOnly="True" 
+                                                Binding="{Binding Field}"/>
+                            <DataGridTextColumn Header="Data" Width="auto" MinWidth="100"
+                                                Binding="{Binding Data}"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </GroupBox>-->
+                <!--Rx Telegraph Structure-->
+                <!--<GroupBox Header="Rx Telegraph " Margin="2" DockPanel.Dock="Right" 
+                          Width="auto" MinWidth="100">
+                    <DataGrid AutoGenerateColumns="False"
+                              CanUserAddRows="True"
+                              CanUserSortColumns="False" 
+                              CanUserResizeColumns="False"
+                              CanUserResizeRows="False"
+                              ItemsSource="{Binding RxTelegraphCollection}">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Field" Width="auto" IsReadOnly="True" 
+                                                Binding="{Binding Field}"/>
+                            <DataGridTextColumn Header="Data" Width="auto" MinWidth="100"
+                                                Binding="{Binding Data}"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </GroupBox>-->
+
+                <!--Data Area-->
+                <GroupBox Margin="2" 
+                          Header="Register DataGrid"
+                          Width="auto" MinWidth="200"
+                          DockPanel.Dock="Right">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+                        <!--Format-->
+                        <!--<ComboBox materialDesign:HintAssist.Hint="Data Format" 
+                                  materialDesign:HintAssist.FloatingScale="1.1"
+                                  Margin="5"
+                                  ItemsSource="{Binding DataFormatList}" 
+                                  SelectedIndex="{Binding SelectedDataFormat}" >
+                            <i:Interaction.Triggers>
+                                <i:EventTrigger EventName="SelectionChanged">
+                                    <i:InvokeCommandAction Command="{Binding CmdChangeFormat}" />
+                                </i:EventTrigger>
+                            </i:Interaction.Triggers>
+                        </ComboBox>-->
+                        <!--DataGrid-->
+                        <DataGrid Grid.Row="1"
+                                  AutoGenerateColumns="False"
+                                  CanUserAddRows="False"
+                                  CanUserSortColumns="False" 
+                                  CanUserResizeColumns="True"
+                                  CanUserResizeRows="False"
+                                  ItemsSource="{Binding RegisterDataCollection}">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="StartAddress" IsReadOnly="True" 
+                                                    Binding="{Binding Address}"/>
+                                <DataGridTextColumn Header="AddressRange"  IsReadOnly="True" 
+                                                    Binding="{Binding AddressRange}"/>
+                                <DataGridTextColumn Header="RegisterSize"  IsReadOnly="True" MinWidth="80"
+                                                    Binding="{Binding RegisterSize}"/>
+                                <DataGridTextColumn Header="Value(Read/Write)" Width="auto" 
+                                                    Binding="{Binding Value}" />
+
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
+                </GroupBox>
+
+
+            </DockPanel>
+
+            <!--InfoMessage-->
+            <materialDesign:Card Grid.Row="2"  Margin="10,2"
+                                 Background="{DynamicResource PrimaryHueMidBrush}" >
+                <i:Interaction.Triggers>
+                    <i:EventTrigger EventName="MouseLeftButtonDown">
+                        <i:InvokeCommandAction Command="{Binding CmdClearInfoMessage}" />
+                    </i:EventTrigger>
+                </i:Interaction.Triggers>
+                <StackPanel Orientation="Horizontal">
+                    <materialDesign:PackIcon Kind="MessageArrowRightOutline" 
+                                             VerticalAlignment="Center" 
+                                             Margin="5,0" 
+                                             Foreground="{DynamicResource PrimaryHueMidForegroundBrush}"/>
+                    <TextBlock  FontSize="13"  
+                                Text="{Binding InfoMessage}" 
+                                VerticalAlignment="Center" 
+                                Foreground="{Binding InfoMessage,Converter={StaticResource text2foreground}}"/>
+                </StackPanel>
+            </materialDesign:Card>
+
+            <!--Telegraph Area-->
+            <GroupBox Header="Telegraph Show" Grid.Row="3" Margin="10,5">
+                <materialDesign:Card  materialDesign:ShadowAssist.ShadowDepth="Depth3"
+                                  Padding="10" Height="120" 
+                                  Grid.Row="2">
+                    <local:TextScrollBlock TextContent="{Binding RawTelegraph}"/>
+                </materialDesign:Card>
+            </GroupBox>
+
+        </Grid>
+    </Grid>
+</UserControl>
