@@ -486,16 +486,24 @@ namespace WpfAppIndustryProtocolTestTool.BLL.ModbusProtocol
                     {
                         StoreLogData.Instance.Store("EasyModbus RTU-Server listing for incomming data at Serial Port " + serialPort, DateTime.Now);
                     }
+                    try
+                    {
+                        serialport = new SerialPort();
+                        serialport.PortName = serialPort;
+                        serialport.BaudRate = baudrate;
+                        serialport.Parity = parity;
+                        serialport.StopBits = stopBits;
+                        serialport.WriteTimeout = 10000;
+                        serialport.ReadTimeout = 1000;
+                        serialport.DataReceived += DataReceivedHandler;
+                        serialport.Open();
+                    }
+                    catch (Exception)
+                    {
 
-                    serialport = new SerialPort();
-                    serialport.PortName = serialPort;
-                    serialport.BaudRate = baudrate;
-                    serialport.Parity = parity;
-                    serialport.StopBits = stopBits;
-                    serialport.WriteTimeout = 10000;
-                    serialport.ReadTimeout = 1000;
-                    serialport.DataReceived += DataReceivedHandler;
-                    serialport.Open();
+                        throw;
+                    }
+                    
 
                 }
 
@@ -571,14 +579,21 @@ namespace WpfAppIndustryProtocolTestTool.BLL.ModbusProtocol
                 nextSign = bytesToRead + nextSign;
                 if (ModbusClient.DetectValidModbusFrame(readBuffer, nextSign))
                 {
-                    dataReceived = true;
-                    nextSign = 0;
-                    NetworkConnectionParameter networkConnectionParameter = default(NetworkConnectionParameter);
-                    networkConnectionParameter.bytes = readBuffer;
-                    ParameterizedThreadStart start = ProcessReceivedData;
-                    Thread thread = new Thread(start);
-                    thread.Start(networkConnectionParameter);
-                    dataReceived = false;
+                    try
+                    {
+                        dataReceived = true;
+                        nextSign = 0;
+                        NetworkConnectionParameter networkConnectionParameter = default(NetworkConnectionParameter);
+                        networkConnectionParameter.bytes = readBuffer;
+                        ParameterizedThreadStart start = ProcessReceivedData;
+                        Thread thread = new Thread(start);
+                        thread.Start(networkConnectionParameter);
+                        dataReceived = false;
+                    }
+                    catch (Exception)
+                    {
+                        throw;
+                    }                    
                 }
                 else
                 {
@@ -995,7 +1010,7 @@ namespace WpfAppIndustryProtocolTestTool.BLL.ModbusProtocol
                         {
                             StoreLogData.Instance.Store("Send Data: " + BitConverter.ToString(array), DateTime.Now);
                         }
-
+                        
                         udpClient.Send(array, array.Length, endPoint);
                     }
                     else
@@ -1051,7 +1066,15 @@ namespace WpfAppIndustryProtocolTestTool.BLL.ModbusProtocol
                     }
 
                     sendData.sendCoilValues = new bool[receiveData.quantity];
-                    Array.Copy(discreteInputs.localArray, unchecked((int)receiveData.startingAdress) + 1, sendData.sendCoilValues, 0, receiveData.quantity);
+                    try
+                    {
+                        Array.Copy(discreteInputs.localArray, unchecked((int)receiveData.startingAdress) + 1, sendData.sendCoilValues, 0, receiveData.quantity);
+                    }
+                    catch (Exception)
+                    {
+
+                        throw;
+                    }
                 }
 
                 bool flag = true;

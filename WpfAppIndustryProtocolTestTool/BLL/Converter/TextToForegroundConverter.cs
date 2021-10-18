@@ -13,7 +13,7 @@ namespace WpfAppIndustryProtocolTestTool.BLL.Converter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            string textStr = value as string;
+            string? textStr = value as string;
             if (!string.IsNullOrEmpty(textStr))
             {
                 if (textStr.StartsWith("Warning"))

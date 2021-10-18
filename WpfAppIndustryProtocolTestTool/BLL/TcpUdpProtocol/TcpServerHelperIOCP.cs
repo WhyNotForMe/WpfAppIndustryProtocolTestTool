@@ -154,14 +154,13 @@ namespace WpfAppIndustryProtocolTestTool.BLL.TcpUdpProtocol
                 if (m_numConnectedSockets == 0)
                 {
                     listenSocket?.Shutdown(SocketShutdown.Both);
-
                 }
 
             }
             catch (Exception) { }
 
-            listenSocket?.Dispose();
-            listenSocket?.Close();
+            listenSocket.Dispose();
+            listenSocket.Close();
 
             int c_count = m_clients.Count;
             lock (m_clients)

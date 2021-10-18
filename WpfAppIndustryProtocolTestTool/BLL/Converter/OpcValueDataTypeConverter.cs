@@ -12,7 +12,7 @@ namespace WpfAppIndustryProtocolTestTool.BLL.Converter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            string dataType = value as string;
+            string? dataType = value as string;
             if (!string.IsNullOrEmpty(dataType))
             {
                 switch (dataType)

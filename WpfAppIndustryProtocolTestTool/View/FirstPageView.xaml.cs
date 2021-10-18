@@ -28,9 +28,11 @@ namespace WpfAppIndustryProtocolTestTool.View
 
         private void Hyperlink_Click(object sender, RoutedEventArgs e)
         {
-            Hyperlink link = sender as Hyperlink;
-
-            Process.Start(new ProcessStartInfo { FileName = link.NavigateUri.AbsoluteUri, UseShellExecute = true });
+            Hyperlink? link = sender as Hyperlink;
+            if (link!=null)
+            {
+                Process.Start(new ProcessStartInfo { FileName = link.NavigateUri.AbsoluteUri, UseShellExecute = true });
+            }
         }
     }
 }

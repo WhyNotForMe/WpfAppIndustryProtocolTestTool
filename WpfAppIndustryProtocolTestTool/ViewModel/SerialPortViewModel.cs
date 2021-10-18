@@ -71,14 +71,14 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
         public ObservableCollection<SerialPortCfgModel> SerialPortCfgCollection { get; set; }
 
 
-        private string _receivedMessage;
-        public string ReceivedMessage
+        private string _receivedText;
+        public string ReceivedText
         {
-            get { return _receivedMessage; }
+            get { return _receivedText; }
             set
             {
-                if (_receivedMessage == value) { return; }
-                _receivedMessage = value;
+                if (_receivedText == value) { return; }
+                _receivedText = value;
                 RaisePropertyChanged();
             }
         }
@@ -111,14 +111,14 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             }
         }
 
-        private string _sendingMessage;
-        public string SendingMessage
+        private string _sendingText;
+        public string SendingText
         {
-            get { return _sendingMessage; }
+            get { return _sendingText; }
             set
             {
-                if (_sendingMessage == value) { return; }
-                _sendingMessage = value;
+                if (_sendingText == value) { return; }
+                _sendingText = value;
                 RaisePropertyChanged();
             }
         }
@@ -231,8 +231,8 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             {
                 if (_cmdClearReceiveArea == null)
                 {
-                    _cmdClearReceiveArea = new RelayCommand(() => ReceivedMessage = string.Empty,
-                                                            () => !string.IsNullOrWhiteSpace(ReceivedMessage) && !string.IsNullOrEmpty(ReceivedMessage));
+                    _cmdClearReceiveArea = new RelayCommand(() => ReceivedText = string.Empty,
+                                                            () => !string.IsNullOrWhiteSpace(ReceivedText) && !string.IsNullOrEmpty(ReceivedText));
                 }
                 return _cmdClearReceiveArea;
             }
@@ -258,7 +258,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             {
                 if (_cmdClearSendArea == null)
                 {
-                    _cmdClearSendArea = new RelayCommand(() => SendingMessage = string.Empty, () => !AutoSend);
+                    _cmdClearSendArea = new RelayCommand(() => SendingText = string.Empty, () => !AutoSend);
 
                 }
                 return _cmdClearSendArea;
@@ -293,16 +293,16 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             }
         }
 
-        private RelayCommand _cmdSendMessage;
-        public RelayCommand CmdSendMessage
+        private RelayCommand _cmdSendText;
+        public RelayCommand CmdSendText
         {
             get
             {
-                if (_cmdSendMessage == null)
+                if (_cmdSendText == null)
                 {
-                    _cmdSendMessage = new RelayCommand(() => SendMessage(), () => _textValid && IsOpen ? true : false);
+                    _cmdSendText = new RelayCommand(() => SendText(), () => _textValid && IsOpen ? true : false);
                 }
-                return _cmdSendMessage;
+                return _cmdSendText;
             }
         }
 
@@ -354,7 +354,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             {
                 if (AutoSend)
                 {
-                    SendMessage();
+                    SendText();
                 }
                 else
                 {
@@ -367,8 +367,8 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             Messenger.Default.Register<string>(this, "GatewayMode", (msg) => _gatewayMode = msg);
             Messenger.Default.Register<string>(this, "EthernetPortInput", (msg) =>
             {
-                SendingMessage = msg;
-                SendMessage();
+                SendingText = msg;
+                SendText();
             });
             Messenger.Default.Register<string>(this, "Close", (msg) =>
             {
@@ -382,11 +382,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
 
         public override void Cleanup()
         {
-            if (!IsOpen)
-            {
-                base.Cleanup();
-
-            }
+            base.Cleanup();
         }
 
         #region Command Methods
@@ -403,23 +399,19 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                 if (!IsOpen)
                 {
 
-                    bool openResult = _serialPortHelper.OpenPort();
-                    if (openResult)
-                    {
-                        PortOperation = "Close Port";
-                        IsOpen = _serialPortHelper.SerialPort.IsOpen;
-                        InfoMessage = "SerialPort " + _nameCfg.SelectedValue + "is Open !";
-                    }
+                    _serialPortHelper.OpenPort();
+                    PortOperation = "Close Port";
+                    IsOpen = _serialPortHelper.SerialPort.IsOpen;
+                    InfoMessage = "SerialPort " + _nameCfg.SelectedValue + "is Open !";
                 }
                 else if (IsOpen)
                 {
-                    bool closeResult = _serialPortHelper.ClosePort();
-                    if (closeResult)
-                    {
-                        PortOperation = "Open Port";
-                        IsOpen = _serialPortHelper.SerialPort.IsOpen;
-                        InfoMessage = "SerialPort " + _nameCfg.SelectedValue + "is Closed !";
-                    }
+                    _serialPortHelper.ClosePort();
+                    _sendTimer.Enabled = false;
+
+                    PortOperation = "Open Port";
+                    IsOpen = _serialPortHelper.SerialPort.IsOpen;
+                    InfoMessage = "SerialPort " + _nameCfg.SelectedValue + "is Closed !";
                 }
 
 
@@ -454,11 +446,11 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
         {
             try
             {
-                if (!string.IsNullOrEmpty(SendingMessage) && !string.IsNullOrWhiteSpace(SendingMessage))
+                if (!string.IsNullOrEmpty(SendingText) && !string.IsNullOrWhiteSpace(SendingText))
                 {
                     if (GetDataFormatEnum() == DataFormatEnum.HEX)
                     {
-                        _textValid = ToolHelper.ReviewHexString(SendingMessage);
+                        _textValid = ToolHelper.ReviewHexString(SendingText);
                         if (!_textValid)
                         {
                             InfoMessage = "Warning: HEX String is invalid !";
@@ -483,7 +475,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
 
         }
 
-        private void SendMessage()
+        private void SendText()
         {
 
             try
@@ -494,7 +486,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                     _sendTimer.Enabled = true;
                 }
 
-                string messageStr = ToolHelper.SetWordWrap(SendWithWordWrap) + ToolHelper.SetTime(SendWithDateTime, SendWithWordWrap) + SendingMessage;
+                string messageStr = ToolHelper.SetWordWrap(SendWithWordWrap) + ToolHelper.SetTime(SendWithDateTime, SendWithWordWrap) + SendingText;
                 byte[] sendingMsg = ToolHelper.StringToByteArray(messageStr, GetDataFormatEnum());
 
                 _serialPortHelper.SendData(sendingMsg, GetCRCEnum());
@@ -533,7 +525,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
 
                 if (DisplayInRcvArea)
                 {
-                    ReceivedMessage += $"{ToolHelper.SetTime(true, false)}Tx {TxPieces} -> {ToolHelper.ByteArrayToString(sndArray, GetDataFormatEnum())}";
+                    ReceivedText += $"{ToolHelper.SetTime(true, false)}Tx {TxPieces} -> {ToolHelper.ByteArrayToString(sndArray, GetDataFormatEnum())}";
                 }
             }
             catch (Exception ex)
@@ -567,13 +559,13 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
 
                     if (DisplayInRcvArea)
                     {
-                        ReceivedMessage += $"{ToolHelper.SetTime(true, false)}Rx {RxPieces} -> {ToolHelper.ByteArrayToString(rcvArray, GetDataFormatEnum())}";
+                        ReceivedText += $"{ToolHelper.SetTime(true, false)}Rx {RxPieces} -> {ToolHelper.ByteArrayToString(rcvArray, GetDataFormatEnum())}";
                     }
                     else
                     {
                         byte[] actualData = CRCHelper.ValidateCRC(rcvArray, GetCRCEnum());
 
-                        ReceivedMessage += $"{ ToolHelper.SetWordWrap(ReceiveWordWrap)}{ ToolHelper.SetTime(DisplayDateTime, ReceiveWordWrap)}{ ToolHelper.ByteArrayToString(actualData, GetDataFormatEnum())}";
+                        ReceivedText += $"{ ToolHelper.SetWordWrap(ReceiveWordWrap)}{ ToolHelper.SetTime(DisplayDateTime, ReceiveWordWrap)}{ ToolHelper.ByteArrayToString(actualData, GetDataFormatEnum())}";
 
                         if (_workMode == "Gateway" && _gatewayMode == "Serial Port --> TCP/UDP")
                         {

@@ -30,6 +30,7 @@ namespace WpfAppIndustryProtocolTestTool.View
 
             Messenger.Default.Register<string>(this, "Close", (close) =>
             {
+                Thread.Sleep(100);
                 GlobalViewManager.RemoveView("SerialPort");
                 GlobalViewManager.RemoveView("TcpUdp");
                 GlobalViewManager.RemoveView("Modbus");

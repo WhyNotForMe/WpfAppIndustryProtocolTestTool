@@ -21,11 +21,16 @@ namespace WpfAppIndustryProtocolTestTool.BLL
                 if (!_viewManager.ContainsKey(ViewName))
                 {
                     Type type = Type.GetType("WpfAppIndustryProtocolTestTool.View." + ViewName + "View");
-                    UserControl module = Activator.CreateInstance(type) as UserControl;
-
-                    _viewManager.Add(ViewName, module);
-
-                    return module;
+                    if (type != null)
+                    {
+                        UserControl? module = Activator.CreateInstance(type) as UserControl;
+                        if (module != null)
+                        {
+                            _viewManager.Add(ViewName, module);
+                            return module;
+                        }
+                    }
+                    return null;
                 }
                 else
                 {

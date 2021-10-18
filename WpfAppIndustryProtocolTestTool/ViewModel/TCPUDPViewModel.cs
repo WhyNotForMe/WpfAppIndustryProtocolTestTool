@@ -464,10 +464,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
 
         public override void Cleanup()
         {
-            if (!IsRunning)
-            {
-                base.Cleanup();
-            }
+            base.Cleanup();
         }
 
         #region Command Methods
@@ -476,7 +473,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
         {
             try
             {
-                System.Net.IPAddress iPAddress = GetWorkRole() == TcpUdpWorkRoleEnum.UdpClient ? null : System.Net.IPAddress.Parse(IPAddress.Trim());
+                System.Net.IPAddress? iPAddress = GetWorkRole() == TcpUdpWorkRoleEnum.UdpClient ? null : System.Net.IPAddress.Parse(IPAddress.Trim());
 
 
                 switch (GetWorkRole())
@@ -500,9 +497,8 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                         else if (StartStop == "STOP SERVER")
                         {
                             _tcpServer.Stop();
-                            IsRunning = false;
-                            StartStop = "START";
                             _codeCount = 0;
+                            StopRunning();                           
 
                             App.Current.Dispatcher.Invoke(() => TcpClientViewModelCollection.Clear());
                         }
@@ -522,14 +518,11 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                             _tcpClient.Connect(iPAddress, Port);
 
                             StartStop = "STOP CLIENT";
-
-
                         }
                         else if (StartStop == "STOP CLIENT")
                         {
                             _tcpClient.Disconnect();
-                            IsRunning = false;
-                            StartStop = "START";
+                            StopRunning();
                         }
                         break;
                     case TcpUdpWorkRoleEnum.UdpServer:
@@ -549,10 +542,8 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                         else if (StartStop == "STOP SERVER")
                         {
                             _udpHelper.Stop();
-                            IsRunning = false;
-                            StartStop = "START";
+                            StopRunning();
                             UdpOperationEnable = false;
-
                         }
 
                         break;
@@ -575,27 +566,25 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                         else if (StartStop == "STOP CLIENT")
                         {
                             _udpHelper.Stop();
-                            StartStop = "START";
-                            IsRunning = false;
+                            StopRunning();
                             UdpOperationEnable = false;
-
                         }
 
                         break;
                     default:
 
-
                         break;
                 }
 
-
-
+                
             }
             catch (Exception ex)
             {
                 InfoMessage = "Error: " + ex.Message.Replace("\n", "");
             }
         }
+
+        
 
         private bool CanStartOrStop()
         {
@@ -728,7 +717,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                 switch (GetWorkRole())
                 {
                     case TcpUdpWorkRoleEnum.TcpServer:
-                        if (_workMode== "Single" && !(TcpClientViewModelCollection.ToList().Count(c => c.IsChecked) > 0))
+                        if (_workMode != "Gateway" && !(TcpClientViewModelCollection.ToList().Count(c => c.IsChecked) > 0))
                         {
                             InfoMessage = "Warning: Please Select at least one client for sending message!";
                             return;
@@ -1070,6 +1059,13 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
         #endregion
 
         #region Shared Methods
+
+        private void StopRunning()
+        {
+            IsRunning = false;
+            StartStop = "START";
+            _sendTimer.Enabled = false;
+        }
 
         private TcpUdpWorkRoleEnum GetWorkRole()
         {

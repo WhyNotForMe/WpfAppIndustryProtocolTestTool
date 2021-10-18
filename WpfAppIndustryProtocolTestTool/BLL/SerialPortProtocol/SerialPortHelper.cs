@@ -54,15 +54,17 @@ namespace WpfAppIndustryProtocolTestTool.BLL.SerialPortProtocol
         {
             try
             {
-                _receivedTelegraph = new byte[SerialPort.BytesToRead];
-                int count = SerialPort.Read(_receivedTelegraph, 0, SerialPort.BytesToRead);
-
-                if (count > 0)
+                if (SerialPort.IsOpen)
                 {
-                    ReceiveCompleted?.Invoke(_receivedTelegraph);
-                    SerialPort.DiscardInBuffer();
-                }
+                    _receivedTelegraph = new byte[SerialPort.BytesToRead];
+                    int count = SerialPort.Read(_receivedTelegraph, 0, SerialPort.BytesToRead);
 
+                    if (count > 0)
+                    {
+                        ReceiveCompleted?.Invoke(_receivedTelegraph);
+                        SerialPort.DiscardInBuffer();
+                    }
+                }
 
             }
             catch (Exception)
@@ -70,7 +72,7 @@ namespace WpfAppIndustryProtocolTestTool.BLL.SerialPortProtocol
                 throw;
             }
         }
-        public bool OpenPort()
+        public void OpenPort()
         {
             try
             {
@@ -80,40 +82,30 @@ namespace WpfAppIndustryProtocolTestTool.BLL.SerialPortProtocol
                 }
 
                 SerialPort.Open();
-                return SerialPort.IsOpen;
             }
-            catch (Exception ex)
+            catch (Exception )
             {
 
-                throw ex;
+                throw ;
             }
 
 
 
         }
 
-        public bool ClosePort()
+        public void ClosePort()
         {
             try
             {
                 if (SerialPort.IsOpen)
                 {
-                    SerialPort.Dispose();
                     SerialPort.Close();
-
-                    return !SerialPort.IsOpen;
-                }
-                else
-                {
-                    return false;
                 }
             }
             catch (Exception)
             {
                 throw;
             }
-
-
         }
 
 
@@ -123,7 +115,7 @@ namespace WpfAppIndustryProtocolTestTool.BLL.SerialPortProtocol
         {
             if (!SerialPort.IsOpen)
             {
-                throw new Exception("Serial Port is not Opened!");
+                throw new Exception("Serial Port is not Open!");
             }
             else
             {

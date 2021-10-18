@@ -270,7 +270,7 @@
                                         <ColumnDefinition Width="auto"/>
                                     </Grid.ColumnDefinitions>
 
-                                    <local:TextScrollBlock TextContent="{Binding ReceivedMessage}" />
+                                    <local:TextScrollBlock TextContent="{Binding ReceivedText}" />
 
                                     <Button Grid.Column="1"
                                             Style="{StaticResource MaterialDesignFlatButton}"
@@ -331,7 +331,7 @@
                                         materialDesign:HintAssist.Hint="Input Message Here" 
                                         Margin="0,5"
                                         IsEnabled="{Binding IsOpen}"
-                                        Text="{Binding SendingMessage,UpdateSourceTrigger=PropertyChanged}">
+                                        Text="{Binding SendingText,UpdateSourceTrigger=PropertyChanged}">
                                 <i:Interaction.Triggers>
                                     <i:EventTrigger EventName="TextChanged">
                                         <i:InvokeCommandAction Command="{Binding CmdReviewText}"/>
@@ -412,7 +412,7 @@
                                                         "{Binding ElementName=checkBoxAutoSend,Path=IsChecked}"
                                  materialDesign:ButtonProgressAssist.IsIndeterminate="True"
                                  Content="Send" 
-                                 Command="{Binding CmdSendMessage}"
+                                 Command="{Binding CmdSendText}"
                                  Width="100"/>
                 </UniformGrid>
 

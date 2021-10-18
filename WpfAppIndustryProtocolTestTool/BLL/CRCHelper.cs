@@ -58,7 +58,7 @@ namespace WpfAppIndustryProtocolTestTool.BLL
 
         #region CRC32
 
-        static protected uint[] CRC32Table;
+        static protected uint[]? CRC32Table;
         static public void GetCRC32Table()
         {
             uint Crc;

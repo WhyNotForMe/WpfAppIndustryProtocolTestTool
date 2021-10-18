@@ -26,10 +26,10 @@
     <TabControl>
         <!--OPC Classic-->
         <TabItem  Style="{StaticResource MaterialDesignNavigationRailTabItem}" 
-                  Width="auto" Height="50">
+                  Width="auto" Height="40" Padding="0" >
             <TabItem.Header>
-                <StackPanel Orientation="Horizontal">
-                    <materialDesign:PackIcon Kind="MicrosoftWindowsClassic" Margin="10,0" />
+                <StackPanel Orientation="Horizontal" Margin="30,0">
+                    <materialDesign:PackIcon Kind="MicrosoftWindowsClassic" Margin="5,0" />
                     <TextBlock Text="OPC Classic(DA Auto) " />
                 </StackPanel>
             </TabItem.Header>
@@ -177,7 +177,7 @@
                             <TreeView ItemsSource="{Binding ServerTagTree}" 
                                       Background="Transparent" 
                                       Margin="5" 
-                                      FontSize="14">
+                                      FontSize="15">
                                 <TreeView.ItemTemplate>
                                     <HierarchicalDataTemplate DataType="{x:Type model:OpcTagTreeNodeModel}"
                                                               ItemsSource="{Binding Children}">
@@ -480,10 +480,10 @@
         </TabItem>
         <!--OPC UA-->
         <TabItem Style="{StaticResource MaterialDesignNavigationRailTabItem}" 
-                  Width="auto" Height="50">
+                  Width="auto" Height="40" Padding="0">
             <TabItem.Header>
-                <StackPanel Orientation="Horizontal">
-                    <materialDesign:PackIcon Kind="MicrosoftVisualStudioCode" Margin="10,0" />
+                <StackPanel Orientation="Horizontal" Margin="30,0">
+                    <materialDesign:PackIcon Kind="MicrosoftVisualStudioCode" Margin="5,0" />
                     <TextBlock Text="OPC UA  " />
                 </StackPanel>
             </TabItem.Header>
