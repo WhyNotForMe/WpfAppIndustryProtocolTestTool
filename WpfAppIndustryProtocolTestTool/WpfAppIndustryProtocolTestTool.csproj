@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Asset\Database\SqliteDB" />
     <None Remove="Asset\Images\Ethernet.ico" />
   </ItemGroup>
 
@@ -25,6 +26,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="Asset\Database\SqliteDB">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="WpfAppIndustryProtocolTestTool.csproj" />
   </ItemGroup>
 
@@ -35,6 +42,7 @@
     <PackageReference Include="LiveCharts.Wpf" Version="0.9.7" />
     <PackageReference Include="MaterialDesignColors" Version="2.0.1" />
     <PackageReference Include="MaterialDesignThemes" Version="4.1.0" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="5.0.11" />
     <PackageReference Include="MvvmLight" Version="5.4.1.1" />
     <PackageReference Include="MvvmLightLibs" Version="5.4.1.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />

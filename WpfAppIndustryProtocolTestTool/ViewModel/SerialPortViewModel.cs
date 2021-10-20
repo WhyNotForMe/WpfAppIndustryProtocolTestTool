@@ -2,15 +2,17 @@
 using GalaSoft.MvvmLight.CommandWpf;
 using GalaSoft.MvvmLight.Messaging;
 using System;
+using System.Data;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO.Ports;
 using System.Timers;
-using System.Windows;
 using WpfAppIndustryProtocolTestTool.BLL;
 using WpfAppIndustryProtocolTestTool.BLL.SerialPortProtocol;
+using WpfAppIndustryProtocolTestTool.DAL;
 using WpfAppIndustryProtocolTestTool.Model;
 using WpfAppIndustryProtocolTestTool.Model.Enum;
+using System.Windows.Input;
 
 namespace WpfAppIndustryProtocolTestTool.ViewModel
 {
@@ -37,6 +39,9 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
 
         string _workMode;
         string _gatewayMode;
+
+        SqliteHelper _sqlitehelper;
+        int _portID;
 
         #endregion
 
@@ -108,6 +113,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                 if (_infoMessage == value) { return; }
                 _infoMessage = value;
                 RaisePropertyChanged();
+                _sqlitehelper.InsertIntoTableInfoMsg("SerialPort", _infoMessage);
             }
         }
 
@@ -200,6 +206,44 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             {
                 if (_txCount == value) { return; }
                 _txCount = value;
+                RaisePropertyChanged();
+            }
+        }
+
+
+
+        private DataTable _rxDataTable;
+        public DataTable RxDataTable
+        {
+            get => _rxDataTable;
+            set
+            {
+                if (_rxDataTable == value) { return; }
+                _rxDataTable = value;
+                RaisePropertyChanged();
+            }
+        }
+
+        private DataTable _infoDataTable;
+        public DataTable InfoDataTable
+        {
+            get => _infoDataTable;
+            set
+            {
+                if (_infoDataTable == value) { return; }
+                _infoDataTable = value;
+                RaisePropertyChanged();
+            }
+        }
+
+        private DataTable _txDataTable;
+        public DataTable TxDataTable
+        {
+            get => _txDataTable;
+            set
+            {
+                if (_txDataTable == value) { return; }
+                _txDataTable = value;
                 RaisePropertyChanged();
             }
         }
@@ -336,6 +380,18 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
         }
 
 
+        public ICommand CmdQueryRxLog { get => new RelayCommand(() => RxDataTable = _sqlitehelper.QuerySerialPortMsg(_portID, "Rx")); }
+
+        public ICommand CmdClearRxLog { get => new RelayCommand(() => { RxDataTable.Clear(); _sqlitehelper.DeleteSerialPortMsg(_portID, "Rx"); }, () => CanClearRxLog()); }
+
+        public ICommand CmdQueryInfoLog { get => new RelayCommand(() => InfoDataTable = _sqlitehelper.QueryInfoMsg("SerialPort")); }
+
+        public ICommand CmdClearInfoLog { get => new RelayCommand(() => { InfoDataTable.Clear(); _sqlitehelper.DeleteInfoMsg("SerialPort"); }, () => CanClearInfoLog()); }
+
+        public ICommand CmdQueryTxLog { get => new RelayCommand(() => TxDataTable = _sqlitehelper.QuerySerialPortMsg(_portID, "Tx")); }
+
+        public ICommand CmdClearTxLog { get => new RelayCommand(() => { TxDataTable.Clear(); _sqlitehelper.DeleteSerialPortMsg(_portID, "Tx"); }, () => CanClearTxLog()); }
+
         #endregion
 
         public SerialPortViewModel()
@@ -364,7 +420,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             };
 
             Messenger.Default.Register<string>(this, "WorkMode", (workMode) => _workMode = workMode);
-            Messenger.Default.Register<string>(this, "GatewayMode", (msg) => _gatewayMode = msg);
+            Messenger.Default.Register<string>(this, "GatewayMode", (gatewayMode) => _gatewayMode = gatewayMode);
             Messenger.Default.Register<string>(this, "EthernetPortInput", (msg) =>
             {
                 SendingText = msg;
@@ -377,6 +433,8 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                     OpenClosePort();
                 }
             });
+
+            _sqlitehelper = SqliteHelper.GetSqliteHelpeInstance();
 
         }
 
@@ -391,11 +449,11 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
         {
             try
             {
-
                 SetSerialPortPara();
+                _portID = _sqlitehelper.InsertIntoTableSerialPortInfo(_nameCfg.SelectedValue, _baudCfg.SelectedValue, _parityCfg.SelectedValue,
+                                                                         _dataBitsCfg.SelectedValue, _stopBitsCfg.SelectedValue, _handshakeCfg.SelectedValue);
 
                 IsOpen = _serialPortHelper.SerialPort.IsOpen;
-
                 if (!IsOpen)
                 {
 
@@ -486,11 +544,15 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                     _sendTimer.Enabled = true;
                 }
 
-                string messageStr = ToolHelper.SetWordWrap(SendWithWordWrap) + ToolHelper.SetTime(SendWithDateTime, SendWithWordWrap) + SendingText;
+                string messageStr = $"{ToolHelper.SetWordWrap(SendWithWordWrap)}{ToolHelper.SetTime(SendWithDateTime, SendWithWordWrap)}{SendingText}";
                 byte[] sendingMsg = ToolHelper.StringToByteArray(messageStr, GetDataFormatEnum());
 
                 _serialPortHelper.SendData(sendingMsg, GetCRCEnum());
 
+                if (SaveToSQLite)
+                {
+                    _sqlitehelper.InsertIntoTableSerialPortMsg(_portID, "Tx", SendingText);
+                }
             }
             catch (Exception ex)
             {
@@ -499,7 +561,32 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             }
         }
 
+        private bool CanClearRxLog()
+        {
+            if (RxDataTable != null)
+            {
+                return RxDataTable.Rows.Count > 0;
+            }
+            return false;
+        }
 
+        private bool CanClearInfoLog()
+        {
+            if (InfoDataTable != null)
+            {
+                return InfoDataTable.Rows.Count > 0;
+            }
+            return false;
+        }
+
+        private bool CanClearTxLog()
+        {
+            if (TxDataTable != null)
+            {
+                return TxDataTable.Rows.Count > 0;
+            }
+            return false;
+        }
 
         #endregion
 
@@ -522,11 +609,13 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                     TxCount = Convert.ToUInt16(sndArray.Length);
                 }
                 TxPieces++;
+                string TxString = ToolHelper.ByteArrayToString(sndArray, GetDataFormatEnum());
 
                 if (DisplayInRcvArea)
                 {
-                    ReceivedText += $"{ToolHelper.SetTime(true, false)}Tx {TxPieces} -> {ToolHelper.ByteArrayToString(sndArray, GetDataFormatEnum())}";
+                    ReceivedText += $"{ToolHelper.SetTime(true, false)}Tx {TxPieces} -> {TxString}";
                 }
+
             }
             catch (Exception ex)
             {
@@ -556,20 +645,26 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                         RxCount = Convert.ToUInt16(rcvArray.Length);
                     }
                     RxPieces++;
+                    DataFormatEnum dataFormat = GetDataFormatEnum();
+                    byte[] actualArray = CRCHelper.ValidateCRC(rcvArray, GetCRCEnum());
+                    string actualString = ToolHelper.ByteArrayToString(actualArray, dataFormat);
+
+                    if (SaveToSQLite)
+                    {
+                        _sqlitehelper.InsertIntoTableSerialPortMsg(_portID, "Rx", actualString);
+                    }
 
                     if (DisplayInRcvArea)
                     {
-                        ReceivedText += $"{ToolHelper.SetTime(true, false)}Rx {RxPieces} -> {ToolHelper.ByteArrayToString(rcvArray, GetDataFormatEnum())}";
+                        ReceivedText += $"{ToolHelper.SetTime(true, false)}Rx {RxPieces} -> {ToolHelper.ByteArrayToString(rcvArray, dataFormat)}";
                     }
                     else
                     {
-                        byte[] actualData = CRCHelper.ValidateCRC(rcvArray, GetCRCEnum());
-
-                        ReceivedText += $"{ ToolHelper.SetWordWrap(ReceiveWordWrap)}{ ToolHelper.SetTime(DisplayDateTime, ReceiveWordWrap)}{ ToolHelper.ByteArrayToString(actualData, GetDataFormatEnum())}";
+                        ReceivedText += $"{ ToolHelper.SetWordWrap(ReceiveWordWrap)}{ ToolHelper.SetTime(DisplayDateTime, ReceiveWordWrap)}{actualString}";
 
                         if (_workMode == "Gateway" && _gatewayMode == "Serial Port --> TCP/UDP")
                         {
-                            string newMessage = ToolHelper.ByteArrayToString(actualData, GetDataFormatEnum());
+                            string newMessage = ToolHelper.ByteArrayToString(actualArray, dataFormat);
                             Messenger.Default.Send<string>(newMessage, "SerialPortInput");
                         }
                     }
@@ -582,6 +677,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                 InfoMessage = "Error: " + ex.Message.Replace("\n", "");
             }
         }
+
         #endregion
 
         #region Private Methods  
@@ -630,7 +726,6 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
 
         }
 
-
         private void SetSerialPortPara()
         {
             try
@@ -655,7 +750,6 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
 
 
         }
-
 
         private void LoadDefaultPara()
         {

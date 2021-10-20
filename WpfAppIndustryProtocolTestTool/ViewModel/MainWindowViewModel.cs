@@ -5,10 +5,9 @@ using System.Timers;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Collections.ObjectModel;
-using System.Windows;
 using WpfAppIndustryProtocolTestTool.Model;
 using WpfAppIndustryProtocolTestTool.BLL;
-using System.Collections;
+using WpfAppIndustryProtocolTestTool.DAL;
 using GalaSoft.MvvmLight.Messaging;
 
 namespace WpfAppIndustryProtocolTestTool.ViewModel
@@ -24,7 +23,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
         MainWindowNaviBarModel _ModbusBtn;
         MainWindowNaviBarModel _OpcClientBtn;
 
-
+        SqliteHelper _sqlitehelper;
         #endregion
 
         #region Source -> UI
@@ -144,6 +143,9 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             InitStatusBar();
 
             Messenger.Default.Register<string>(this, "Close", (msg) => IsEnable = false);
+
+            _sqlitehelper = SqliteHelper.GetSqliteHelpeInstance();
+            _sqlitehelper.InitializeSqliteDB();
 
         }
 

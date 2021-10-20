@@ -15,7 +15,7 @@
              DataContext="{Binding SerialPort,Source={StaticResource Locator}}"             
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="1200">
-    
+
     <TabControl >
         <!--Configuration-->
         <TabItem  Style="{StaticResource MaterialDesignNavigationRailTabItem}" 
@@ -45,7 +45,7 @@
                         <ItemsControl ItemsSource="{Binding SerialPortCfgCollection}"  >
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate >
-                                    <DockPanel Margin="1">                                        
+                                    <DockPanel Margin="1">
                                         <ComboBox DockPanel.Dock="Right"
                                                   materialDesign:HintAssist.Hint="Input or Select"
                                                   materialDesign:HintAssist.HintOpacity=".46"
@@ -429,61 +429,160 @@
                     <TextBlock Text="Log Table" />
                 </StackPanel>
             </TabItem.Header>
+
             <Grid>
                 <Grid.RowDefinitions>
-                    <RowDefinition />
-                    <RowDefinition />
+                    <RowDefinition Height="*" MinHeight="60"/>
+                    <RowDefinition Height="3" />
+                    <RowDefinition Height="*" MinHeight="60"/>
+                    <RowDefinition Height="3"/>
+                    <RowDefinition Height="*" MinHeight="60"/>
                 </Grid.RowDefinitions>
-                <!--Log Received-->
-                <Border Grid.Row="0" Background="{DynamicResource MaterialDesignBackground}">
-                    <GroupBox Header="Log Received"
-                              Style="{DynamicResource MaterialDesignGroupBox}"
-                              Margin="16"
-                              UseLayoutRounding="True">
-                        <ListView  ItemsSource="{Binding SerialPortCfgCollection}">
-                            <ListView.View>
-                                <GridView>
-                                    <GridViewColumn  DisplayMemberBinding="{Binding ChipIcon}" Width="auto"
-                                                     Header="No." />
-                                    <GridViewColumn  DisplayMemberBinding="{Binding ChipContent}" Width="auto"
-                                                     Header="DateTime" />
-                                    <GridViewColumn  DisplayMemberBinding="{Binding ContentList}" Width="auto"
-                                                     Header="Message" />
-                                    <GridViewColumn  DisplayMemberBinding="{Binding Description}" Width="500"
-                                                     Header="Source" />
 
-                                </GridView>
-                            </ListView.View>
-                        </ListView>
+                <Expander Grid.Row="0"
+                          HorizontalAlignment="Stretch"
+                          Margin="5" >
+                    <Expander.Header >
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <materialDesign:PackIcon Kind="EmailReceiveOutline" 
+                                                     Margin="5,0" 
+                                                     VerticalAlignment="Center"
+                                                     RenderTransformOrigin="0.5,0.5" >
+                                <materialDesign:PackIcon.RenderTransform>
+                                    <TransformGroup>
+                                        <ScaleTransform ScaleX="1.5" ScaleY="1.5"/>
+                                        <SkewTransform/>
+                                        <RotateTransform/>
+                                        <TranslateTransform/>
+                                    </TransformGroup>
+                                </materialDesign:PackIcon.RenderTransform>
+                            </materialDesign:PackIcon>
+                            <TextBlock Text=" Received Message" FontSize="20"/>
+                        </StackPanel>
+                    </Expander.Header>
+
+                    <Grid Margin="5">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <!--Button-->
+                        <DockPanel LastChildFill="False" Grid.Row="0">
+                            <Button Style="{StaticResource MaterialDesignFlatButton}"
+                                    DockPanel.Dock="Left"
+                                    Content="QUERY"
+                                    Command="{Binding CmdQueryRxLog}"/>
+                            <Button Style="{StaticResource MaterialDesignFlatButton}"
+                                    DockPanel.Dock="Right"                                    
+                                    Content="CLEAR"
+                                    Command="{Binding CmdClearRxLog}"/>
+                        </DockPanel>
+                        <!--DataGrid-->
+                        <DataGrid Grid.Row="1"
+                                  ItemsSource="{Binding RxDataTable.DefaultView}" 
+                                  IsReadOnly="True"
+                                  CanUserAddRows="False"
+                                  CanUserDeleteRows="False" />
+                    </Grid>
+                </Expander>
+                <GridSplitter Grid.Row="1" ResizeDirection="Rows" HorizontalAlignment="Stretch"
+                              Background="{StaticResource PrimaryHueMidBrush}"/>
+                <Expander Grid.Row="2"
+                          HorizontalAlignment="Stretch"
+                          Margin="5" >
+                    <Expander.Header >
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <materialDesign:PackIcon Kind="InformationOutline" 
+                                                     Margin="5,0" 
+                                                     VerticalAlignment="Center"
+                                                     RenderTransformOrigin="0.5,0.5" >
+                                <materialDesign:PackIcon.RenderTransform>
+                                    <TransformGroup>
+                                        <ScaleTransform ScaleX="1.5" ScaleY="1.5"/>
+                                        <SkewTransform/>
+                                        <RotateTransform/>
+                                        <TranslateTransform/>
+                                    </TransformGroup>
+                                </materialDesign:PackIcon.RenderTransform>
+                            </materialDesign:PackIcon>
+                            <TextBlock Text=" Info Message" FontSize="20"/>
+                        </StackPanel>
+                    </Expander.Header>
+
+                    <Grid Margin="5">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <!--Button-->
+                        <DockPanel LastChildFill="False" Grid.Row="0">
+                            <Button Style="{StaticResource MaterialDesignFlatButton}"
+                                    DockPanel.Dock="Left"
+                                    Content="QUERY"
+                                    Command="{Binding CmdQueryInfoLog}"/>
+                            <Button Style="{StaticResource MaterialDesignFlatButton}"
+                                    DockPanel.Dock="Right"                                    
+                                    Content="CLEAR"
+                                    Command="{Binding CmdClearInfoLog}"/>
+                        </DockPanel>
+                        <!--DataGrid-->
+                        <DataGrid Grid.Row="1"
+                                  ItemsSource="{Binding InfoDataTable.DefaultView}" 
+                                  IsReadOnly="True"
+                                  CanUserAddRows="False"
+                                  CanUserDeleteRows="False" />
 
 
-                    </GroupBox>
-                </Border>
-                <!--Log Sended-->
-                <Border Grid.Row="1" Background="{DynamicResource MaterialDesignBackground}">
-                    <GroupBox Header="Log Sended"
-                              Style="{DynamicResource MaterialDesignGroupBox}"
-                              Margin="16"
-                              UseLayoutRounding="True">
-                        <ListView  ItemsSource="{Binding SerialPortCfgCollection}">
-                            <ListView.View>
-                                <GridView>
-                                    <GridViewColumn  DisplayMemberBinding="{Binding ChipIcon}" Width="auto"
-                                                     Header="No." />
-                                    <GridViewColumn  DisplayMemberBinding="{Binding ChipContent}" Width="auto"
-                                                     Header="DateTime" />
-                                    <GridViewColumn  DisplayMemberBinding="{Binding Content}" Width="auto"
-                                                     Header="Message" />
-                                    <GridViewColumn  DisplayMemberBinding="{Binding Description}" Width="500"
-                                                     Header="Destination" />
+                    </Grid>
+                </Expander>
+                <GridSplitter Grid.Row="3" ResizeDirection="Rows" HorizontalAlignment="Stretch"
+                              Background="{StaticResource PrimaryHueMidBrush}"/>
+                <Expander Grid.Row="4"
+                          HorizontalAlignment="Stretch"
+                          Margin="5" >
+                    <Expander.Header >
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <materialDesign:PackIcon Kind="EmailSendOutline" 
+                                                     Margin="5,0" 
+                                                     VerticalAlignment="Center"
+                                                     RenderTransformOrigin="0.5,0.5" >
+                                <materialDesign:PackIcon.RenderTransform>
+                                    <TransformGroup>
+                                        <ScaleTransform ScaleX="1.5" ScaleY="1.5"/>
+                                        <SkewTransform/>
+                                        <RotateTransform/>
+                                        <TranslateTransform/>
+                                    </TransformGroup>
+                                </materialDesign:PackIcon.RenderTransform>
+                            </materialDesign:PackIcon>
+                            <TextBlock Text=" Sended Message" FontSize="20"/>
+                        </StackPanel>
+                    </Expander.Header>
 
-                                </GridView>
-                            </ListView.View>
-                        </ListView>
-
-
-                    </GroupBox>
-                </Border>
+                    <Grid Margin="5">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <!--Button-->
+                        <DockPanel LastChildFill="False" Grid.Row="0">
+                            <Button Style="{StaticResource MaterialDesignFlatButton}"
+                                    DockPanel.Dock="Left"
+                                    Content="QUERY"
+                                    Command="{Binding CmdQueryTxLog}"/>
+                            <Button Style="{StaticResource MaterialDesignFlatButton}"
+                                    DockPanel.Dock="Right"                                    
+                                    Content="CLEAR"
+                                    Command="{Binding CmdClearTxLog}"/>
+                        </DockPanel>
+                        <!--DataGrid-->
+                        <DataGrid Grid.Row="1"
+                                  ItemsSource="{Binding TxDataTable.DefaultView}" 
+                                  IsReadOnly="True"
+                                  CanUserAddRows="False"
+                                  CanUserDeleteRows="False" />
+                    </Grid>
+                </Expander>
             </Grid>
         </TabItem>
         <!--Log File-->
