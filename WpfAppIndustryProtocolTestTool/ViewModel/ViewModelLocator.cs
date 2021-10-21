@@ -91,7 +91,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             }
         }
 
-        public OpcClientViewModel OPC
+        public OpcClientViewModel OpcClient
         {
             get
             {

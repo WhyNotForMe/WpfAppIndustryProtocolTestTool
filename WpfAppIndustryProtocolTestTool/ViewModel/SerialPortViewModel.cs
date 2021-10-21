@@ -113,7 +113,10 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                 if (_infoMessage == value) { return; }
                 _infoMessage = value;
                 RaisePropertyChanged();
-                _sqlitehelper.InsertIntoTableInfoMsg("SerialPort", _infoMessage);
+                if (SaveToSQLite && _portID > 0)
+                {
+                    _sqlitehelper.InsertIntoTableInfoMsg("SerialPort", _infoMessage, _portID);
+                }
             }
         }
 
@@ -260,7 +263,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             {
                 if (_cmdloadDefaultPara == null)
                 {
-                    _cmdloadDefaultPara = new RelayCommand(() => LoadDefaultPara());
+                    _cmdloadDefaultPara = new RelayCommand(() => LoadDefaultPara(), () => !IsOpen);
                 }
                 return _cmdloadDefaultPara;
             }
@@ -384,9 +387,9 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
 
         public ICommand CmdClearRxLog { get => new RelayCommand(() => { RxDataTable.Clear(); _sqlitehelper.DeleteSerialPortMsg(_portID, "Rx"); }, () => CanClearRxLog()); }
 
-        public ICommand CmdQueryInfoLog { get => new RelayCommand(() => InfoDataTable = _sqlitehelper.QueryInfoMsg("SerialPort")); }
+        public ICommand CmdQueryInfoLog { get => new RelayCommand(() => InfoDataTable = _sqlitehelper.QueryInfoMsg("SerialPort", _portID)); }
 
-        public ICommand CmdClearInfoLog { get => new RelayCommand(() => { InfoDataTable.Clear(); _sqlitehelper.DeleteInfoMsg("SerialPort"); }, () => CanClearInfoLog()); }
+        public ICommand CmdClearInfoLog { get => new RelayCommand(() => { InfoDataTable.Clear(); _sqlitehelper.DeleteInfoMsg("SerialPort", _portID); }, () => CanClearInfoLog()); }
 
         public ICommand CmdQueryTxLog { get => new RelayCommand(() => TxDataTable = _sqlitehelper.QuerySerialPortMsg(_portID, "Tx")); }
 
@@ -449,18 +452,20 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
         {
             try
             {
-                SetSerialPortPara();
-                _portID = _sqlitehelper.InsertIntoTableSerialPortInfo(_nameCfg.SelectedValue, _baudCfg.SelectedValue, _parityCfg.SelectedValue,
-                                                                         _dataBitsCfg.SelectedValue, _stopBitsCfg.SelectedValue, _handshakeCfg.SelectedValue);
-
                 IsOpen = _serialPortHelper.SerialPort.IsOpen;
                 if (!IsOpen)
                 {
-
+                    SetSerialPortPara();
+                    if (SaveToSQLite)
+                    {
+                        _portID = _sqlitehelper.InsertIntoTableSerialPortInfo(_nameCfg.SelectedValue, _baudCfg.SelectedValue, _parityCfg.SelectedValue,
+                                                                               _dataBitsCfg.SelectedValue, _stopBitsCfg.SelectedValue, _handshakeCfg.SelectedValue);
+                    }
                     _serialPortHelper.OpenPort();
                     PortOperation = "Close Port";
                     IsOpen = _serialPortHelper.SerialPort.IsOpen;
-                    InfoMessage = "SerialPort " + _nameCfg.SelectedValue + "is Open !";
+                    InfoMessage = "SerialPort " + _nameCfg.SelectedValue + " is Open !";                   
+
                 }
                 else if (IsOpen)
                 {
@@ -469,7 +474,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
 
                     PortOperation = "Open Port";
                     IsOpen = _serialPortHelper.SerialPort.IsOpen;
-                    InfoMessage = "SerialPort " + _nameCfg.SelectedValue + "is Closed !";
+                    InfoMessage = "SerialPort " + _nameCfg.SelectedValue + " is Closed !";
                 }
 
 
@@ -766,7 +771,6 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             _readBufferSizeCfg.SelectedValue = _serialPortHelper.SerialPort.ReadBufferSize.ToString();
             _writeBufferSizeCfg.SelectedValue = _serialPortHelper.SerialPort.WriteBufferSize.ToString();
         }
-
 
         private CRCEnum GetCRCEnum()
         {

@@ -62,6 +62,7 @@ namespace WpfAppIndustryProtocolTestTool.BLL.TcpUdpProtocol
                 _readEventArg?.Dispose();
                 _writeEventArg?.Dispose();
                 _socket?.Close();
+                MessageInformed?.Invoke($"Disconnected to TCP Server [{_remoteEndPoint}] !");
             }
 
 
@@ -119,7 +120,7 @@ namespace WpfAppIndustryProtocolTestTool.BLL.TcpUdpProtocol
         private void ProcessConnected(SocketAsyncEventArgs e)
         {
             _readEventArg.RemoteEndPoint = _remoteEndPoint;
-            MessageInformed?.Invoke($"Connected to TCP Server [{_remoteEndPoint}] at {DateTime.Now.ToLocalTime().ToString("yyyy-M-dd HH:mm:ss.FFF")}");
+            MessageInformed?.Invoke($"Connected to TCP Server [{_remoteEndPoint}] !");
             ConnectCompleted?.Invoke(e);
 
             bool willRaiseEvent = _socket.ReceiveAsync(_readEventArg);
@@ -170,18 +171,14 @@ namespace WpfAppIndustryProtocolTestTool.BLL.TcpUdpProtocol
                 }
                 else if (e.SocketError == SocketError.Success && e.BytesTransferred == 0)
                 {
-                    MessageInformed?.Invoke($"Warning: Disconnected to TCP Server [{_remoteEndPoint}] at {DateTime.Now.ToLocalTime().ToString("yyyy-M-dd HH:mm:ss.FFF")}");
-                    DisconnectCompleted?.Invoke(e);
+                    MessageInformed?.Invoke($"Warning: Disconnected to TCP Server [{e.RemoteEndPoint}] !");
+                    DisconnectCompleted?.Invoke();
                     return;
                 }
                 else
                 {
                     return;
                 }
-
-
-
-
             }
             catch (Exception)
             {

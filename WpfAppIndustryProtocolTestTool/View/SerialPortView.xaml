@@ -146,7 +146,8 @@
                             </StackPanel>
 
                             <!--Save Data-->
-                            <StackPanel Orientation="Horizontal" Height="50" Margin="5">
+                            <StackPanel Orientation="Horizontal" Height="50" Margin="5"
+                                        IsEnabled="{Binding IsOpen,Converter={StaticResource B10Swap}}">
                                 <materialDesign:Card Background="{DynamicResource PrimaryHueLightBrush}"
                                                      Foreground="{DynamicResource PrimaryHueLightForegroundBrush}"
                                                      Width="100" Padding="5" Height="30">
@@ -156,14 +157,14 @@
                                     <CheckBox   x:Name="checkBoxSQLite" VerticalAlignment="Center"
                                                 IsChecked="{Binding SaveToSQLite,Mode=OneWayToSource,
                                                                UpdateSourceTrigger=PropertyChanged}"  
-                                                Content="SQlite" HorizontalAlignment="Center"
+                                                Content="SQLite Database" HorizontalAlignment="Center"
                                                 Margin="10,0"
                                                 Style="{StaticResource MaterialDesignLightCheckBox}" />
                                     <CheckBox   x:Name="checkBoxFile" VerticalAlignment="Center"
                                                 IsChecked="{Binding SaveToTxtFile,Mode=OneWayToSource,
                                                                UpdateSourceTrigger=PropertyChanged}"  
                                                 Margin="10,0"
-                                                Content="txt File" HorizontalAlignment="Center"
+                                                Content=".txt File" HorizontalAlignment="Center"
                                                 Style="{StaticResource MaterialDesignLightCheckBox}" />
 
                                 </UniformGrid>
@@ -441,6 +442,7 @@
 
                 <Expander Grid.Row="0"
                           HorizontalAlignment="Stretch"
+                          IsExpanded="True"
                           Margin="5" >
                     <Expander.Header >
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
@@ -489,6 +491,7 @@
                               Background="{StaticResource PrimaryHueMidBrush}"/>
                 <Expander Grid.Row="2"
                           HorizontalAlignment="Stretch"
+                          IsExpanded="true"                          
                           Margin="5" >
                     <Expander.Header >
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
@@ -539,6 +542,7 @@
                               Background="{StaticResource PrimaryHueMidBrush}"/>
                 <Expander Grid.Row="4"
                           HorizontalAlignment="Stretch"
+                          IsExpanded="True"                          
                           Margin="5" >
                     <Expander.Header >
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
@@ -585,29 +589,8 @@
                 </Expander>
             </Grid>
         </TabItem>
-        <!--Log File-->
-        <TabItem  Style="{StaticResource MaterialDesignNavigationRailTabItem}" 
-                  Width="auto" Height="40" Padding="0"
-                  IsEnabled="{Binding ElementName=checkBoxFile,Path=IsChecked}">
-            <TabItem.Header>
-                <StackPanel Orientation="Horizontal" Margin="30,0">
-                    <materialDesign:PackIcon Kind="TextBoxOutline" Margin="5,0" />
-                    <TextBlock Text="Log File" />
-                </StackPanel>
-            </TabItem.Header>
-
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                <TextBox  materialDesign:HintAssist.Hint="Select or Input Route Here"
-                          Style="{StaticResource MaterialDesignFloatingHintTextBox}"
-                          VerticalAlignment="Center" 
-                          Margin="20" Width="auto"/>
-                <Button  Style="{StaticResource MaterialDesignFlatButton}"
-                         ToolTip="MaterialDesignFlatButton"
-                         Content="Select" />
-            </StackPanel>
-
-
-        </TabItem>
+        
+        
     </TabControl>
 
 </UserControl>

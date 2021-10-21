@@ -15,7 +15,7 @@
              TextOptions.TextRenderingMode="Auto"
              Background="{DynamicResource MaterialDesignPaper}"
              FontFamily="{DynamicResource MaterialDesignFont}"
-             DataContext="{Binding OPC,Source={StaticResource Locator}}"   
+             DataContext="{Binding OpcClient,Source={StaticResource Locator}}"   
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="1200">
     <UserControl.Resources>

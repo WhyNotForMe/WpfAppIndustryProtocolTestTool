@@ -4,13 +4,16 @@ using GalaSoft.MvvmLight.Messaging;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Data;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Threading;
+using System.Windows.Input;
 using WpfAppIndustryProtocolTestTool.BLL;
 using WpfAppIndustryProtocolTestTool.BLL.TcpUdpProtocol;
+using WpfAppIndustryProtocolTestTool.DAL;
 using WpfAppIndustryProtocolTestTool.Model;
 using WpfAppIndustryProtocolTestTool.Model.Enum;
 using WpfAppIndustryProtocolTestTool.Model.SerializedMessage;
@@ -26,6 +29,8 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
         TcpClientHelperIOCP _tcpClient;
         UdpHelperIOCP _udpHelper;
         IPAddress _castIPAddress;
+        TcpUdpWorkRoleEnum _wokeRole;
+
         bool _castConfirm;
         bool _textValid;
         System.Timers.Timer _sendTimer;
@@ -36,6 +41,8 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
         string _workMode;
         string _gatewayMode;
 
+        SqliteHelper _sqlitehelper;
+        int _connectionID;
 
         #endregion
 
@@ -60,7 +67,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
         public bool FormatHEX { get; set; }
         public bool FormatUTF8 { get; set; }
 
-        public bool SaveToSQlite { get; set; }
+        public bool SaveToSQLite { get; set; }
         public bool SaveToTxtFile { get; set; }
 
         public bool Singlecast { get; set; }
@@ -212,7 +219,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             {
                 if (_infoMessage == value) { return; }
                 _infoMessage = value;
-                RaisePropertyChanged();
+                RaisePropertyChanged();                
             }
         }
 
@@ -256,6 +263,42 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             }
         }
 
+
+        private DataTable _rxDataTable;
+        public DataTable RxDataTable
+        {
+            get => _rxDataTable;
+            set
+            {
+                if (_rxDataTable == value) { return; }
+                _rxDataTable = value;
+                RaisePropertyChanged();
+            }
+        }
+
+        private DataTable _infoDataTable;
+        public DataTable InfoDataTable
+        {
+            get => _infoDataTable;
+            set
+            {
+                if (_infoDataTable == value) { return; }
+                _infoDataTable = value;
+                RaisePropertyChanged();
+            }
+        }
+
+        private DataTable _txDataTable;
+        public DataTable TxDataTable
+        {
+            get => _txDataTable;
+            set
+            {
+                if (_txDataTable == value) { return; }
+                _txDataTable = value;
+                RaisePropertyChanged();
+            }
+        }
 
         #endregion
 
@@ -301,11 +344,6 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                 return _cmdSetCastMode;
             }
         }
-
-
-
-
-
 
 
         private RelayCommand _cmdResetRxCount;
@@ -406,7 +444,17 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             }
         }
 
+        public ICommand CmdQueryRxLog { get => new RelayCommand(() => RxDataTable = _sqlitehelper.QueryEthernetPortMsg(_connectionID, $"{_wokeRole}", "Rx")); }
 
+        public ICommand CmdClearRxLog { get => new RelayCommand(() => { RxDataTable.Clear(); _sqlitehelper.DeleteEthernetPortMsg(_connectionID, $"{_wokeRole}", "Rx"); }, () => CanClearRxLog()); }
+
+        public ICommand CmdQueryInfoLog { get => new RelayCommand(() => InfoDataTable = _sqlitehelper.QueryInfoMsg("EthernetPort", _connectionID)); }
+
+        public ICommand CmdClearInfoLog { get => new RelayCommand(() => { InfoDataTable.Clear(); _sqlitehelper.DeleteInfoMsg("EthernetPort", _connectionID); }, () => CanClearInfoLog()); }
+
+        public ICommand CmdQueryTxLog { get => new RelayCommand(() => TxDataTable = _sqlitehelper.QueryEthernetPortMsg(_connectionID, $"{_wokeRole}", "Tx")); }
+
+        public ICommand CmdClearTxLog { get => new RelayCommand(() => { TxDataTable.Clear(); _sqlitehelper.DeleteEthernetPortMsg(_connectionID, $"{_wokeRole}", "Tx"); }, () => CanClearTxLog()); }
 
 
 
@@ -414,17 +462,17 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
 
         public TcpUdpViewModel()
         {
-            _codeCount = 0;
+            //_codeCount = 0;
             StartStop = "START";
+            Alias = string.Empty;
 
             Port = 8080;
             ReceiveBufferSize = 1;
-            MaxiConnections = 10;
             CastPort = 8080;
-            RxCount = 0;
-            TxCount = 0;
-            RxPieces = 0;
-            TxPieces = 0;
+            //RxCount = 0;
+            //TxCount = 0;
+            //RxPieces = 0;
+            //TxPieces = 0;
 
             TcpClientViewModelCollection = new ObservableCollection<TcpClientModel>();
 
@@ -460,6 +508,8 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                 }
             });
 
+            _sqlitehelper = SqliteHelper.GetSqliteHelpeInstance();
+
         }
 
         public override void Cleanup()
@@ -473,10 +523,15 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
         {
             try
             {
-                System.Net.IPAddress? iPAddress = GetWorkRole() == TcpUdpWorkRoleEnum.UdpClient ? null : System.Net.IPAddress.Parse(IPAddress.Trim());
+                _wokeRole = GetWorkRole();
 
+                System.Net.IPAddress? iPAddress = _wokeRole == TcpUdpWorkRoleEnum.UdpClient ? null : System.Net.IPAddress.Parse(IPAddress.Trim());
+                if (SaveToSQLite && !IsRunning)
+                {
+                    _connectionID = _sqlitehelper.InsertIntoTableEthernetPortInfo($"{_wokeRole}", IPAddress, $"{Port}", $"{MaxiConnections}", $"{ReceiveBufferSize} KB");
+                }
 
-                switch (GetWorkRole())
+                switch (_wokeRole)
                 {
 
                     case TcpUdpWorkRoleEnum.TcpServer:
@@ -493,12 +548,13 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                             IsRunning = _tcpServer.Start(iPAddress, Port);
 
                             StartStop = "STOP SERVER";
+
                         }
                         else if (StartStop == "STOP SERVER")
                         {
                             _tcpServer.Stop();
                             _codeCount = 0;
-                            StopRunning();                           
+                            StopRunning();
 
                             App.Current.Dispatcher.Invoke(() => TcpClientViewModelCollection.Clear());
                         }
@@ -518,6 +574,8 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                             _tcpClient.Connect(iPAddress, Port);
 
                             StartStop = "STOP CLIENT";
+                            IsRunning = true;
+
                         }
                         else if (StartStop == "STOP CLIENT")
                         {
@@ -534,6 +592,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                             _udpHelper.SendCompleted += SendCompleted;
 
                             _udpHelper.StartServer(iPAddress, Port);
+
                             IsRunning = true;
                             _castConfirm = false;
                             StartStop = "STOP SERVER";
@@ -576,7 +635,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                         break;
                 }
 
-                
+
             }
             catch (Exception ex)
             {
@@ -584,16 +643,14 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             }
         }
 
-        
-
         private bool CanStartOrStop()
         {
-
+            _wokeRole = GetWorkRole();
 
             if (!string.IsNullOrEmpty(IPAddress) && !string.IsNullOrWhiteSpace(IPAddress) &&
                         Port > 0 && Port <= 65535 && ReceiveBufferSize > 0 && ReceiveBufferSize <= 500)
             {
-                if (GetWorkRole() == TcpUdpWorkRoleEnum.TcpServer)
+                if (_wokeRole == TcpUdpWorkRoleEnum.TcpServer)
                 {
                     return MaxiConnections > 0;
                 }
@@ -604,7 +661,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             }
             else
             {
-                if (GetWorkRole() == TcpUdpWorkRoleEnum.UdpClient)
+                if (_wokeRole == TcpUdpWorkRoleEnum.UdpClient)
                 {
                     return true;
                 }
@@ -629,7 +686,6 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                 }
                 else
                 {
-
                     MethodInfo methodInfo = _udpHelper?.GetType().GetMethod("Set" + castMode + "Mode", new Type[] { typeof(IPAddress), typeof(int) });
                     methodInfo?.Invoke(_udpHelper, new object[] { _castIPAddress, CastPort });
                     _castConfirm = true;
@@ -682,8 +738,6 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                     {
                         _textValid = true;
                     }
-
-
                 }
                 else
                 {
@@ -711,10 +765,9 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                     _sendTimer.Enabled = true;
 
                 }
-
                 byte[] sendingMsg = ToolHelper.StringToByteArray(SendingText, GetDataFormatEnum());
 
-                switch (GetWorkRole())
+                switch (_wokeRole)
                 {
                     case TcpUdpWorkRoleEnum.TcpServer:
                         if (_workMode != "Gateway" && !(TcpClientViewModelCollection.ToList().Count(c => c.IsChecked) > 0))
@@ -738,6 +791,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                                 {
                                     _tcpServer?.SendAsync(sendingUserToken, sendingMsg);
                                 }
+
                             }
 
                         }
@@ -778,6 +832,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
 
                         break;
                 }
+
             }
             catch (Exception ex)
             {
@@ -790,7 +845,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
         {
             if (_textValid)
             {
-                switch (GetWorkRole())
+                switch (_wokeRole)
                 {
                     case TcpUdpWorkRoleEnum.TcpServer:
                     case TcpUdpWorkRoleEnum.TcpClient:
@@ -823,7 +878,32 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             return false;
         }
 
+        private bool CanClearRxLog()
+        {
+            if (RxDataTable != null)
+            {
+                return RxDataTable.Rows.Count > 0;
+            }
+            return false;
+        }
 
+        private bool CanClearInfoLog()
+        {
+            if (InfoDataTable != null)
+            {
+                return InfoDataTable.Rows.Count > 0;
+            }
+            return false;
+        }
+
+        private bool CanClearTxLog()
+        {
+            if (TxDataTable != null)
+            {
+                return TxDataTable.Rows.Count > 0;
+            }
+            return false;
+        }
 
 
         #endregion
@@ -902,6 +982,12 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             try
             {
                 RxPieces++;
+                if (SaveToSQLite)
+                {
+                    string receivedText = ToolHelper.ByteArrayToString(buffer, GetDataFormatEnum());
+                    _sqlitehelper.InsertIntoTableEthernetPortMsg(_connectionID, "Rx", receivedText, $"{token.Socket.RemoteEndPoint}");
+                }
+
                 if (JsonSerialized)
                 {
                     string msgString = ToolHelper.ByteArrayToString(buffer);
@@ -989,7 +1075,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
 
         }
 
-        private void _tcpClient_DisconnectCompleted(SocketAsyncEventArgs e)
+        private void _tcpClient_DisconnectCompleted()
         {
             _tcpClient.Disconnect();
             IsRunning = false;
@@ -1001,6 +1087,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             try
             {
                 RxPieces++;
+
                 if (JsonSerialized)
                 {
                     ReceiveMessage(e, buffer);
@@ -1012,6 +1099,11 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                     ReceiveText(buffer);
                 }
 
+                if (SaveToSQLite)
+                {
+                    string receivedText = ToolHelper.ByteArrayToString(buffer, GetDataFormatEnum());
+                    _sqlitehelper.InsertIntoTableEthernetPortMsg(_connectionID, "Rx", receivedText, $"{e.RemoteEndPoint}");
+                }
 
             }
             catch (Exception ex)
@@ -1025,6 +1117,10 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             try
             {
                 InfoMessage = message;
+                if (SaveToSQLite && _connectionID > 0)
+                {
+                    _sqlitehelper.InsertIntoTableInfoMsg("EthernetPort", message, _connectionID);
+                }
             }
             catch (Exception ex)
             {
@@ -1037,15 +1133,22 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             try
             {
                 TxPieces++;
+                string sendedText = ToolHelper.ByteArrayToString(e.Buffer, GetDataFormatEnum());
+
                 if (DisplayTxRxLog)
                 {
-                    ReceivedText += $"{ToolHelper.SetTime(true, false)}Tx {TxPieces} -> {ToolHelper.ByteArrayToString(e.Buffer, GetDataFormatEnum())}";
+                    ReceivedText += $"{ToolHelper.SetTime(true, false)}Tx {TxPieces} -> {sendedText}";
                 }
                 TxCount = ToolHelper.CalcCountBytes(e.Buffer, TxCountIncrement, TxCount);
 
-                if (TxPieces == 1 && GetWorkRole() == TcpUdpWorkRoleEnum.UdpClient)
+                if (TxPieces == 1 && _wokeRole == TcpUdpWorkRoleEnum.UdpClient)
                 {
                     _udpHelper?.ReceiveFromAsync(e.RemoteEndPoint);
+                }
+
+                if (SaveToSQLite)
+                {
+                    _sqlitehelper.InsertIntoTableEthernetPortMsg(_connectionID, "Tx", sendedText, $"{e.RemoteEndPoint}");
                 }
             }
             catch (Exception ex)

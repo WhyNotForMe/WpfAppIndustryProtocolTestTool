@@ -246,8 +246,28 @@
                                         IsDefault="True"/>
                                 </StackPanel>
                             </Expander>
+                            <!--Save-->
+                            <Expander  HorizontalAlignment="Stretch" 
+                                       IsExpanded="{Binding IsRunning,Mode=OneWay,Converter={StaticResource B10Swap}}"
+                                       Foreground="{DynamicResource PrimaryHueDarkBrush}">
+                                <Expander.Header>
+                                    <TextBlock Text="Save Option" FontSize="18" />
+                                </Expander.Header>
+                                <StackPanel Width="200" TextBlock.FontSize="14" 
+                                            IsEnabled="{Binding IsRunning,Converter={StaticResource B10Swap}}">
+                                    <CheckBox  IsChecked="{Binding SaveToSQLite}"
+                                               Content="SQLite Database"
+                                               Style="{StaticResource MaterialDesignLightCheckBox}"
+                                               Margin="5" />
+                                    <CheckBox  IsChecked="{Binding SaveToTxtFile}"
+                                               Content=" .txt File"
+                                               Style="{StaticResource MaterialDesignLightCheckBox}"
+                                               Margin="5" />
+                                </StackPanel>
+                            </Expander>
                             <!--Display Settings-->
                             <Expander  HorizontalAlignment="Stretch" 
+                                       IsExpanded="{Binding IsRunning,Mode=OneWay}"
                                        Foreground="{DynamicResource PrimaryHueDarkBrush}">
                                 <Expander.Header>
                                     <TextBlock Text="Display" FontSize="18" />
@@ -323,23 +343,7 @@
                                               Content="UTF-8" />
                                 </StackPanel>
                             </Expander>
-                            <!--Save to File-->
-                            <Expander  HorizontalAlignment="Stretch" 
-                                       Foreground="{DynamicResource PrimaryHueDarkBrush}">
-                                <Expander.Header>
-                                    <TextBlock Text="Save to File" FontSize="18" />
-                                </Expander.Header>
-                                <StackPanel Width="200" TextBlock.FontSize="14">
-                                    <CheckBox  IsChecked="{Binding SaveToSQlite}"
-                                               Content="SQLite Database"
-                                               Style="{StaticResource MaterialDesignLightCheckBox}"
-                                               Margin="5" />
-                                    <CheckBox  IsChecked="{Binding SaveToTxtFile}"
-                                               Content=" .txt File"
-                                               Style="{StaticResource MaterialDesignLightCheckBox}"
-                                               Margin="5" />
-                                </StackPanel>
-                            </Expander>
+                            
                         </StackPanel>
                     </Expander>
 
@@ -765,8 +769,7 @@
             </Grid>
 
         </TabItem>
-
-
+        
         <!--Log Table-->
         <TabItem  Style="{StaticResource MaterialDesignNavigationRailTabItem}" 
                   Width="auto" Height="40" Padding="0" >
@@ -776,17 +779,163 @@
                     <TextBlock Text="Log" />
                 </StackPanel>
             </TabItem.Header>
+
             <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="3*"/>
-                    <ColumnDefinition Width="86*"/>
-                </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
-                    <RowDefinition />
-                    <RowDefinition />
+                    <RowDefinition Height="*" MinHeight="60"/>
+                    <RowDefinition Height="3" />
+                    <RowDefinition Height="*" MinHeight="60"/>
+                    <RowDefinition Height="3"/>
+                    <RowDefinition Height="*" MinHeight="60"/>
                 </Grid.RowDefinitions>
 
+                <Expander Grid.Row="0"
+                          HorizontalAlignment="Stretch"
+                          IsExpanded="True"
+                          Margin="5" >
+                    <Expander.Header >
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <materialDesign:PackIcon Kind="CommentArrowLeftOutline" 
+                                                     Margin="5,0" 
+                                                     VerticalAlignment="Center"
+                                                     RenderTransformOrigin="0.5,0.5" >
+                                <materialDesign:PackIcon.RenderTransform>
+                                    <TransformGroup>
+                                        <ScaleTransform ScaleX="1.5" ScaleY="1.5"/>
+                                        <SkewTransform/>
+                                        <RotateTransform/>
+                                        <TranslateTransform/>
+                                    </TransformGroup>
+                                </materialDesign:PackIcon.RenderTransform>
+                            </materialDesign:PackIcon>
+                            <TextBlock Text=" Received Message" FontSize="20"/>
+                        </StackPanel>
+                    </Expander.Header>
 
+                    <Grid Margin="5">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <!--Button-->
+                        <DockPanel LastChildFill="False" Grid.Row="0">
+                            <Button Style="{StaticResource MaterialDesignFlatButton}"
+                                    DockPanel.Dock="Left"
+                                    Content="QUERY"
+                                    Command="{Binding CmdQueryRxLog}"/>
+                            <Button Style="{StaticResource MaterialDesignFlatButton}"
+                                    DockPanel.Dock="Right"                                    
+                                    Content="CLEAR"
+                                    Command="{Binding CmdClearRxLog}"/>
+                        </DockPanel>
+                        <!--DataGrid-->
+                        <DataGrid Grid.Row="1"
+                                  ItemsSource="{Binding RxDataTable.DefaultView}" 
+                                  IsReadOnly="True"
+                                  CanUserAddRows="False"
+                                  CanUserDeleteRows="False" />
+                    </Grid>
+                </Expander>
+                <GridSplitter Grid.Row="1" ResizeDirection="Rows" HorizontalAlignment="Stretch"
+                              Background="{StaticResource PrimaryHueMidBrush}"/>
+                <Expander Grid.Row="2"
+                          HorizontalAlignment="Stretch"
+                          IsExpanded="True"                          
+                          Margin="5" >
+                    <Expander.Header >
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <materialDesign:PackIcon Kind="AlertBoxOutline" 
+                                                     Margin="5,0" 
+                                                     VerticalAlignment="Center"
+                                                     RenderTransformOrigin="0.5,0.5" >
+                                <materialDesign:PackIcon.RenderTransform>
+                                    <TransformGroup>
+                                        <ScaleTransform ScaleX="1.5" ScaleY="1.5"/>
+                                        <SkewTransform/>
+                                        <RotateTransform/>
+                                        <TranslateTransform/>
+                                    </TransformGroup>
+                                </materialDesign:PackIcon.RenderTransform>
+                            </materialDesign:PackIcon>
+                            <TextBlock Text=" Info Message" FontSize="20"/>
+                        </StackPanel>
+                    </Expander.Header>
+
+                    <Grid Margin="5">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <!--Button-->
+                        <DockPanel LastChildFill="False" Grid.Row="0">
+                            <Button Style="{StaticResource MaterialDesignFlatButton}"
+                                    DockPanel.Dock="Left"
+                                    Content="QUERY"
+                                    Command="{Binding CmdQueryInfoLog}"/>
+                            <Button Style="{StaticResource MaterialDesignFlatButton}"
+                                    DockPanel.Dock="Right"                                    
+                                    Content="CLEAR"
+                                    Command="{Binding CmdClearInfoLog}"/>
+                        </DockPanel>
+                        <!--DataGrid-->
+                        <DataGrid Grid.Row="1"
+                                  ItemsSource="{Binding InfoDataTable.DefaultView}" 
+                                  IsReadOnly="True"
+                                  CanUserAddRows="False"
+                                  CanUserDeleteRows="False" />
+
+
+                    </Grid>
+                </Expander>
+                <GridSplitter Grid.Row="3" ResizeDirection="Rows" HorizontalAlignment="Stretch"
+                              Background="{StaticResource PrimaryHueMidBrush}"/>
+                <Expander Grid.Row="4"
+                          HorizontalAlignment="Stretch"
+                          IsExpanded="True"                          
+                          Margin="5" >
+                    <Expander.Header >
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <materialDesign:PackIcon Kind="CommentArrowRightOutline" 
+                                                     Margin="5,0" 
+                                                     VerticalAlignment="Center"
+                                                     RenderTransformOrigin="0.5,0.5" >
+                                <materialDesign:PackIcon.RenderTransform>
+                                    <TransformGroup>
+                                        <ScaleTransform ScaleX="1.5" ScaleY="1.5"/>
+                                        <SkewTransform/>
+                                        <RotateTransform/>
+                                        <TranslateTransform/>
+                                    </TransformGroup>
+                                </materialDesign:PackIcon.RenderTransform>
+                            </materialDesign:PackIcon>
+                            <TextBlock Text=" Sended Message" FontSize="20"/>
+                        </StackPanel>
+                    </Expander.Header>
+
+                    <Grid Margin="5">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <!--Button-->
+                        <DockPanel LastChildFill="False" Grid.Row="0">
+                            <Button Style="{StaticResource MaterialDesignFlatButton}"
+                                    DockPanel.Dock="Left"
+                                    Content="QUERY"
+                                    Command="{Binding CmdQueryTxLog}"/>
+                            <Button Style="{StaticResource MaterialDesignFlatButton}"
+                                    DockPanel.Dock="Right"                                    
+                                    Content="CLEAR"
+                                    Command="{Binding CmdClearTxLog}"/>
+                        </DockPanel>
+                        <!--DataGrid-->
+                        <DataGrid Grid.Row="1"
+                                  ItemsSource="{Binding TxDataTable.DefaultView}" 
+                                  IsReadOnly="True"
+                                  CanUserAddRows="False"
+                                  CanUserDeleteRows="False" />
+                    </Grid>
+                </Expander>
             </Grid>
 
         </TabItem>

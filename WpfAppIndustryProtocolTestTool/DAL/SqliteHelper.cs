@@ -46,8 +46,8 @@ namespace WpfAppIndustryProtocolTestTool.DAL
         #region CommandText
 
         const string tblSerialPortInfo = @"CREATE TABLE serial_port_information ( 
-                                               port_id   INTEGER PRIMARY KEY ASC ON CONFLICT ABORT AUTOINCREMENT
-                                                                 NOT NULL ON CONFLICT ABORT,
+                                               port_id    INTEGER PRIMARY KEY ASC ON CONFLICT ABORT AUTOINCREMENT
+                                                                  NOT NULL ON CONFLICT ABORT,
                                                port_name  TEXT    NOT NULL,
                                                baud_rate  TEXT    NOT NULL,
                                                parity     TEXT    NOT NULL,
@@ -69,31 +69,32 @@ namespace WpfAppIndustryProtocolTestTool.DAL
         const string tblInfoMsg = @"CREATE TABLE info_message ( 
                                         info_id              INTEGER PRIMARY KEY ASC AUTOINCREMENT
                                                                      NOT NULL,
-                                        info_level            TEXT    NOT NULL,
+                                        info_level           TEXT    NOT NULL,
                                         info_source          TEXT    NOT NULL,
+                                        info_source_id       TEXT    NOT NULL,
                                         info_content         TEXT    NOT NULL,
                                         info_time_stamp      TEXT    NOT NULL 
                                     );";
 
         const string tblEthernetPortInfo = @"CREATE TABLE ethernet_connection_information ( 
-                                                 connection_id       INTEGER PRIMARY KEY ASC AUTOINCREMENT
-                                                                             NOT NULL,
+                                                 connection_id       INTEGER PRIMARY KEY ASC ON CONFLICT ABORT AUTOINCREMENT
+                                                                             NOT NULL ON CONFLICT ABORT,
                                                  work_role           TEXT    NOT NULL,
                                                  ipv4_address        TEXT    NOT NULL,
                                                  port                TEXT    NOT NULL,
-                                                 maximum_clients     TEXT,
-                                                 receive_buffer_size TEXT    NOT NULL,
-                                                 alias               TEXT
+                                                 maximum_clients     TEXT    NOT NULL,
+                                                 receive_buffer_size TEXT    NOT NULL
                                              );";
 
         const string tblEthernetPortMsg = @"CREATE TABLE ethernet_port_message ( 
-                                                 message_id    INTEGER PRIMARY KEY ASC ON CONFLICT ABORT AUTOINCREMENT
-                                                                       NOT NULL,
-                                                 connection_id INTEGER NOT NULL
-                                                                       REFERENCES ethernet_connection_information ( connection_id ) MATCH FULL,
-                                                 content       TEXT,
-                                                 send_receive  TEXT    NOT NULL,
-                                                 time_stamp    TEXT    NOT NULL 
+                                                 message_id       INTEGER PRIMARY KEY ASC ON CONFLICT ABORT AUTOINCREMENT
+                                                                          NOT NULL,
+                                                 connection_id    INTEGER NOT NULL
+                                                                          REFERENCES ethernet_connection_information ( connection_id ) MATCH FULL,
+                                                 content          TEXT,
+                                                 send_receive     TEXT    NOT NULL,
+                                                 remote_endpoint  TEXT    NOT NULL,
+                                                 time_stamp       TEXT    NOT NULL 
                                              );";
 
         const string triggerSerialPortMsg = @"CREATE TRIGGER trigger_serial_Msg AFTER INSERT ON serial_port_message 
@@ -238,7 +239,7 @@ namespace WpfAppIndustryProtocolTestTool.DAL
 
         #region Query
 
-        public int QueryTableSerialPortInfo(string portName, string baudRate, string parity, string dataBits, string stopBits,string handShake)
+        public int QuerySerialPortInfo(string portName, string baudRate, string parity, string dataBits, string stopBits, string handShake)
         {
             using (var connection = new SqliteConnection(connnectionCfg.ConnectionString))
             {
@@ -257,15 +258,7 @@ namespace WpfAppIndustryProtocolTestTool.DAL
                     var command = PrepareCommand(connection, commandText, paraPortName, paraRate, paraParity, paraDataBits, paraStopBits, paraHandShake);
                     using (var reader = command.ExecuteReader())
                     {
-                        if (reader.Read())
-                        {
-                            //return Convert.ToInt32(reader["port_id"]);
-                            return reader.GetInt32("port_id");
-                        }
-                        else
-                        {
-                            return -1;
-                        }
+                        return reader.Read() ? reader.GetInt32("port_id") : -1;
                     }
                 }
                 catch (Exception)
@@ -275,33 +268,29 @@ namespace WpfAppIndustryProtocolTestTool.DAL
             }
         }
 
-        public int QueryTableEthernetPortInfo(string workRole, string ipv4Address, string port, string maximum_clients, string receiveBufferSize, string alias)
+        public int QueryEthernetPortInfo(string workRole, string ipv4Address, string port, string maximum_clients, string receiveBufferSize)
         {
             using (var connection = new SqliteConnection(connnectionCfg.ConnectionString))
             {
                 try
                 {
                     string commandText = @"SELECT connection_id FROM ethernet_connection_information 
-                                                        WHERE ipv4_address=$ipv4_address AND port=$port AND
-                                                              maximum_clients=$maximum_clients AND receive_buffer_size=$receive_buffer_size AND
-                                                              alias=$alias AND work_role=$work_role";
+                                                        WHERE ipv4_address=$ipv4_address AND port=$port AND maximum_clients=$maximum_clients 
+                                                                                         AND receive_buffer_size=$receive_buffer_size AND work_role=$work_role";
                     SqliteParameter paraAddress = new SqliteParameter("$ipv4_address", ipv4Address);
                     SqliteParameter paraPort = new SqliteParameter("$port", port);
                     SqliteParameter paraMaxiClients = new SqliteParameter("$maximum_clients", maximum_clients);
                     SqliteParameter paraBufferSize = new SqliteParameter("$receive_buffer_size", receiveBufferSize);
-                    SqliteParameter paraAlias = new SqliteParameter("$alias", alias);
                     SqliteParameter paraRole = new SqliteParameter("$work_role", workRole);
 
-                    var command = PrepareCommand(connection, commandText, paraAddress, paraPort, paraMaxiClients, paraBufferSize, paraAlias, paraRole);
+                    var command = PrepareCommand(connection, commandText, paraAddress, paraPort, paraMaxiClients, paraBufferSize, paraRole);
                     using (var reader = command.ExecuteReader())
                     {
-                        //return reader.HasRows ? Convert.ToInt32(reader["connection_id"]) : -1;
-                        return reader.HasRows ? reader.GetInt32("connection_id") : -1;
+                        return reader.Read() ? reader.GetInt32("connection_id") : -1;
                     }
                 }
                 catch (Exception)
                 {
-
                     throw;
                 }
 
@@ -309,16 +298,18 @@ namespace WpfAppIndustryProtocolTestTool.DAL
 
         }
 
-        public DataTable QueryInfoMsg(string source)
+        public DataTable QueryInfoMsg(string source, int sourceID)
         {
             using (var connection = new SqliteConnection(connnectionCfg.ConnectionString))
             {
                 try
                 {
                     string commandText = @"SELECT info_id AS ID,info_level AS Level,info_content AS Content,info_time_stamp AS TimeStamp
-                                                  FROM info_message WHERE info_source=$info_source ";
+                                                  FROM info_message 
+                                                  WHERE info_source=$info_source AND info_source_id=$info_source_id ";
                     SqliteParameter paraSource = new SqliteParameter("$info_source", source);
-                    var command = PrepareCommand(connection, commandText, paraSource);
+                    SqliteParameter paraSourceID = new SqliteParameter("$info_source_id", sourceID);
+                    var command = PrepareCommand(connection, commandText, paraSource, paraSourceID);
 
                     return FillData(command);
                 }
@@ -361,8 +352,8 @@ namespace WpfAppIndustryProtocolTestTool.DAL
             {
                 try
                 {
-                    string commandText = @"SELECT  message_id AS ID, content AS Content,time_stamp AS TimeStamp ,
-                                                   work_role AS WorkRole, alias AS Name, ipv4_address AS IPv4Address ,port AS Port,maximum_clients AS MaximumClients,
+                    string commandText = @"SELECT  message_id AS ID, content AS Content,time_stamp AS TimeStamp ,remote_endpoint AS RemoteEndPoint,
+                                                   work_role AS WorkRole, ipv4_address AS IPv4Address ,port AS Port,maximum_clients AS MaximumClients,
                                                    receive_buffer_size AS ReceiveBufferSize                                                   
                                                    FROM ethernet_port_message  
                                                    LEFT OUTER JOIN ethernet_connection_information 
@@ -392,7 +383,7 @@ namespace WpfAppIndustryProtocolTestTool.DAL
 
         public int InsertIntoTableSerialPortInfo(string portName, string baudRate, string parity, string dataBits, string stopBits, string handShake)
         {
-            int portID = QueryTableSerialPortInfo(portName, baudRate, parity, dataBits, stopBits, handShake);
+            int portID = QuerySerialPortInfo(portName, baudRate, parity, dataBits, stopBits, handShake);
             if (portID > 0)
             {
                 return portID;
@@ -432,9 +423,9 @@ namespace WpfAppIndustryProtocolTestTool.DAL
 
         }
 
-        public int InsertIntoTableEthernetPortInfo(string workRole, string ipv4Address, string port, string maximum_clients, string receiveBufferSize, string alias)
+        public int InsertIntoTableEthernetPortInfo(string workRole, string ipv4Address, string port, string maximum_clients, string receiveBufferSize)
         {
-            int connectionID = QueryTableEthernetPortInfo(ipv4Address, port, maximum_clients, receiveBufferSize, alias, workRole);
+            int connectionID = QueryEthernetPortInfo(workRole, ipv4Address, port, maximum_clients, receiveBufferSize);
             if (connectionID > 0)
             {
                 return connectionID;
@@ -444,16 +435,15 @@ namespace WpfAppIndustryProtocolTestTool.DAL
             {
                 try
                 {
-                    string commandText = @"INSERT OR IGNORE INTO ethernet_connection_information(work_role, ipv4_address, port,maximum_clients, receive_buffer_size, alias) 
-                                                            VALUES($work_role, $ipv4_address, $port,$maximum_clients, $receive_buffer_size, $alias)";
+                    string commandText = @"INSERT OR IGNORE INTO ethernet_connection_information(work_role, ipv4_address, port,maximum_clients, receive_buffer_size) 
+                                                            VALUES($work_role, $ipv4_address, $port,$maximum_clients, $receive_buffer_size)";
                     SqliteParameter paraRole = new SqliteParameter("$work_role", workRole);
                     SqliteParameter paraAddress = new SqliteParameter("$ipv4_address", ipv4Address);
                     SqliteParameter paraPort = new SqliteParameter("$port", port);
                     SqliteParameter paraMaxiClients = new SqliteParameter("$maximum_clients", maximum_clients);
                     SqliteParameter paraBufferSize = new SqliteParameter("$receive_buffer_size", receiveBufferSize);
-                    SqliteParameter paraAlias = new SqliteParameter("$alias", alias);
 
-                    var command = PrepareCommand(connection, commandText, paraAddress, paraPort, paraMaxiClients, paraBufferSize, paraAlias, paraRole);
+                    var command = PrepareCommand(connection, commandText, paraRole, paraAddress, paraPort, paraMaxiClients, paraBufferSize);
                     int count = command.ExecuteNonQuery();
                     if (count > 0)
                     {
@@ -497,20 +487,22 @@ namespace WpfAppIndustryProtocolTestTool.DAL
             }
         }
 
-        public void InsertIntoTableEthernetPortMsg(int connectionID, string txOrRx, string content)
+        public void InsertIntoTableEthernetPortMsg(int connectionID, string txOrRx, string content, string remoteEndpoint)
         {
             using (var connection = new SqliteConnection(connnectionCfg.ConnectionString))
             {
                 try
                 {
-                    string commandText = @"INSERT OR IGNORE INTO ethernet_port_message(connection_id, send_receive,content,time_stamp) 
-                                                            VALUES($connection_id,$send_receive,$content,$time_stamp)";
+                    string commandText = @"INSERT OR IGNORE INTO ethernet_port_message(connection_id, send_receive,content,time_stamp,remote_endpoint) 
+                                                            VALUES($connection_id,$send_receive,$content,$time_stamp,$remote_endpoint)";
                     SqliteParameter paraConnectionID = new SqliteParameter("$connection_id", connectionID);
                     SqliteParameter paraTxRx = new SqliteParameter("$send_receive", txOrRx);
                     SqliteParameter paraContent = new SqliteParameter("$content", content);
                     SqliteParameter paraTimeStamp = new SqliteParameter("$time_stamp", DateTime.Now.ToLocalTime().ToString("yyyy-M-dd HH:mm:ss.FFF"));
+                    SqliteParameter paraRemote = new SqliteParameter("$remote_endpoint", remoteEndpoint);
 
-                    var command = PrepareCommand(connection, commandText, paraConnectionID, paraTxRx, paraContent, paraTimeStamp);
+
+                    var command = PrepareCommand(connection, commandText, paraConnectionID, paraTxRx, paraContent, paraTimeStamp, paraRemote);
                     int count = command.ExecuteNonQuery();
                 }
                 catch (Exception)
@@ -520,7 +512,7 @@ namespace WpfAppIndustryProtocolTestTool.DAL
             }
         }
 
-        public void InsertIntoTableInfoMsg(string source, string content)
+        public void InsertIntoTableInfoMsg(string source, string content, int sourceID)
         {
             using (var connection = new SqliteConnection(connnectionCfg.ConnectionString))
             {
@@ -540,14 +532,15 @@ namespace WpfAppIndustryProtocolTestTool.DAL
                         level = "Notice";
                     }
 
-                    string commandText = @"INSERT OR IGNORE INTO info_message(info_level, info_source,info_content,info_time_stamp) 
-                                                            VALUES($info_level, $info_source,$info_content,$info_time_stamp)";
+                    string commandText = @"INSERT OR IGNORE INTO info_message(info_level, info_source,info_content,info_time_stamp,info_source_id) 
+                                                            VALUES($info_level, $info_source,$info_content,$info_time_stamp,$info_source_id)";
                     SqliteParameter paraLevel = new SqliteParameter("$info_level", level);
                     SqliteParameter paraSource = new SqliteParameter("$info_source", source);
                     SqliteParameter paraContent = new SqliteParameter("$info_content", content);
                     SqliteParameter paraTimeStamp = new SqliteParameter("$info_time_stamp", DateTime.Now.ToLocalTime().ToString("yyyy-M-dd HH:mm:ss.FFF"));
+                    SqliteParameter paraSourceID = new SqliteParameter("$info_source_id", sourceID);
 
-                    var command = PrepareCommand(connection, commandText, paraLevel, paraSource, paraContent, paraTimeStamp);
+                    var command = PrepareCommand(connection, commandText, paraLevel, paraSource, paraContent, paraTimeStamp, paraSourceID);
                     int count = command.ExecuteNonQuery();
 
                 }
@@ -563,19 +556,21 @@ namespace WpfAppIndustryProtocolTestTool.DAL
 
         #region Delete
 
-        public void DeleteInfoMsg(string source)
+        public void DeleteInfoMsg(string source, int sourceID)
         {
             using (var connection = new SqliteConnection(connnectionCfg.ConnectionString))
             {
                 try
                 {
-                    string commandText = @"DELETE FROM info_message WHERE info_source=$info_source ";
+                    string commandText = @"DELETE FROM info_message WHERE info_source=$info_source AND info_source_id=$info_source_id ";
                     SqliteParameter paraSource = new SqliteParameter("$info_source", source);
-                    var command = PrepareCommand(connection, commandText, paraSource);
+                    SqliteParameter paraSourceID = new SqliteParameter("$info_source_id", sourceID);
+
+                    var command = PrepareCommand(connection, commandText, paraSource, paraSourceID);
                     int count = command.ExecuteNonQuery();
                     if (count > 0)
                     {
-                        QueryInfoMsg(source);
+                        QueryInfoMsg(source, sourceID);
                     }
                 }
                 catch (Exception)
