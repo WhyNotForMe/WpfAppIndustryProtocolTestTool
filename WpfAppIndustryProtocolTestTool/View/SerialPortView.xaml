@@ -170,7 +170,10 @@
                                 </UniformGrid>
                             </StackPanel>
 
-
+                            <!--File-->
+                            <DockPanel LastChildFill="False">
+                                
+                            </DockPanel>
                         </StackPanel>
                     </GroupBox>
 
@@ -589,8 +592,8 @@
                 </Expander>
             </Grid>
         </TabItem>
-        
-        
+
+
     </TabControl>
 
 </UserControl>
