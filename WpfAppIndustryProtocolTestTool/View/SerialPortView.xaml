@@ -156,7 +156,7 @@
                                 <UniformGrid Columns="2" Rows="1" Margin="10">
                                     <CheckBox   x:Name="checkBoxSQLite" VerticalAlignment="Center"
                                                 IsChecked="{Binding SaveToSQLite,Mode=OneWayToSource,
-                                                               UpdateSourceTrigger=PropertyChanged}"  
+                                                                    UpdateSourceTrigger=PropertyChanged}"  
                                                 Content="SQLite Database" HorizontalAlignment="Center"
                                                 Margin="10,0"
                                                 Style="{StaticResource MaterialDesignLightCheckBox}" />
@@ -171,8 +171,37 @@
                             </StackPanel>
 
                             <!--File-->
-                            <DockPanel LastChildFill="False">
-                                
+                            <DockPanel Margin="5,0" 
+                                       Visibility="{Binding ElementName=checkBoxFile,Path=IsChecked,
+                                                            Converter={StaticResource B12Visi}}">
+                                <!--icon-->
+                                <materialDesign:PackIcon Kind="ClipboardTextOutline" 
+                                                         DockPanel.Dock="Left" 
+                                                         VerticalAlignment="Center"
+                                                         Margin="10,0"
+                                                         RenderTransformOrigin="0.5,0.5">
+                                    <materialDesign:PackIcon.RenderTransform>
+                                        <TransformGroup>
+                                            <ScaleTransform ScaleX="2" ScaleY="2"/>
+                                            <SkewTransform/>
+                                            <RotateTransform/>
+                                            <TranslateTransform/>
+                                        </TransformGroup>
+                                    </materialDesign:PackIcon.RenderTransform>
+                                </materialDesign:PackIcon>
+                                <!--Change Directory-->
+                                <Button Style="{StaticResource MaterialDesignFlatButton}"
+                                        DockPanel.Dock="Right"
+                                        Padding="3"
+                                        Margin="5,0"
+                                        VerticalAlignment="Bottom"
+                                        Content="Change" 
+                                        Command="{Binding CmdChangeDirectory}"/>
+                                <!--Directory-->
+                                <TextBox materialDesign:HintAssist.Hint="File Path"
+                                         Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                                         VerticalAlignment="Center"
+                                         Text="{Binding FilePath,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"/>
                             </DockPanel>
                         </StackPanel>
                     </GroupBox>

@@ -13,6 +13,8 @@ using WpfAppIndustryProtocolTestTool.DAL;
 using WpfAppIndustryProtocolTestTool.Model;
 using WpfAppIndustryProtocolTestTool.Model.Enum;
 using System.Windows.Input;
+using System.IO;
+using Microsoft.Win32;
 
 namespace WpfAppIndustryProtocolTestTool.ViewModel
 {
@@ -43,6 +45,8 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
         SqliteHelper _sqlitehelper;
         int _portID;
 
+        DirectoryInfo _dirInfo;
+        FileInfo _fileInfo;
         #endregion
 
         #region UI --> Source
@@ -113,9 +117,13 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                 if (_infoMessage == value) { return; }
                 _infoMessage = value;
                 RaisePropertyChanged();
-                if (SaveToSQLite && _portID > 0)
+                if (SaveToSQLite && _portID > 0) 
                 {
                     _sqlitehelper.InsertIntoTableInfoMsg("SerialPort", _infoMessage, _portID);
+                }
+                if (SaveToTxtFile)
+                {
+                    AppendLogText($"{ToolHelper.SetTime(true, false)}Info -> {_infoMessage}");
                 }
             }
         }
@@ -247,6 +255,19 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             {
                 if (_txDataTable == value) { return; }
                 _txDataTable = value;
+                RaisePropertyChanged();
+            }
+        }
+
+
+        private string _filePath;
+        public string FilePath
+        {
+            get => _filePath;
+            set
+            {
+                if (_filePath == value) { return; }
+                _filePath = value;
                 RaisePropertyChanged();
             }
         }
@@ -395,7 +416,13 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
 
         public ICommand CmdClearTxLog { get => new RelayCommand(() => { TxDataTable.Clear(); _sqlitehelper.DeleteSerialPortMsg(_portID, "Tx"); }, () => CanClearTxLog()); }
 
+
+        public ICommand CmdChangeDirectory { get => new RelayCommand(() => ChangeDirectory(), () => !IsOpen); }
+
+
+
         #endregion
+
 
         public SerialPortViewModel()
         {
@@ -438,7 +465,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             });
 
             _sqlitehelper = SqliteHelper.GetSqliteHelpeInstance();
-
+            InitializeLogFile();
         }
 
         public override void Cleanup()
@@ -464,7 +491,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                     _serialPortHelper.OpenPort();
                     PortOperation = "Close Port";
                     IsOpen = _serialPortHelper.SerialPort.IsOpen;
-                    InfoMessage = "SerialPort " + _nameCfg.SelectedValue + " is Open !";                   
+                    InfoMessage = "SerialPort " + _nameCfg.SelectedValue + " is Open !";
 
                 }
                 else if (IsOpen)
@@ -559,6 +586,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                 {
                     _sqlitehelper.InsertIntoTableSerialPortMsg(_portID, "Tx", SendingText);
                 }
+
             }
             catch (Exception ex)
             {
@@ -594,6 +622,18 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             return false;
         }
 
+        private void ChangeDirectory()
+        {
+            OpenFileDialog ofd = new OpenFileDialog();
+            ofd.InitialDirectory = _fileInfo.DirectoryName;
+            ofd.Filter = "Text File(*.txt)|*.txt";
+            ofd.DefaultExt = "*.txt";
+            if (ofd.ShowDialog() == true && !string.IsNullOrWhiteSpace(ofd.FileName))
+            {
+                FilePath = ofd.FileName;
+            }
+        }
+
         #endregion
 
         #region Eventhandler
@@ -617,9 +657,14 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                 TxPieces++;
                 string TxString = ToolHelper.ByteArrayToString(sndArray, GetDataFormatEnum());
 
-                if (DisplayInRcvArea)
+                if (DisplayInRcvArea || SaveToTxtFile)
                 {
                     ReceivedText += $"{ToolHelper.SetTime(true, false)}Tx {TxPieces} -> {TxString}";
+
+                    if (SaveToTxtFile)
+                    {
+                        AppendLogText(ReceivedText);
+                    }
                 }
 
             }
@@ -660,9 +705,13 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                         _sqlitehelper.InsertIntoTableSerialPortMsg(_portID, "Rx", actualString);
                     }
 
-                    if (DisplayInRcvArea)
+                    if (DisplayInRcvArea || SaveToTxtFile)
                     {
                         ReceivedText += $"{ToolHelper.SetTime(true, false)}Rx {RxPieces} -> {ToolHelper.ByteArrayToString(rcvArray, dataFormat)}";
+                        if (SaveToTxtFile)
+                        {
+                            AppendLogText(ReceivedText);
+                        }
                     }
                     else
                     {
@@ -686,8 +735,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
 
         #endregion
 
-        #region Private Methods  
-       
+        #region Private Methods        
 
         private void InitSerialPortCfg()
         {
@@ -821,6 +869,31 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             RxCount = 0;
             TxPieces = 0;
             RxPieces = 0;
+        }
+
+        private void InitializeLogFile()
+        {
+            _dirInfo = new DirectoryInfo("./Log/");
+            if (!_dirInfo.Exists)
+            {
+                _dirInfo.Create();
+            }
+
+            _fileInfo = new FileInfo("./Log/SerialPortLog.txt");
+            if (!_fileInfo.Exists)
+            {
+                _fileInfo.Create();
+            }
+            FilePath = _fileInfo.FullName;
+
+        }
+
+        private void AppendLogText(string message)
+        {
+            using (StreamWriter writer = new StreamWriter(FilePath, true))
+            {
+                writer.Write(message);
+            }
         }
 
 

@@ -776,7 +776,7 @@
             <TabItem.Header >
                 <StackPanel Orientation="Horizontal" Margin="30,0">
                     <materialDesign:PackIcon Kind="TableNetwork" Margin="5,0" />
-                    <TextBlock Text="Log" />
+                    <TextBlock Text="Log Table" />
                 </StackPanel>
             </TabItem.Header>
 
