@@ -475,6 +475,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                     PortOperation = "Open Port";
                     IsOpen = _serialPortHelper.SerialPort.IsOpen;
                     InfoMessage = "SerialPort " + _nameCfg.SelectedValue + " is Closed !";
+                    ResetCount();
                 }
 
 
@@ -686,6 +687,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
         #endregion
 
         #region Private Methods  
+       
 
         private void InitSerialPortCfg()
         {
@@ -812,6 +814,15 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                 return DataFormatEnum.DEFAULT;
             }
         }
+
+        private void ResetCount()
+        {
+            TxCount = 0;
+            RxCount = 0;
+            TxPieces = 0;
+            RxPieces = 0;
+        }
+
 
         #endregion
     }

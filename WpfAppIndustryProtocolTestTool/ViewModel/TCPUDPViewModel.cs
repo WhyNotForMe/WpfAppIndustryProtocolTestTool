@@ -633,7 +633,10 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
 
                         break;
                 }
-
+                if (!IsRunning)
+                {
+                    ResetCount();
+                }
 
             }
             catch (Exception ex)
@@ -1087,8 +1090,11 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
 
         private void _udpHelper_UdpClientReceived(Socket socket)
         {
-            string[] localEndPoint = socket.LocalEndPoint.ToString().Split(':');
-            _sqlitehelper.UpdateEthernetPortInfo(_connectionID, localEndPoint[0], localEndPoint[1]);
+            if (RxPieces < 2)
+            {
+                string[] localEndPoint = socket.LocalEndPoint.ToString().Split(':');
+                _sqlitehelper.UpdateEthernetPortInfo(_connectionID, localEndPoint[0], localEndPoint[1]);
+            }
         }
 
         private void ReceiveCompleted(SocketAsyncEventArgs e, byte[] buffer)
@@ -1178,6 +1184,14 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
         #endregion
 
         #region Shared Methods
+
+        private void ResetCount()
+        {
+            TxCount = 0;
+            RxCount = 0;
+            TxPieces = 0;
+            RxPieces = 0;
+        }
 
         private void StopRunning()
         {
