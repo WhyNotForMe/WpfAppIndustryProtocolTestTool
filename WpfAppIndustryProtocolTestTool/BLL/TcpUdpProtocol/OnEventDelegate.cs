@@ -10,5 +10,6 @@ namespace WpfAppIndustryProtocolTestTool.BLL.TcpUdpProtocol
     public delegate void OnDisconnectComplete();
     public delegate void OnReceiveComplete(SocketAsyncEventArgs e, byte[] buffer);
     public delegate void OnSendComplete(SocketAsyncEventArgs e);
+    public delegate void OnUdpClientReceive(Socket socket);
 
 }

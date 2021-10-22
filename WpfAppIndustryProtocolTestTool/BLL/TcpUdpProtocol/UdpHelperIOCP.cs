@@ -21,6 +21,7 @@ namespace WpfAppIndustryProtocolTestTool.BLL.TcpUdpProtocol
         public event OnReceiveComplete ReceiveCompleted;
         public event OnSendComplete SendCompleted;
         public event OnMessageInform MessageInformed;
+        public event OnUdpClientReceive UdpClientReceived;
 
         public void SetSinglecastMode(IPAddress destHost, int destPort)
         {
@@ -50,7 +51,7 @@ namespace WpfAppIndustryProtocolTestTool.BLL.TcpUdpProtocol
             try
             {
                 _socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.MulticastLoopback, true);
-                _socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.AddMembership, 
+                _socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.AddMembership,
                                                                     new MulticastOption(multicastGroup, multicastPort));
                 _socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.MulticastTimeToLive, true);
 
@@ -68,7 +69,7 @@ namespace WpfAppIndustryProtocolTestTool.BLL.TcpUdpProtocol
 
         public void ExitMulticastGroup(IPAddress multicastGroup, int multicastPort)
         {
-            _socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.DropMembership, 
+            _socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.DropMembership,
                                                             new MulticastOption(multicastGroup, multicastPort));
             MessageInformed?.Invoke($"Warning: Exit Multicast Group({multicastGroup}:{multicastPort})");
         }
@@ -166,7 +167,7 @@ namespace WpfAppIndustryProtocolTestTool.BLL.TcpUdpProtocol
                 _socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
 
                 _readEventArg = new SocketAsyncEventArgs();
-                _readEventArg.SetBuffer(new byte[receiveBufferSize * 1024 ], 0, receiveBufferSize * 1024 );
+                _readEventArg.SetBuffer(new byte[receiveBufferSize * 1024], 0, receiveBufferSize * 1024);
                 _readEventArg.Completed += IO_Completed;
 
                 _writeEventArg = new SocketAsyncEventArgs();
@@ -211,12 +212,12 @@ namespace WpfAppIndustryProtocolTestTool.BLL.TcpUdpProtocol
                     //Get Data From SocketAsyncEventArgs.Buffer
                     byte[] data = new byte[e.BytesTransferred];
                     Array.Copy(e.Buffer, 0, data, 0, e.BytesTransferred);
-                    ReceiveCompleted?.Invoke(e,data);
-
+                    UdpClientReceived?.Invoke(_socket);
+                    ReceiveCompleted?.Invoke(e, data);
                 }
                 else
                 {
-                    MessageInformed?.Invoke("Warning: "+e.SocketError.ToString());
+                    MessageInformed?.Invoke("Warning: " + e.SocketError.ToString());
                     return;
                 }
                 bool willRaiseEvent = _socket.ReceiveFromAsync(e);
@@ -245,7 +246,7 @@ namespace WpfAppIndustryProtocolTestTool.BLL.TcpUdpProtocol
                 }
                 else
                 {
-                    MessageInformed?.Invoke("Warning: "+e.SocketError.ToString());
+                    MessageInformed?.Invoke("Warning: " + e.SocketError.ToString());
                     return;
                 }
             }

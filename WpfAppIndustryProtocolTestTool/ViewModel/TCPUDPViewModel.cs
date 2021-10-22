@@ -29,7 +29,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
         TcpClientHelperIOCP _tcpClient;
         UdpHelperIOCP _udpHelper;
         IPAddress _castIPAddress;
-        TcpUdpWorkRoleEnum _wokeRole;
+        TcpUdpWorkRoleEnum _workRole;
 
         bool _castConfirm;
         bool _textValid;
@@ -38,7 +38,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
 
         int _remoteRcvBufferSize;
 
-        string _workMode;
+        string _toolWorkMode;
         string _gatewayMode;
 
         SqliteHelper _sqlitehelper;
@@ -216,7 +216,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             {
                 if (_infoMessage == value) { return; }
                 _infoMessage = value;
-                RaisePropertyChanged();                
+                RaisePropertyChanged();
             }
         }
 
@@ -441,17 +441,17 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             }
         }
 
-        public ICommand CmdQueryRxLog { get => new RelayCommand(() => RxDataTable = _sqlitehelper.QueryEthernetPortMsg(_connectionID, $"{_wokeRole}", "Rx")); }
+        public ICommand CmdQueryRxLog { get => new RelayCommand(() => RxDataTable = _sqlitehelper.QueryEthernetPortMsg(_connectionID, $"{_workRole}", "Rx")); }
 
-        public ICommand CmdClearRxLog { get => new RelayCommand(() => { RxDataTable.Clear(); _sqlitehelper.DeleteEthernetPortMsg(_connectionID, $"{_wokeRole}", "Rx"); }, () => CanClearRxLog()); }
+        public ICommand CmdClearRxLog { get => new RelayCommand(() => { RxDataTable.Clear(); _sqlitehelper.DeleteEthernetPortMsg(_connectionID, $"{_workRole}", "Rx"); }, () => CanClearRxLog()); }
 
         public ICommand CmdQueryInfoLog { get => new RelayCommand(() => InfoDataTable = _sqlitehelper.QueryInfoMsg("EthernetPort", _connectionID)); }
 
         public ICommand CmdClearInfoLog { get => new RelayCommand(() => { InfoDataTable.Clear(); _sqlitehelper.DeleteInfoMsg("EthernetPort", _connectionID); }, () => CanClearInfoLog()); }
 
-        public ICommand CmdQueryTxLog { get => new RelayCommand(() => TxDataTable = _sqlitehelper.QueryEthernetPortMsg(_connectionID, $"{_wokeRole}", "Tx")); }
+        public ICommand CmdQueryTxLog { get => new RelayCommand(() => TxDataTable = _sqlitehelper.QueryEthernetPortMsg(_connectionID, $"{_workRole}", "Tx")); }
 
-        public ICommand CmdClearTxLog { get => new RelayCommand(() => { TxDataTable.Clear(); _sqlitehelper.DeleteEthernetPortMsg(_connectionID, $"{_wokeRole}", "Tx"); }, () => CanClearTxLog()); }
+        public ICommand CmdClearTxLog { get => new RelayCommand(() => { TxDataTable.Clear(); _sqlitehelper.DeleteEthernetPortMsg(_connectionID, $"{_workRole}", "Tx"); }, () => CanClearTxLog()); }
 
 
 
@@ -491,7 +491,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
 
 
             Messenger.Default.Register<string>(this, "GatewayMode", (msg) => _gatewayMode = msg);
-            Messenger.Default.Register<string>(this, "WorkMode", (workMode) => _workMode = workMode);
+            Messenger.Default.Register<string>(this, "WorkMode", (workMode) => _toolWorkMode = workMode);
             Messenger.Default.Register<string>(this, "SerialPortInput", (msg) =>
             {
                 SendingText = msg;
@@ -521,15 +521,15 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
         {
             try
             {
-                _wokeRole = GetWorkRole();
+                _workRole = GetWorkRole();
 
-                System.Net.IPAddress iPAddress = _wokeRole == TcpUdpWorkRoleEnum.UdpClient ? System.Net.IPAddress.None : System.Net.IPAddress.Parse(IPAddress.Trim());
+                System.Net.IPAddress iPAddress = _workRole == TcpUdpWorkRoleEnum.UdpClient ? System.Net.IPAddress.None : System.Net.IPAddress.Parse(IPAddress.Trim());
                 if (SaveToSQLite && !IsRunning)
                 {
-                    _connectionID = _sqlitehelper.InsertIntoTableEthernetPortInfo($"{_wokeRole}", IPAddress, $"{Port}", $"{MaxiConnections}", $"{ReceiveBufferSize} KB");
+                    _connectionID = _sqlitehelper.InsertIntoTableEthernetPortInfo($"{_workRole}", IPAddress, $"{Port}", $"{MaxiConnections}", $"{ReceiveBufferSize} KB");
                 }
 
-                switch (_wokeRole)
+                switch (_workRole)
                 {
 
                     case TcpUdpWorkRoleEnum.TcpServer:
@@ -612,6 +612,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                             _udpHelper.MessageInformed += MessageInformed;
                             _udpHelper.ReceiveCompleted += ReceiveCompleted;
                             _udpHelper.SendCompleted += SendCompleted;
+                            _udpHelper.UdpClientReceived += _udpHelper_UdpClientReceived;
 
                             IsRunning = true;
                             StartStop = "STOP CLIENT";
@@ -641,14 +642,16 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             }
         }
 
+
+
         private bool CanStartOrStop()
         {
-            _wokeRole = GetWorkRole();
+            _workRole = GetWorkRole();
 
             if (!string.IsNullOrEmpty(IPAddress) && !string.IsNullOrWhiteSpace(IPAddress) &&
                         Port > 0 && Port <= 65535 && ReceiveBufferSize > 0 && ReceiveBufferSize <= 500)
             {
-                if (_wokeRole == TcpUdpWorkRoleEnum.TcpServer)
+                if (_workRole == TcpUdpWorkRoleEnum.TcpServer)
                 {
                     return MaxiConnections > 0;
                 }
@@ -659,7 +662,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             }
             else
             {
-                if (_wokeRole == TcpUdpWorkRoleEnum.UdpClient)
+                if (_workRole == TcpUdpWorkRoleEnum.UdpClient)
                 {
                     return true;
                 }
@@ -765,10 +768,10 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                 }
                 byte[] sendingMsg = ToolHelper.StringToByteArray(SendingText, GetDataFormatEnum());
 
-                switch (_wokeRole)
+                switch (_workRole)
                 {
                     case TcpUdpWorkRoleEnum.TcpServer:
-                        if (_workMode != "Gateway" && !(TcpClientViewModelCollection.ToList().Count(c => c.IsChecked) > 0))
+                        if (_toolWorkMode != "Gateway" && !(TcpClientViewModelCollection.ToList().Count(c => c.IsChecked) > 0))
                         {
                             InfoMessage = "Warning: Please Select at least one client for sending message!";
                             return;
@@ -843,7 +846,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
         {
             if (_textValid)
             {
-                switch (_wokeRole)
+                switch (_workRole)
                 {
                     case TcpUdpWorkRoleEnum.TcpServer:
                     case TcpUdpWorkRoleEnum.TcpClient:
@@ -1043,7 +1046,9 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             try
             {
                 IsRunning = true;
-                //e.AcceptSocket.LocalEndPoint
+                string[] localEndPoint = e.ConnectSocket.LocalEndPoint.ToString().Split(':');
+                _sqlitehelper.UpdateEthernetPortInfo(_connectionID, localEndPoint[0], localEndPoint[1]);
+
                 RemoteName = String.Empty;
                 RemoteEndPoint = e.RemoteEndPoint.ToString();
 
@@ -1080,16 +1085,28 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             StartStop = "START";
         }
 
+        private void _udpHelper_UdpClientReceived(Socket socket)
+        {
+            string[] localEndPoint = socket.LocalEndPoint.ToString().Split(':');
+            _sqlitehelper.UpdateEthernetPortInfo(_connectionID, localEndPoint[0], localEndPoint[1]);
+        }
+
         private void ReceiveCompleted(SocketAsyncEventArgs e, byte[] buffer)
         {
             try
             {
                 RxPieces++;
 
+                //if (_workRole == TcpUdpWorkRoleEnum.UdpClient)
+                //{
+                //    string[] localEndPoint = e.AcceptSocket.LocalEndPoint.ToString().Split(':');
+                //    _sqlitehelper.UpdateEthernetPortInfo(_connectionID, localEndPoint[0], localEndPoint[1]);
+                //}
+
                 if (JsonSerialized)
                 {
                     ReceiveMessage(e, buffer);
-                    
+
                 }
                 else
                 {
@@ -1140,7 +1157,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                 }
                 TxCount = ToolHelper.CalcCountBytes(e.Buffer, TxCountIncrement, TxCount);
 
-                if (TxPieces == 1 && _wokeRole == TcpUdpWorkRoleEnum.UdpClient)
+                if (TxPieces == 1 && _workRole == TcpUdpWorkRoleEnum.UdpClient)
                 {
                     _udpHelper?.ReceiveFromAsync(e.RemoteEndPoint);
                 }
@@ -1292,7 +1309,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                 }
                 RxCount = ToolHelper.CalcCountBytes(buffer, RxCountIncrement, RxCount);
 
-                if (_workMode == "Gateway" && _gatewayMode == "TCP/UDP --> Serial Port")
+                if (_toolWorkMode == "Gateway" && _gatewayMode == "TCP/UDP --> Serial Port")
                 {
                     string newMessage = ToolHelper.ByteArrayToString(buffer, GetDataFormatEnum());
                     Messenger.Default.Send<string>(newMessage, "EthernetPortInput");

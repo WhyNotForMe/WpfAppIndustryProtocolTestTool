@@ -222,7 +222,6 @@ namespace WpfAppIndustryProtocolTestTool.DAL
 
         #endregion
 
-
         public void InitializeSqliteDB()
         {
             using (var connection = new SqliteConnection(connnectionCfg.ConnectionString))
@@ -612,7 +611,7 @@ namespace WpfAppIndustryProtocolTestTool.DAL
                 try
                 {
                     string commandText = @"DELETE FROM ethernet_port_message 
-                                                  WHERE connection_id=connection_id AND send_receive=$send_receive ";
+                                                  WHERE connection_id=$connection_id AND send_receive=$send_receive ";
                     SqliteParameter paraConnectionID = new SqliteParameter("$connection_id", connectionID);
                     SqliteParameter paraRole = new SqliteParameter("$work_role", workRole);
                     SqliteParameter paraTxRx = new SqliteParameter("$send_receive", txOrRx);
@@ -634,7 +633,33 @@ namespace WpfAppIndustryProtocolTestTool.DAL
 
         #endregion
 
+        #region Update
 
+        public void UpdateEthernetPortInfo(int connectionID, string ipv4Address, string port)
+        {
+            using (var connection = new SqliteConnection(connnectionCfg.ConnectionString))
+            {
+                try
+                {
+                    string commandText = @"UPDATE ethernet_connection_information SET ipv4_address=$ipv4_address, port=$port
+                                                                                  WHERE connection_id=$connection_id ;";
+                    SqliteParameter paraConnectionID = new SqliteParameter("$connection_id", connectionID);
+                    SqliteParameter paraAddress = new SqliteParameter("$ipv4_address", ipv4Address);
+                    SqliteParameter paraPort = new SqliteParameter("$port", port);
+
+                    var command = PrepareCommand(connection, commandText, paraConnectionID, paraAddress, paraPort);
+                    command.ExecuteNonQuery();
+                }
+                catch (Exception)
+                {
+                    throw;
+                }
+
+            }
+
+        }
+
+        #endregion
 
 
 
