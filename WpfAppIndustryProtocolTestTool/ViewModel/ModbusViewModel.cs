@@ -6,14 +6,11 @@ using System.Collections.ObjectModel;
 using System.IO.Ports;
 using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 using EasyModbus;
 using WpfAppIndustryProtocolTestTool.BLL;
 using WpfAppIndustryProtocolTestTool.BLL.ModbusProtocol;
 using WpfAppIndustryProtocolTestTool.Model;
 using WpfAppIndustryProtocolTestTool.Model.Enum;
-using System.ComponentModel;
 using System.Timers;
 using GalaSoft.MvvmLight.Messaging;
 

@@ -1,5 +1,4 @@
 ﻿using GalaSoft.MvvmLight;
-using System.ComponentModel;
 
 namespace WpfAppIndustryProtocolTestTool.Model
 {

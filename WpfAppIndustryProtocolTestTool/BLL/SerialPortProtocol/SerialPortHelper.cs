@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO.Ports;
-using WpfAppIndustryProtocolTestTool.BLL;
 using WpfAppIndustryProtocolTestTool.Model.Enum;
 
 namespace WpfAppIndustryProtocolTestTool.BLL.SerialPortProtocol
