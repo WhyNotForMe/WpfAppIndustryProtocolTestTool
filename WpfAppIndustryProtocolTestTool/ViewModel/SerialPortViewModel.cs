@@ -663,7 +663,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
 
                     if (SaveToTxtFile)
                     {
-                        AppendLogText(ReceivedText);
+                        AppendLogText($"{ToolHelper.SetTime(true, false)}Tx {TxPieces} -> {TxString}");
                     }
                 }
 
@@ -710,7 +710,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                         ReceivedText += $"{ToolHelper.SetTime(true, false)}Rx {RxPieces} -> {ToolHelper.ByteArrayToString(rcvArray, dataFormat)}";
                         if (SaveToTxtFile)
                         {
-                            AppendLogText(ReceivedText);
+                            AppendLogText($"{ToolHelper.SetTime(true, false)}Rx {RxPieces} -> {ToolHelper.ByteArrayToString(rcvArray, dataFormat)}");
                         }
                     }
                     else
