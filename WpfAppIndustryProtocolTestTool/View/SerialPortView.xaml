@@ -487,7 +487,8 @@
                                   ItemsSource="{Binding RxDataTable.DefaultView}" 
                                   IsReadOnly="True"
                                   CanUserAddRows="False"
-                                  CanUserDeleteRows="False" />
+                                  CanUserDeleteRows="False" 
+                                  Style="{StaticResource MaterialDesignDataGrid}"/>
                     </Grid>
                 </Expander>
                 <GridSplitter Grid.Row="1" ResizeDirection="Rows" HorizontalAlignment="Stretch"
@@ -536,9 +537,8 @@
                                   ItemsSource="{Binding InfoDataTable.DefaultView}" 
                                   IsReadOnly="True"
                                   CanUserAddRows="False"
-                                  CanUserDeleteRows="False" />
-
-
+                                  CanUserDeleteRows="False" 
+                                  Style="{StaticResource MaterialDesignDataGrid}"/>
                     </Grid>
                 </Expander>
                 <GridSplitter Grid.Row="3" ResizeDirection="Rows" HorizontalAlignment="Stretch"
@@ -587,7 +587,8 @@
                                   ItemsSource="{Binding TxDataTable.DefaultView}" 
                                   IsReadOnly="True"
                                   CanUserAddRows="False"
-                                  CanUserDeleteRows="False" />
+                                  CanUserDeleteRows="False" 
+                                  Style="{StaticResource MaterialDesignDataGrid}"/>
                     </Grid>
                 </Expander>
             </Grid>

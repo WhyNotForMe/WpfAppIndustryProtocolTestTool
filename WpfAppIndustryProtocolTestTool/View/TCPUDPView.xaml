@@ -167,7 +167,7 @@
                                                     <StackPanel  Orientation="Horizontal" >
                                                         <materialDesign:PackIcon  Kind="HelpNetwork" 
                                                               VerticalAlignment="Center"/>
-                                                        <TextBlock  Text=" Port (0-65535)" />
+                                                        <TextBlock  Text=" Port (1-65535)" />
                                                     </StackPanel>
                                                 </materialDesign:HintAssist.Hint>
                                             </TextBox>
@@ -259,10 +259,10 @@
                                                Content="SQLite Database"
                                                Style="{StaticResource MaterialDesignLightCheckBox}"
                                                Margin="5" />
-                                    <CheckBox  IsChecked="{Binding SaveToTxtFile}"
+                                    <!--<CheckBox  IsChecked="{Binding SaveToTxtFile}"
                                                Content=" .txt File"
                                                Style="{StaticResource MaterialDesignLightCheckBox}"
-                                               Margin="5" />
+                                               Margin="5" />-->
                                 </StackPanel>
                             </Expander>
                             <!--Display Settings-->
@@ -547,7 +547,7 @@
                                             <StackPanel  Orientation="Horizontal" >
                                                 <materialDesign:PackIcon  Kind="HelpNetwork" 
                                                               VerticalAlignment="Center"/>
-                                                <TextBlock  Text=" Port" />
+                                                <TextBlock  Text=" Port(1-65535)" />
                                             </StackPanel>
                                         </materialDesign:HintAssist.Hint>
                                     </TextBox>
@@ -833,7 +833,8 @@
                                   ItemsSource="{Binding RxDataTable.DefaultView}" 
                                   IsReadOnly="True"
                                   CanUserAddRows="False"
-                                  CanUserDeleteRows="False" />
+                                  CanUserDeleteRows="False" 
+                                  Style="{StaticResource MaterialDesignDataGrid}"/>
                     </Grid>
                 </Expander>
                 <GridSplitter Grid.Row="1" ResizeDirection="Rows" HorizontalAlignment="Stretch"
@@ -882,9 +883,8 @@
                                   ItemsSource="{Binding InfoDataTable.DefaultView}" 
                                   IsReadOnly="True"
                                   CanUserAddRows="False"
-                                  CanUserDeleteRows="False" />
-
-
+                                  CanUserDeleteRows="False" 
+                                  Style="{StaticResource MaterialDesignDataGrid}"/>
                     </Grid>
                 </Expander>
                 <GridSplitter Grid.Row="3" ResizeDirection="Rows" HorizontalAlignment="Stretch"
@@ -933,7 +933,8 @@
                                   ItemsSource="{Binding TxDataTable.DefaultView}" 
                                   IsReadOnly="True"
                                   CanUserAddRows="False"
-                                  CanUserDeleteRows="False" />
+                                  CanUserDeleteRows="False" 
+                                  Style="{StaticResource MaterialDesignDataGrid}"/>
                     </Grid>
                 </Expander>
             </Grid>

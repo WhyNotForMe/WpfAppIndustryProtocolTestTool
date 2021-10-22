@@ -82,9 +82,6 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
         public string SendCycleTime { get; set; }
 
 
-
-
-
         #endregion
 
         #region Source -> UI
@@ -464,11 +461,12 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
         {
             //_codeCount = 0;
             StartStop = "START";
+            IPAddress = string.Empty;
             Alias = string.Empty;
 
-            Port = 8080;
+            //Port = 8080;
             ReceiveBufferSize = 1;
-            CastPort = 8080;
+            //CastPort = 8080;
             //RxCount = 0;
             //TxCount = 0;
             //RxPieces = 0;
@@ -525,7 +523,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             {
                 _wokeRole = GetWorkRole();
 
-                System.Net.IPAddress? iPAddress = _wokeRole == TcpUdpWorkRoleEnum.UdpClient ? null : System.Net.IPAddress.Parse(IPAddress.Trim());
+                System.Net.IPAddress iPAddress = _wokeRole == TcpUdpWorkRoleEnum.UdpClient ? System.Net.IPAddress.None : System.Net.IPAddress.Parse(IPAddress.Trim());
                 if (SaveToSQLite && !IsRunning)
                 {
                     _connectionID = _sqlitehelper.InsertIntoTableEthernetPortInfo($"{_wokeRole}", IPAddress, $"{Port}", $"{MaxiConnections}", $"{ReceiveBufferSize} KB");
@@ -1045,7 +1043,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             try
             {
                 IsRunning = true;
-
+                //e.AcceptSocket.LocalEndPoint
                 RemoteName = String.Empty;
                 RemoteEndPoint = e.RemoteEndPoint.ToString();
 
@@ -1091,6 +1089,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                 if (JsonSerialized)
                 {
                     ReceiveMessage(e, buffer);
+                    
                 }
                 else
                 {
@@ -1273,7 +1272,6 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             }
             catch (Exception ex)
             {
-
                 InfoMessage = "Error: " + ex.Message.Replace("\n", "");
                 return null;
             }
