@@ -465,11 +465,11 @@
 
             <Grid>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="*" MinHeight="60"/>
+                    <RowDefinition Height="*" MinHeight="60" />
                     <RowDefinition Height="3" />
                     <RowDefinition Height="*" MinHeight="60"/>
                     <RowDefinition Height="3"/>
-                    <RowDefinition Height="*" MinHeight="60"/>
+                    <RowDefinition Height="*" MinHeight="60" />
                 </Grid.RowDefinitions>
 
                 <Expander Grid.Row="0"
@@ -517,7 +517,7 @@
                                   IsReadOnly="True"
                                   CanUserAddRows="False"
                                   CanUserDeleteRows="False" 
-                                  Style="{StaticResource MaterialDesignDataGrid}"/>
+                                  Style="{StaticResource MaterialDesignDataGrid}" />
                     </Grid>
                 </Expander>
                 <GridSplitter Grid.Row="1" ResizeDirection="Rows" HorizontalAlignment="Stretch"

@@ -258,7 +258,8 @@
                                     <CheckBox  IsChecked="{Binding SaveToSQLite}"
                                                Content="SQLite Database"
                                                Style="{StaticResource MaterialDesignLightCheckBox}"
-                                               Margin="5" />
+                                               Margin="5" 
+                                               x:Name="checkBoxSQLite"/>
                                     <!--<CheckBox  IsChecked="{Binding SaveToTxtFile}"
                                                Content=" .txt File"
                                                Style="{StaticResource MaterialDesignLightCheckBox}"
@@ -772,7 +773,8 @@
         
         <!--Log Table-->
         <TabItem  Style="{StaticResource MaterialDesignNavigationRailTabItem}" 
-                  Width="auto" Height="40" Padding="0" >
+                  Width="auto" Height="40" Padding="0" 
+                  IsEnabled="{Binding ElementName=checkBoxSQLite,Path=IsChecked}">
             <TabItem.Header >
                 <StackPanel Orientation="Horizontal" Margin="30,0">
                     <materialDesign:PackIcon Kind="TableNetwork" Margin="5,0" />
