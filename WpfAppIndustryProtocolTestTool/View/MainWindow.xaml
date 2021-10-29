@@ -167,7 +167,7 @@
                                Content="{Binding MainContent.Tag}" />
                 <Separator  Width="1" Margin="0"/>
                 <StatusBarItem Foreground="White" Width="100" HorizontalContentAlignment="Center"
-                               Content="Version 1.0"/>
+                               Content="Version 1.0.2"/>
                 <Separator  Width="1"/>
                 <StatusBarItem Foreground="White" Width="200" HorizontalContentAlignment="Center"
                                Content="{Binding SubModuleState}"/>
