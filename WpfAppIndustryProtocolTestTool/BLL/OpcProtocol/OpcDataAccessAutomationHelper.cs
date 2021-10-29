@@ -153,7 +153,6 @@ namespace WpfAppIndustryProtocolTestTool.BLL.OpcProtocol
 
         private void LoadTagToTree(Collection<OpcTagTreeNodeModel> tagCollection)
         {
-            _opcBrowser.Organization.ToString();
             _opcBrowser.ShowBranches();
 
             if (_opcBrowser.Count > 0)
@@ -180,10 +179,7 @@ namespace WpfAppIndustryProtocolTestTool.BLL.OpcProtocol
                 }
             }
 
-
         }
-
-
         /// <summary>
         /// DisconnectOPCServer
         /// </summary>

@@ -753,8 +753,8 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                 _thresholdCfg = new SerialPortCfgModel { ChipContent = "RcvBytesThreshold", ChipIcon = "TH", ContentList = new List<string>(serialPortParaEnum.ReceiveBytesThreshold) };
                 _readTimeoutCfg = new SerialPortCfgModel { ChipContent = "ReadTimeout", ChipIcon = "RT", ContentList = new List<string>(serialPortParaEnum.ReadTimeout) };
                 _writeTimeoutCfg = new SerialPortCfgModel { ChipContent = "WriteTimeout", ChipIcon = "WT", ContentList = new List<string>(serialPortParaEnum.WriteTimeout) };
-                _readBufferSizeCfg = new SerialPortCfgModel { ChipContent = "ReadBufferSizeCfg", ChipIcon = "RS", ContentList = new List<string>(serialPortParaEnum.ReadBufferSize) };
-                _writeBufferSizeCfg = new SerialPortCfgModel { ChipContent = "WriteBufferSizeCfg", ChipIcon = "WS", ContentList = new List<string>(serialPortParaEnum.WriteBufferSize) };
+                _readBufferSizeCfg = new SerialPortCfgModel { ChipContent = "ReadBufferSize", ChipIcon = "RS", ContentList = new List<string>(serialPortParaEnum.ReadBufferSize) };
+                _writeBufferSizeCfg = new SerialPortCfgModel { ChipContent = "WriteBufferSize", ChipIcon = "WS", ContentList = new List<string>(serialPortParaEnum.WriteBufferSize) };
 
                 SerialPortCfgCollection = new ObservableCollection<SerialPortCfgModel>
                 {
