@@ -480,7 +480,8 @@
         </TabItem>
         <!--OPC UA-->
         <TabItem Style="{StaticResource MaterialDesignNavigationRailTabItem}" 
-                  Width="auto" Height="40" Padding="0">
+                  Width="auto" Height="40" Padding="0"
+                 IsEnabled="False">
             <TabItem.Header>
                 <StackPanel Orientation="Horizontal" Margin="30,0">
                     <materialDesign:PackIcon Kind="MicrosoftVisualStudioCode" Margin="5,0" />
