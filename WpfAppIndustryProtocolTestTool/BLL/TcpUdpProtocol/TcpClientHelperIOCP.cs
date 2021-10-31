@@ -106,7 +106,6 @@ namespace WpfAppIndustryProtocolTestTool.BLL.TcpUdpProtocol
             }
             catch (Exception)
             {
-
                 throw;
             }
 
@@ -114,20 +113,33 @@ namespace WpfAppIndustryProtocolTestTool.BLL.TcpUdpProtocol
 
         private void _connectArg_Completed(object sender, SocketAsyncEventArgs e)
         {
-            ProcessConnected(e);
+            if (e.ConnectSocket != null)
+            {
+                ProcessConnected(e);
+            }
         }
 
         private void ProcessConnected(SocketAsyncEventArgs e)
         {
-            _readEventArg.RemoteEndPoint = _remoteEndPoint;
-            MessageInformed?.Invoke($"Connected to TCP Server [{_remoteEndPoint}] !");
-            ConnectCompleted?.Invoke(e);
-
-            bool willRaiseEvent = _socket.ReceiveAsync(_readEventArg);
-            if (!willRaiseEvent)
+            try
             {
-                ProcessReceive(_readEventArg);
-            };
+                _readEventArg.RemoteEndPoint = _remoteEndPoint;
+                MessageInformed?.Invoke($"Connected to TCP Server [{_remoteEndPoint}] !");
+                ConnectCompleted?.Invoke(e);
+
+                bool willRaiseEvent = _socket.ReceiveAsync(_readEventArg);
+                if (!willRaiseEvent)
+                {
+                    ProcessReceive(_readEventArg);
+                };
+
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+
+
         }
 
         void IO_Completed(object sender, SocketAsyncEventArgs e)

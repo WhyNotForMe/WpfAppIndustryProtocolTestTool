@@ -460,6 +460,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             {
                 if (IsOpen)
                 {
+
                     OpenClosePort();
                 }
             });

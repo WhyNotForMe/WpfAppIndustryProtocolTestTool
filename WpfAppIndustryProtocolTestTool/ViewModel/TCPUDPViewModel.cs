@@ -458,19 +458,11 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
 
         public TcpUdpViewModel()
         {
-            //_codeCount = 0;
             StartStop = "START";
             IPAddress = string.Empty;
             Alias = string.Empty;
 
-            //Port = 8080;
             ReceiveBufferSize = 1;
-            //CastPort = 8080;
-            //RxCount = 0;
-            //TxCount = 0;
-            //RxPieces = 0;
-            //TxPieces = 0;
-
             TcpClientViewModelCollection = new ObservableCollection<TcpClientModel>();
 
 
@@ -544,14 +536,19 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                             _tcpServer.SendCompleted += SendCompleted;
                             IsRunning = _tcpServer.Start(iPAddress, Port);
 
-                            StartStop = "STOP SERVER";
+                            if (IsRunning)
+                            {
+                                StartStop = "STOP SERVER";
+                            }
 
                         }
                         else if (StartStop == "STOP SERVER")
                         {
+                            _tcpServer.DataReceived -= _tcpServer_DataReceived;
+                            StopRunning();
+
                             _tcpServer.Stop();
                             _codeCount = 0;
-                            StopRunning();
 
                             App.Current.Dispatcher.Invoke(() => TcpClientViewModelCollection.Clear());
                         }
@@ -570,14 +567,14 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                             _tcpClient.SendCompleted += SendCompleted;
                             _tcpClient.Connect(iPAddress, Port);
 
-                            StartStop = "STOP CLIENT";
-                            IsRunning = true;
-
+                            
                         }
                         else if (StartStop == "STOP CLIENT")
                         {
-                            _tcpClient.Disconnect();
+                            _tcpClient.ReceiveCompleted -= ReceiveCompleted;
                             StopRunning();
+
+                            _tcpClient.Disconnect();
                         }
                         break;
                     case TcpUdpWorkRoleEnum.UdpServer:
@@ -597,8 +594,10 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                         }
                         else if (StartStop == "STOP SERVER")
                         {
-                            _udpHelper.Stop();
+                            _udpHelper.ReceiveCompleted -= ReceiveCompleted;
                             StopRunning();
+
+                            _udpHelper.Stop();
                             UdpOperationEnable = false;
                         }
 
@@ -622,8 +621,10 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                         }
                         else if (StartStop == "STOP CLIENT")
                         {
-                            _udpHelper.Stop();
+                            _udpHelper.ReceiveCompleted -= ReceiveCompleted;
                             StopRunning();
+
+                            _udpHelper.Stop();
                             UdpOperationEnable = false;
                         }
 
@@ -1048,8 +1049,13 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             try
             {
                 IsRunning = true;
-                string[] localEndPoint = e.ConnectSocket.LocalEndPoint.ToString().Split(':');
-                _sqlitehelper.UpdateEthernetPortInfo(_connectionID, localEndPoint[0], localEndPoint[1]);
+                StartStop = "STOP CLIENT";
+
+                if (SaveToSQLite)
+                {
+                    string[] localEndPoint = e.ConnectSocket.LocalEndPoint.ToString().Split(':');
+                    _sqlitehelper.UpdateEthernetPortInfo(_connectionID, localEndPoint[0], localEndPoint[1]);
+                }
 
                 RemoteName = String.Empty;
                 RemoteEndPoint = e.RemoteEndPoint.ToString();
@@ -1089,7 +1095,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
 
         private void _udpHelper_UdpClientReceived(Socket socket)
         {
-            if (RxPieces < 2)
+            if (SaveToSQLite && RxPieces < 2)
             {
                 string[] localEndPoint = socket.LocalEndPoint.ToString().Split(':');
                 _sqlitehelper.UpdateEthernetPortInfo(_connectionID, localEndPoint[0], localEndPoint[1]);

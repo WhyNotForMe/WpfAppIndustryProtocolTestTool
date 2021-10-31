@@ -14,7 +14,6 @@ namespace WpfAppIndustryProtocolTestTool.BLL.SerialPortProtocol
         private SerialPortHelper()
         {
             SerialPort = new SerialPort();
-            SerialPort.DataReceived += SerialPort_DataReceived;
 
         }
 
@@ -53,16 +52,17 @@ namespace WpfAppIndustryProtocolTestTool.BLL.SerialPortProtocol
         {
             try
             {
-                if (SerialPort.IsOpen)
+                if (!SerialPort.IsOpen)
                 {
-                    _receivedTelegraph = new byte[SerialPort.BytesToRead];
-                    int count = SerialPort.Read(_receivedTelegraph, 0, SerialPort.BytesToRead);
+                    return;
+                }
+                _receivedTelegraph = new byte[SerialPort.BytesToRead];
+                int count = SerialPort.Read(_receivedTelegraph, 0, SerialPort.BytesToRead);
 
-                    if (count > 0)
-                    {
-                        ReceiveCompleted?.Invoke(_receivedTelegraph);
-                        SerialPort.DiscardInBuffer();
-                    }
+                if (count > 0)
+                {
+                    ReceiveCompleted?.Invoke(_receivedTelegraph);
+                    SerialPort.DiscardInBuffer();
                 }
 
             }
@@ -79,16 +79,14 @@ namespace WpfAppIndustryProtocolTestTool.BLL.SerialPortProtocol
                 {
                     SerialPort.Close();
                 }
-
+                SerialPort.DataReceived += SerialPort_DataReceived;
                 SerialPort.Open();
             }
-            catch (Exception )
+            catch (Exception)
             {
 
-                throw ;
+                throw;
             }
-
-
 
         }
 
@@ -98,6 +96,7 @@ namespace WpfAppIndustryProtocolTestTool.BLL.SerialPortProtocol
             {
                 if (SerialPort.IsOpen)
                 {
+                    SerialPort.DataReceived -= SerialPort_DataReceived;
                     SerialPort.Close();
                 }
             }

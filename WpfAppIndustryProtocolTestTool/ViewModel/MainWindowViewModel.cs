@@ -135,14 +135,39 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
 
         public MainWindowViewModel()
         {
-
             ExeShowMainContent("FirstPage");
 
             InitNaviBar();
 
             InitStatusBar();
 
-            Messenger.Default.Register<string>(this, "Close", (msg) => IsEnable = false);
+            Messenger.Default.Register<string>(this, "Close", (msg) =>
+            {
+                if (msg == "CloseConnection")
+                {
+                    if (!_serialPortBtn.LanVisibility)
+                    {
+                        GlobalViewManager.RemoveView("SerialPort");
+                        ViewModelLocator.Cleanup<SerialPortViewModel>();
+                    }
+                    if (!_TcpUdpBtn.LanVisibility)
+                    {
+                        GlobalViewManager.RemoveView("TcpUdp");
+                        ViewModelLocator.Cleanup<TcpUdpViewModel>();
+                    }
+                    if (!_ModbusBtn.LanVisibility)
+                    {
+                        GlobalViewManager.RemoveView("Modbus");
+                        ViewModelLocator.Cleanup<ModbusViewModel>();
+                    }
+                    if (!_OpcClientBtn.LanVisibility)
+                    {
+                        GlobalViewManager.RemoveView("OpcClient");
+                        ViewModelLocator.Cleanup<OpcClientViewModel>();
+                    }
+                    IsEnable = false;
+                }
+            });
 
             _sqlitehelper = SqliteHelper.GetSqliteHelpeInstance();
             _sqlitehelper.InitializeSqliteDB();
@@ -321,7 +346,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
 
             Messenger.Default.Register<string>(this, "GatewayMode", (msg) => GatewayMode = msg);
 
-            Timer StatusTimer = new Timer { Interval = 100, Enabled = true };
+            var StatusTimer = new Timer { Interval = 100, Enabled = true };
             StatusTimer.Elapsed += StatusTimer_Elapsed;
         }
 

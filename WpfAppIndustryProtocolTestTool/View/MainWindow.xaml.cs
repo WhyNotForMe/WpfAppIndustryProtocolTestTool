@@ -30,21 +30,19 @@ namespace WpfAppIndustryProtocolTestTool.View
 
             Messenger.Default.Register<string>(this, "Close", (close) =>
             {
-                Thread.Sleep(100);
-                GlobalViewManager.RemoveView("SerialPort");
-                GlobalViewManager.RemoveView("TcpUdp");
-                GlobalViewManager.RemoveView("Modbus");
-                GlobalViewManager.RemoveView("OpcClient");
-
-                ViewModelLocator.Cleanup<SerialPortViewModel>();
-                ViewModelLocator.Cleanup<TcpUdpViewModel>();
-                ViewModelLocator.Cleanup<ModbusViewModel>();
-                ViewModelLocator.Cleanup<OpcClientViewModel>();
-
                 if (close == "CloseWindow")
                 {
-                    GlobalViewManager.RemoveView("FirstPage");
+                    GlobalViewManager.RemoveView("SerialPort");
+                    GlobalViewManager.RemoveView("TcpUdp");
+                    GlobalViewManager.RemoveView("Modbus");
+                    GlobalViewManager.RemoveView("OpcClient");
 
+                    ViewModelLocator.Cleanup<SerialPortViewModel>();
+                    ViewModelLocator.Cleanup<TcpUdpViewModel>();
+                    ViewModelLocator.Cleanup<ModbusViewModel>();
+                    ViewModelLocator.Cleanup<OpcClientViewModel>();
+
+                    GlobalViewManager.RemoveView("FirstPage");
                     ViewModelLocator.Cleanup<FirstPageViewModel>();
                     ViewModelLocator.Cleanup<MainWindowViewModel>();
 
