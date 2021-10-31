@@ -416,7 +416,7 @@ namespace WpfAppIndustryProtocolTestTool.BLL.ModbusProtocol
 
         public void StopListening()
         {
-            if (SerialFlag & (serialport != null))
+            if (SerialFlag)
             {
                 if (serialport.IsOpen)
                 {
@@ -429,8 +429,7 @@ namespace WpfAppIndustryProtocolTestTool.BLL.ModbusProtocol
             try
             {
                 tcpHandler?.Disconnect();
-                listenerThread?.Abort();
-
+                //listenerThread?.Interrupt();
             }
             catch (Exception)
             {
@@ -440,14 +439,15 @@ namespace WpfAppIndustryProtocolTestTool.BLL.ModbusProtocol
             try
             {
                 listenerThread?.Join();
-
-                clientConnectionThread?.Abort();
-
+                //clientConnectionThread?.Abort();
             }
             catch (Exception)
             {
                 throw;
             }
+
+
+
         }
 
         private void ListenerThread()
@@ -499,7 +499,7 @@ namespace WpfAppIndustryProtocolTestTool.BLL.ModbusProtocol
 
                         throw;
                     }
-                    
+
 
                 }
 
@@ -589,7 +589,7 @@ namespace WpfAppIndustryProtocolTestTool.BLL.ModbusProtocol
                     catch (Exception)
                     {
                         throw;
-                    }                    
+                    }
                 }
                 else
                 {
@@ -1006,7 +1006,7 @@ namespace WpfAppIndustryProtocolTestTool.BLL.ModbusProtocol
                         {
                             StoreLogData.Instance.Store("Send Data: " + BitConverter.ToString(array), DateTime.Now);
                         }
-                        
+
                         udpClient.Send(array, array.Length, endPoint);
                     }
                     else

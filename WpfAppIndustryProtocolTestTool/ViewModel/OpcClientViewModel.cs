@@ -386,8 +386,13 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             _opcCalssicDAHelper = new OpcDataAccessAutomationHelper();
             _opcCalssicDAHelper.ConnectionChanged += _opcCalssicDAHelper_ConnectionChanged;
 
-            Messenger.Default.Register<string>(this, "Close", (msg) => ExeConnectOrDisconnect());
-
+            Messenger.Default.Register<string>(this, "Close", (msg) =>
+            {
+                if (IsConnected)
+                {
+                    ExeConnectOrDisconnect();
+                }
+            });
 
             ExeRefresh();
         }
@@ -429,8 +434,6 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             {
                 InfoMessage = "Error: " + ex.Message.Replace("\n", "");
             }
-
-
 
         }
 
