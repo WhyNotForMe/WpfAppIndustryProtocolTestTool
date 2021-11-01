@@ -491,7 +491,10 @@
                                                   GroupName="cast"
                                                   IsChecked="{Binding Multicast}"
                                                   Content="Multicast" 
-                                                  x:Name="radioBtnMulticast"/>
+                                                  x:Name="radioBtnMulticast"
+                                                  Visibility="{Binding ElementName=toggleButtonClientServer,
+                                                                       Path=IsChecked,
+                                                                       Converter={StaticResource B12Visi}}"/>
                                 </StackPanel>
                             </Expander>
                             <!--EndPoint-->
@@ -531,11 +534,14 @@
                                     <TextBox Style="{StaticResource MaterialDesignFloatingHintTextBox}"
                                              Text="{Binding CastPort,UpdateSourceTrigger=PropertyChanged}"
                                              VerticalAlignment="Center"
-                                             materialDesign:TextFieldAssist.HasClearButton="True"
+                                             materialDesign:TextFieldAssist.HasClearButton=
+                                               "{Binding ElementName=radioBtnMulticast,Path=IsChecked,
+                                                         Converter={StaticResource B10Swap}}"
                                              materialDesign:TextFieldAssist.PrefixText="-> "
                                              materialDesign:TextFieldAssist.SuffixText=""
                                              materialDesign:HintAssist.FloatingScale="1.1"                                 
-                                             Margin="5">
+                                             Margin="5"
+                                             IsReadOnly="{Binding ElementName=radioBtnMulticast,Path=IsChecked}">
 
                                         <!--CmdReviewConfirm,due to TextBox.TextChanged-->
                                         <i:Interaction.Triggers>

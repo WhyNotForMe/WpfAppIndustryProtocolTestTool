@@ -11,6 +11,7 @@ namespace WpfAppIndustryProtocolTestTool.BLL.TcpUdpProtocol
         SocketAsyncEventArgs _writeEventArg;
         IPEndPoint _localEndPoint;
         IPEndPoint _destinationEP;
+        MulticastOption _multicastOption;
 
 
         public event OnReceiveComplete ReceiveCompleted;
@@ -46,9 +47,9 @@ namespace WpfAppIndustryProtocolTestTool.BLL.TcpUdpProtocol
             try
             {
                 _socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.MulticastLoopback, true);
-                _socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.AddMembership,
-                                                                    new MulticastOption(multicastGroup, multicastPort));
-                _socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.MulticastTimeToLive, true);
+                _multicastOption = new MulticastOption(multicastGroup, _localEndPoint.Address);
+                _socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.AddMembership, _multicastOption);
+                _socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.MulticastTimeToLive, 60);
 
                 _destinationEP = new IPEndPoint(multicastGroup, multicastPort);
 
@@ -64,8 +65,7 @@ namespace WpfAppIndustryProtocolTestTool.BLL.TcpUdpProtocol
 
         public void ExitMulticastGroup(IPAddress multicastGroup, int multicastPort)
         {
-            _socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.DropMembership,
-                                                            new MulticastOption(multicastGroup, multicastPort));
+            _socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.DropMembership, _multicastOption);
             MessageInformed?.Invoke($"Warning: Exit Multicast Group({multicastGroup}:{multicastPort})");
         }
 
@@ -85,7 +85,20 @@ namespace WpfAppIndustryProtocolTestTool.BLL.TcpUdpProtocol
             }
             catch (Exception)
             {
+                throw;
+            }
 
+        }
+
+        public void StartClient()
+        {
+            try
+            {
+                _localEndPoint = new IPEndPoint(IPAddress.Any, 0);
+                _socket.Bind(_localEndPoint);
+            }
+            catch (Exception)
+            {
                 throw;
             }
 

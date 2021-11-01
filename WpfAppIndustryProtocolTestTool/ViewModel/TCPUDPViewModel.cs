@@ -74,8 +74,6 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
         public bool Multicast { get; set; }
 
         public string CastIPAddress { get; set; }
-        public int CastPort { get; set; }
-
 
         public bool AutoSend { get; set; }
         public string SendCycleTime { get; set; }
@@ -136,6 +134,19 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             {
                 if (_clientTotal == value) { return; }
                 _clientTotal = value;
+                RaisePropertyChanged();
+            }
+        }
+
+
+        private int _castPort;
+        public int CastPort
+        {
+            get => _castPort;
+            set
+            {
+                if (_castPort == value) { return; }
+                _castPort = value;
                 RaisePropertyChanged();
             }
         }
@@ -592,10 +603,12 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
 
                             _udpHelper.StartServer(iPAddress, Port);
 
-                            IsRunning = true;
                             _castConfirm = false;
                             StartStop = "STOP SERVER";
                             UdpOperationEnable = true;
+                            CastPort = Port;
+                            IsRunning = true;
+
                         }
                         else if (StartStop == "STOP SERVER")
                         {
@@ -618,11 +631,11 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                             _udpHelper.SendCompleted += SendCompleted;
                             _udpHelper.UdpClientReceived += _udpHelper_UdpClientReceived;
 
-                            IsRunning = true;
+                            _udpHelper.StartClient();
                             StartStop = "STOP CLIENT";
                             _castConfirm = false;
                             UdpOperationEnable = true;
-
+                            IsRunning = true;
 
                         }
                         else if (StartStop == "STOP CLIENT")
