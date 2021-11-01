@@ -347,8 +347,8 @@
                                                 Width="auto" IsReadOnly="True"/>
                             <DataGridTextColumn Header="Time Stamp" Binding="{Binding TimeStamp}" 
                                                 Width="auto" IsReadOnly="True"/>
-                            <!--<DataGridTextColumn Header="Client Handle" Binding="{Binding ClientHandle}" 
-                                                Width="auto" IsReadOnly="True"/>-->
+                            <DataGridTextColumn Header="Client Handle" Binding="{Binding ClientHandle}" 
+                                                Width="auto" IsReadOnly="True"/>
                         </DataGrid.Columns>
                     </DataGrid>
                     <!--InfoMessage-->

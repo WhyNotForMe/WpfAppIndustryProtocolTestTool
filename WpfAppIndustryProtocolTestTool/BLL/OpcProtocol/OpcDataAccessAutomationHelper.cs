@@ -222,18 +222,17 @@ namespace WpfAppIndustryProtocolTestTool.BLL.OpcProtocol
                     _itemID = "0";
                     _clientHandle = 0;
                     _serverHandleList.Add(0);
-
                 }
 
                 //For OPC Group item
                 _itemID = SelectedTag;
-                _clientHandle = _serverHandleList.Count;
+                //_clientHandle = _serverHandleList.Count;
+                _clientHandle ++;
 
                 _opcItem = _opcItems.AddItem(_itemID, _clientHandle);
                 _opcItemList.Add(_opcItem);
                 _serverHandleList.Add(_opcItem.ServerHandle);
 
-                //_opcItem.RequestedDataType
 
                 //For UI DataGrid
                 if (!OpcTagItemList.Exists(i => i.ItemID == SelectedTag))
@@ -245,8 +244,8 @@ namespace WpfAppIndustryProtocolTestTool.BLL.OpcProtocol
                         ItemValue = 0.0f,
                         Quality = "Unknown",
                         TimeStamp = DateTime.Now.ToLocalTime().ToString("HH:mm:ss.FFF"),
-                        ClientHandle = 00,
-                        TransactionID = 00
+                        ClientHandle = _clientHandle,
+                        TransactionID = 0
                     });
                 }
             }

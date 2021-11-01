@@ -491,9 +491,12 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
 
             Messenger.Default.Register<string>(this, "Close", (msg) =>
             {
-                if (IsRunning)
+                if (msg == "CloseConnection")
                 {
-                    StartOrStop();
+                    if (IsRunning)
+                    {
+                        StartOrStop();
+                    }
                 }
             });
 
@@ -545,6 +548,8 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                         else if (StartStop == "STOP SERVER")
                         {
                             _tcpServer.DataReceived -= _tcpServer_DataReceived;
+                            _tcpServer.ClientNumberChanged -= _tcpServer_ClientNumberChanged;
+                            _tcpServer.SendCompleted -= SendCompleted;
                             StopRunning();
 
                             _tcpServer.Stop();
@@ -567,11 +572,11 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                             _tcpClient.SendCompleted += SendCompleted;
                             _tcpClient.Connect(iPAddress, Port);
 
-                            
                         }
                         else if (StartStop == "STOP CLIENT")
                         {
                             _tcpClient.ReceiveCompleted -= ReceiveCompleted;
+                            _tcpClient.SendCompleted -= SendCompleted;
                             StopRunning();
 
                             _tcpClient.Disconnect();
@@ -595,6 +600,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                         else if (StartStop == "STOP SERVER")
                         {
                             _udpHelper.ReceiveCompleted -= ReceiveCompleted;
+                            _udpHelper.SendCompleted -= SendCompleted;
                             StopRunning();
 
                             _udpHelper.Stop();
@@ -622,6 +628,8 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                         else if (StartStop == "STOP CLIENT")
                         {
                             _udpHelper.ReceiveCompleted -= ReceiveCompleted;
+                            _udpHelper.SendCompleted -= SendCompleted;
+                            _udpHelper.UdpClientReceived -= _udpHelper_UdpClientReceived;
                             StopRunning();
 
                             _udpHelper.Stop();
@@ -644,8 +652,6 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                 InfoMessage = "Error: " + ex.Message.Replace("\n", "");
             }
         }
-
-
 
         private bool CanStartOrStop()
         {
@@ -949,8 +955,6 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                     _tcpServer.SendAsync(token, msg);
                 }
 
-
-
             }
             catch (Exception ex)
             {
@@ -985,6 +989,11 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
         {
             try
             {
+                if (!IsRunning)
+                {
+                    return;
+                }
+
                 RxPieces++;
                 if (SaveToSQLite)
                 {
@@ -1030,8 +1039,10 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                 }
                 else
                 {
+
                     App.Current.Dispatcher.Invoke(() => RemoteName = String.Empty);
                     App.Current.Dispatcher.Invoke(() => RemoteEndPoint = token.Socket.RemoteEndPoint.ToString());
+
                     ReceiveText(buffer);
                 }
 
@@ -1050,6 +1061,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             {
                 IsRunning = true;
                 StartStop = "STOP CLIENT";
+                InfoMessage = $"Connected to TCP Server [{e.RemoteEndPoint}] !";
 
                 if (SaveToSQLite)
                 {
@@ -1108,16 +1120,9 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             {
                 RxPieces++;
 
-                //if (_workRole == TcpUdpWorkRoleEnum.UdpClient)
-                //{
-                //    string[] localEndPoint = e.AcceptSocket.LocalEndPoint.ToString().Split(':');
-                //    _sqlitehelper.UpdateEthernetPortInfo(_connectionID, localEndPoint[0], localEndPoint[1]);
-                //}
-
                 if (JsonSerialized)
                 {
                     ReceiveMessage(e, buffer);
-
                 }
                 else
                 {

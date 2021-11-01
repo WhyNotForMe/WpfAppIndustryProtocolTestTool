@@ -331,15 +331,16 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
 
             Messenger.Default.Register<string>(this, "Close", (msg) =>
             {
-                if (ModbusRTU && IsRunning)
+                if (msg == "CloseConnection")
                 {
-                    ExeOpenOrClosePort();
-                    return;
-                }
-                else if (ModbusTCP && IsRunning)
-                {
-                    ExeStartOrStop();
-                    return;
+                    if (ModbusRTU && IsRunning)
+                    {
+                        ExeOpenOrClosePort();
+                    }
+                    else if (ModbusTCP && IsRunning)
+                    {
+                        ExeStartOrStop();
+                    }
                 }
             });
 

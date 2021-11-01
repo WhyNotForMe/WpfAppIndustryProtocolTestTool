@@ -143,29 +143,10 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
 
             Messenger.Default.Register<string>(this, "Close", (msg) =>
             {
+                IsEnable = false;
                 if (msg == "CloseConnection")
                 {
-                    if (!_serialPortBtn.LanVisibility)
-                    {
-                        GlobalViewManager.RemoveView("SerialPort");
-                        ViewModelLocator.Cleanup<SerialPortViewModel>();
-                    }
-                    if (!_TcpUdpBtn.LanVisibility)
-                    {
-                        GlobalViewManager.RemoveView("TcpUdp");
-                        ViewModelLocator.Cleanup<TcpUdpViewModel>();
-                    }
-                    if (!_ModbusBtn.LanVisibility)
-                    {
-                        GlobalViewManager.RemoveView("Modbus");
-                        ViewModelLocator.Cleanup<ModbusViewModel>();
-                    }
-                    if (!_OpcClientBtn.LanVisibility)
-                    {
-                        GlobalViewManager.RemoveView("OpcClient");
-                        ViewModelLocator.Cleanup<OpcClientViewModel>();
-                    }
-                    IsEnable = false;
+                    CleanupSubModules();
                 }
             });
 
@@ -173,6 +154,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             _sqlitehelper.InitializeSqliteDB();
 
         }
+
 
 
         public override void Cleanup()
@@ -202,12 +184,14 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             _ModbusBtn.HorVertical = NaviBarTransformed;
             _OpcClientBtn.HorVertical = NaviBarTransformed;
 
-
             UpdateCollectionItem();
 
         }
         private void ExeCloseWindow()
         {
+            Messenger.Default.Send<string>("CloseConnection", "Close");
+            System.Threading.Thread.Sleep(200);
+            CleanupSubModules();
             Messenger.Default.Send<string>("CloseWindow", "Close");
         }
 
@@ -260,12 +244,35 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             }
         }
 
+        private void CleanupSubModules()
+        {
+            if (!_serialPortBtn.LanVisibility)
+            {
+                GlobalViewManager.RemoveView("SerialPort");
+                ViewModelLocator.Cleanup<SerialPortViewModel>();
+            }
+            if (!_TcpUdpBtn.LanVisibility)
+            {
+                GlobalViewManager.RemoveView("TcpUdp");
+                ViewModelLocator.Cleanup<TcpUdpViewModel>();
+            }
+            if (!_ModbusBtn.LanVisibility)
+            {
+                GlobalViewManager.RemoveView("Modbus");
+                ViewModelLocator.Cleanup<ModbusViewModel>();
+            }
+            if (!_OpcClientBtn.LanVisibility)
+            {
+                GlobalViewManager.RemoveView("OpcClient");
+                ViewModelLocator.Cleanup<OpcClientViewModel>();
+            }
+        }
+
         #region EventHandler
 
         private void StatusTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
             Time = DateTime.Now.ToLocalTime().ToString();
-
         }
 
         #endregion

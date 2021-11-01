@@ -295,7 +295,7 @@
                                   Margin="2"
                                   DockPanel.Dock="Top"
                                   Text="{Binding StartAddress,UpdateSourceTrigger=PropertyChanged}"/>
-                        <TextBox  materialDesign:HintAssist.Hint="Data Quantity"
+                        <TextBox  materialDesign:HintAssist.Hint="Register Quantity"
                                   materialDesign:HintAssist.FloatingScale="1.1"                                  
                                   Style="{StaticResource MaterialDesignFloatingHintTextBox}"
                                   VerticalAlignment="Center" 

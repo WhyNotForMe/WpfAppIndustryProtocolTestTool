@@ -145,13 +145,9 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             SingleModule = true;
             IsActive = true;
             ResetMode = true;
-
-
             StartOrStop = "Start to Enjoy";
 
             GatewayModuleCollection = new ObservableCollection<string> { " Serial Port Module", " TCP/UDP Module" };
-
-
         }
 
         public override void Cleanup()

@@ -388,9 +388,12 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
 
             Messenger.Default.Register<string>(this, "Close", (msg) =>
             {
-                if (IsConnected)
+                if (msg == "CloseConnection")
                 {
-                    ExeConnectOrDisconnect();
+                    if (IsConnected)
+                    {
+                        ExeConnectOrDisconnect();
+                    }
                 }
             });
 
@@ -488,7 +491,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
 
                     ConnectOrDisconnect = "Disconnect";
 
-                    InfoMessage = $"Notice: [Host Node]:  {SelectedHost} , [Server Name]:  {ServerName}";
+                    InfoMessage = $"Warning: [Host Node]:  {SelectedHost} , [Server Name]:  {ServerName}";
 
                 }
                 else if (ConnectOrDisconnect == "Disconnect")
@@ -515,8 +518,6 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
 
         }
 
-
-
         private bool CanConnectOrDisconnect()
         {
             if (ConnectOrDisconnect == "Connect")
@@ -535,7 +536,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             if (node.Children.Count == 0)
             {
                 _selectedItemID = node.ItemID;
-                InfoMessage = $"Notice: You have Selected Tag [ {_selectedItemID} ]";
+                InfoMessage = $"Warning: You have Selected Tag [ {_selectedItemID} ]";
             }
         }
 
@@ -614,7 +615,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                     _ = SelectedTagCollection.Remove(item);
                     ChartItemIDCollection.ToList().FindAll(i => i == item.ItemID).ForEach(i => ChartItemIDCollection.Remove(i));
                 }
-                InfoMessage = $"Notice: Remove {count} item(s) from DataGrid!";
+                InfoMessage = $"Warning: Remove {count} item(s) from DataGrid!";
             }
             catch (Exception ex)
             {
@@ -722,13 +723,13 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                     IsReadingOrWriting = false;
                 }
 
-                _ = Task.Run(() =>
+                Task.Run(() =>
                   {
                       ShowChartPoints(SelectedItemID01, Chart01PointsSum, Chart01Values, Chart01XLabels);
                       ShowChartPoints(SelectedItemID02, Chart02PointsSum, Chart02Values, Chart02XLabels);
                   });
 
-                InfoMessage = $"Notice: {message}";
+                InfoMessage = $"{message}";
             }
             catch (Exception ex)
             {
@@ -743,7 +744,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             try
             {
                 IsConnected = _opcCalssicDAHelper.IsConnected;
-                InfoMessage = $"Notice: DisConnected to OPC Server [{serverName}] !";
+                InfoMessage = $"Warning: Disconnected to OPC Server [{serverName}] !";
             }
             catch (Exception ex)
             {

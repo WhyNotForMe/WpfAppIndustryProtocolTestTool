@@ -117,7 +117,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                 if (_infoMessage == value) { return; }
                 _infoMessage = value;
                 RaisePropertyChanged();
-                if (SaveToSQLite && _portID > 0) 
+                if (SaveToSQLite && _portID > 0)
                 {
                     _sqlitehelper.InsertIntoTableInfoMsg("SerialPort", _infoMessage, _portID);
                 }
@@ -458,10 +458,12 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             });
             Messenger.Default.Register<string>(this, "Close", (msg) =>
             {
-                if (IsOpen)
+                if (msg == "CloseConnection")
                 {
-
-                    OpenClosePort();
+                    if (IsOpen)
+                    {
+                        OpenClosePort();
+                    }
                 }
             });
 
