@@ -473,7 +473,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
 
             ReceiveBufferSize = 1;
             TcpClientViewModelCollection = new ObservableCollection<TcpClientModel>();
-
+            DisplayDatetime = true;
 
             _sendTimer = new System.Timers.Timer();
             _sendTimer.Elapsed += (sender, e) =>
