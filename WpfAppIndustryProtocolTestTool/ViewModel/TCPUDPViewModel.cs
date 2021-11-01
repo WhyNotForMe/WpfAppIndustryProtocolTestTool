@@ -35,8 +35,6 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
         System.Timers.Timer _sendTimer;
         ushort _codeCount;
 
-        int _remoteRcvBufferSize;
-
         string _toolWorkMode;
         string _gatewayMode;
 
@@ -742,12 +740,6 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             {
                 if (!string.IsNullOrEmpty(SendingText) && !string.IsNullOrWhiteSpace(SendingText))
                 {
-                    if (JsonSerialized && SendingText.Length > _remoteRcvBufferSize)
-                    {
-                        InfoMessage = "Warning: Input Message length is longer than RemoteEndPoint ReceiveBufferSize !";
-                        return;
-
-                    }
                     if (GetDataFormatEnum() == DataFormatEnum.HEX)
                     {
                         _textValid = ToolHelper.ReviewHexString(SendingText);
@@ -958,7 +950,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                         Alias = "TCP Server01";
                     }
 
-                    string msgString = JsonHelper.SerializeMessage($" <{Alias}>  ", ReceiveBufferSize, msg,
+                    string msgString = JsonHelper.SerializeMessage($" <{Alias}>  ", msg,
                                                     SerializedMsgTypeEnum.Object, SerializedMsgFunctionEnum.ConnectionData);
                     byte[] msgArray = ToolHelper.StringToByteArray(msgString, GetDataFormatEnum());
                     _tcpServer.SendAsync(token, msgArray);
@@ -1029,7 +1021,6 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                                        c.EndPoint == token.Socket.RemoteEndPoint.ToString());
                             App.Current.Dispatcher.Invoke(() => tcpClient.Name = message.Name);
 
-                            _remoteRcvBufferSize = message.RcvBufferSize;
                         }
                         else if (message.MessageFunction == SerializedMsgFunctionEnum.ActualData)
                         {
@@ -1089,9 +1080,9 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                 {
                     if (string.IsNullOrEmpty(Alias))
                     {
-                        Alias = string.Empty;
+                        Alias = "TCP Client";
                     }
-                    string MsgString = JsonHelper.SerializeMessage(" <" + Alias + ">  ", ReceiveBufferSize, null,
+                    string MsgString = JsonHelper.SerializeMessage(" <" + Alias + ">  ", null,
                                                   SerializedMsgTypeEnum.Object, SerializedMsgFunctionEnum.ConnectionData);
                     byte[] MsgArray = ToolHelper.StringToByteArray(MsgString, GetDataFormatEnum());
                     _tcpClient.SendAsync(MsgArray);
@@ -1284,8 +1275,6 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                     if (message.MessageFunction == SerializedMsgFunctionEnum.ConnectionData)
                     {
                         ReceiveText(message.Buffer);
-
-                        _remoteRcvBufferSize = message.RcvBufferSize;
                     }
                     else if (message.MessageFunction == SerializedMsgFunctionEnum.ActualData)
                     {
@@ -1319,10 +1308,9 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
         {
             try
             {
-                string msgString = JsonHelper.SerializeMessage(Alias, ReceiveBufferSize, buffer,
+                string msgString = JsonHelper.SerializeMessage(Alias,  buffer,
                                                SerializedMsgTypeEnum.Text, SerializedMsgFunctionEnum.ActualData);
                 return ToolHelper.StringToByteArray(msgString, GetDataFormatEnum());
-
             }
             catch (Exception ex)
             {

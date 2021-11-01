@@ -6,14 +6,13 @@ namespace WpfAppIndustryProtocolTestTool.BLL
 {
     public class JsonHelper
     {
-        public static string SerializeMessage(string Name, int rcvBufferSize, byte[] Buffer, SerializedMsgTypeEnum MessageType= SerializedMsgTypeEnum.Text, SerializedMsgFunctionEnum MessageFunction= SerializedMsgFunctionEnum.ActualData)
+        public static string SerializeMessage(string Name, byte[] Buffer, SerializedMsgTypeEnum MessageType = SerializedMsgTypeEnum.Text, SerializedMsgFunctionEnum MessageFunction = SerializedMsgFunctionEnum.ActualData)
         {
             try
             {
                 SerializedMessageModel sMessage = new SerializedMessageModel
                 {
                     Name = Name,
-                    RcvBufferSize= rcvBufferSize,
                     MessageType = MessageType,
                     MessageFunction = MessageFunction,
                     Buffer = Buffer
@@ -26,7 +25,7 @@ namespace WpfAppIndustryProtocolTestTool.BLL
 
                 throw;
             }
-            
+
 
         }
 
@@ -46,7 +45,7 @@ namespace WpfAppIndustryProtocolTestTool.BLL
 
                 throw;
             }
-           
+
         }
     }
 }

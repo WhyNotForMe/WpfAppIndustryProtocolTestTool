@@ -9,8 +9,6 @@ namespace WpfAppIndustryProtocolTestTool.Model.SerializedMessage
     public class SerializedMessageModel
     {
         public string Name { get; set; }
-        public int RcvBufferSize { get; set; }
-
         public SerializedMsgTypeEnum MessageType { get; set; }
         public SerializedMsgFunctionEnum MessageFunction { get; set; }
 
