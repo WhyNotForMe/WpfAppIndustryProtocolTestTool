@@ -11,6 +11,7 @@
   <ItemGroup>
     <None Remove="Asset\Database\SqliteDB" />
     <None Remove="Asset\Images\Ethernet.ico" />
+    <None Remove="Asset\Images\IoT.jpeg" />
   </ItemGroup>
 
   <ItemGroup>
@@ -53,6 +54,12 @@
     <Resource Include="Asset\Images\Ethernet.ico">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <SplashScreen Include="Asset\Images\IoT.jpeg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </SplashScreen>
   </ItemGroup>
 
 </Project>
