@@ -9,15 +9,15 @@ namespace WpfAppIndustryProtocolTestTool.BLL.TcpUdpProtocol
         Socket _socket;
         SocketAsyncEventArgs _readEventArg;
         SocketAsyncEventArgs _writeEventArg;
-        IPEndPoint _localEndPoint;
-        IPEndPoint _destinationEP;
-        MulticastOption _multicastOption;
+        IPEndPoint? _localEndPoint;
+        IPEndPoint? _destinationEP;
+        MulticastOption? _multicastOption;
 
 
-        public event OnReceiveComplete ReceiveCompleted;
-        public event OnSendComplete SendCompleted;
-        public event OnMessageInform MessageInformed;
-        public event OnUdpClientReceive UdpClientReceived;
+        public event OnReceiveComplete? ReceiveCompleted;
+        public event OnSendComplete? SendCompleted;
+        public event OnMessageInform? MessageInformed;
+        public event OnUdpClientReceive? UdpClientReceived;
 
         public void SetSinglecastMode(IPAddress destHost, int destPort)
         {
@@ -65,8 +65,11 @@ namespace WpfAppIndustryProtocolTestTool.BLL.TcpUdpProtocol
 
         public void ExitMulticastGroup(IPAddress multicastGroup, int multicastPort)
         {
-            _socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.DropMembership, _multicastOption);
-            MessageInformed?.Invoke($"Warning: Exit Multicast Group({multicastGroup}:{multicastPort})");
+            if (_multicastOption != null)
+            {
+                _socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.DropMembership, _multicastOption);
+                MessageInformed?.Invoke($"Warning: Exit Multicast Group({multicastGroup}:{multicastPort})");
+            }
         }
 
         public void StartServer(IPAddress iPAddress, int port)
@@ -190,7 +193,7 @@ namespace WpfAppIndustryProtocolTestTool.BLL.TcpUdpProtocol
         }
 
 
-        void IO_Completed(object sender, SocketAsyncEventArgs e)
+        void IO_Completed(object? sender, SocketAsyncEventArgs e)
         {
             // determine which type of operation just completed and call the associated handler
             switch (e.LastOperation)

@@ -20,8 +20,8 @@ namespace WpfAppIndustryProtocolTestTool.Model
         }
 
 
-        private string _addressRange;
-        public string AddressRange
+        private string? _addressRange;
+        public string? AddressRange
         {
             get { return _addressRange; }
             set { Set(ref _addressRange, value); }
@@ -29,8 +29,8 @@ namespace WpfAppIndustryProtocolTestTool.Model
 
 
 
-        private string _value;
-        public string Value
+        private string? _value;
+        public string? Value
         {
             get { return _value; }
             set { Set(ref _value, value); }

@@ -762,7 +762,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                 if (!string.IsNullOrWhiteSpace(selectedItemID) && ChartItemIDCollection.Count > 0)
                 {
                     values.Add(SelectedTagCollection.ToList().First(i => i.ItemID == selectedItemID).ItemValue);
-                    xlabels.Add(SelectedTagCollection.ToList().First(i => i.ItemID == selectedItemID).TimeStamp.Substring(11));
+                    xlabels.Add(SelectedTagCollection.ToList().First(i => i.ItemID == selectedItemID).TimeStamp?.Substring(11));
 
                     if (values.Count > pointsSum)
                     {

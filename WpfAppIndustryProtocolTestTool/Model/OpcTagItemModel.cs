@@ -6,12 +6,12 @@ namespace WpfAppIndustryProtocolTestTool.Model
     {
         public bool IsSelected { get; set; }
 
-        public string ItemID { get; set; }
+        public string? ItemID { get; set; }
 
-        public string DataType { get; set; }
+        public string? DataType { get; set; }
 
-        private dynamic _itemValue;
-        public dynamic ItemValue
+        private dynamic? _itemValue;
+        public dynamic? ItemValue
         {
             get { return _itemValue; }
             set { Set(ref _itemValue, value); }
@@ -19,16 +19,16 @@ namespace WpfAppIndustryProtocolTestTool.Model
 
 
 
-        private string _timeStamp;
-        public string TimeStamp
+        private string? _timeStamp;
+        public string? TimeStamp
         {
             get { return _timeStamp; }
             set { Set(ref _timeStamp, value); }
         }
 
 
-        private string _quality;
-        public string Quality
+        private string? _quality;
+        public string? Quality
         {
             get { return _quality; }
             set { Set(ref _quality, value); }

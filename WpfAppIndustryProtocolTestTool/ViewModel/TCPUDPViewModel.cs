@@ -164,8 +164,8 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
         }
 
 
-        private string _remoteName;
-        public string RemoteName
+        private string? _remoteName;
+        public string? RemoteName
         {
             get { return _remoteName; }
             set
@@ -177,8 +177,8 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
         }
 
 
-        private string _remoteEndPoint;
-        public string RemoteEndPoint
+        private string? _remoteEndPoint;
+        public string? RemoteEndPoint
         {
             get { return _remoteEndPoint; }
             set
@@ -707,7 +707,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                 }
                 else
                 {
-                    MethodInfo methodInfo = _udpHelper?.GetType().GetMethod("Set" + castMode + "Mode", new Type[] { typeof(IPAddress), typeof(int) });
+                    MethodInfo? methodInfo = _udpHelper?.GetType().GetMethod("Set" + castMode + "Mode", new Type[] { typeof(IPAddress), typeof(int) });
                     methodInfo?.Invoke(_udpHelper, new object[] { _castIPAddress, CastPort });
                     _castConfirm = true;
                 }
@@ -796,17 +796,19 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
 
                             foreach (var item in sendingClientList)
                             {
-                                AsyncUserTokenIOCP sendingUserToken = _tcpServer.ClientList.Find(client => client.Socket.RemoteEndPoint.ToString().Equals(item.EndPoint));
+                                AsyncUserTokenIOCP? sendingUserToken = _tcpServer.ClientList.Find(client => client.Socket.RemoteEndPoint.ToString().Equals(item.EndPoint));
 
-                                if (JsonSerialized)
+                                if (sendingUserToken != null)
                                 {
-                                    _tcpServer?.SendAsync(sendingUserToken, SerializeText(sendingMsg));
+                                    if (JsonSerialized)
+                                    {
+                                        _tcpServer?.SendAsync(sendingUserToken, SerializeText(sendingMsg));
+                                    }
+                                    else
+                                    {
+                                        _tcpServer?.SendAsync(sendingUserToken, sendingMsg);
+                                    }
                                 }
-                                else
-                                {
-                                    _tcpServer?.SendAsync(sendingUserToken, sendingMsg);
-                                }
-
                             }
 
                         }
@@ -1009,18 +1011,20 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                 if (JsonSerialized)
                 {
                     string msgString = ToolHelper.ByteArrayToString(buffer);
-                    SerializedMessageModel message = JsonHelper.DeserializeMessage(msgString);
+                    SerializedMessageModel? message = JsonHelper.DeserializeMessage(msgString);
                     if (message != null)
                     {
                         App.Current.Dispatcher.Invoke(() => RemoteName = message.Name);
-                        App.Current.Dispatcher.Invoke(() => RemoteEndPoint = token.Socket.RemoteEndPoint.ToString());
+                        App.Current.Dispatcher.Invoke(() => RemoteEndPoint = token.Socket?.RemoteEndPoint?.ToString());
 
                         if (message.MessageFunction == SerializedMsgFunctionEnum.ConnectionData)
                         {
                             var tcpClient = TcpClientViewModelCollection.ToList().Find(c =>
-                                       c.EndPoint == token.Socket.RemoteEndPoint.ToString());
-                            App.Current.Dispatcher.Invoke(() => tcpClient.Name = message.Name);
-
+                                       c.EndPoint == token.Socket?.RemoteEndPoint?.ToString());
+                            if (tcpClient != null)
+                            {
+                                App.Current.Dispatcher.Invoke(() => tcpClient.Name = message.Name);
+                            }
                         }
                         else if (message.MessageFunction == SerializedMsgFunctionEnum.ActualData)
                         {
@@ -1028,18 +1032,8 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                             {
                                 ReceiveText(message.Buffer);
                             }
-                            else
-                            {
-                                return;
-                            }
                         }
-                        else
-                        {
-                            return;
-                        }
-
                     }
-                    return;
                 }
                 else
                 {
@@ -1266,33 +1260,26 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             try
             {
                 string msgString = ToolHelper.ByteArrayToString(buffer);
-                SerializedMessageModel message = JsonHelper.DeserializeMessage(msgString);
+                SerializedMessageModel? message = JsonHelper.DeserializeMessage(msgString);
                 if (message != null)
                 {
                     App.Current.Dispatcher.Invoke(() => RemoteName = message.Name);
-                    App.Current.Dispatcher.Invoke(() => RemoteEndPoint = e.RemoteEndPoint.ToString());
+                    App.Current.Dispatcher.Invoke(() => RemoteEndPoint = e.RemoteEndPoint?.ToString());
 
-                    if (message.MessageFunction == SerializedMsgFunctionEnum.ConnectionData)
+                    if (message.Buffer != null)
                     {
-                        ReceiveText(message.Buffer);
-                    }
-                    else if (message.MessageFunction == SerializedMsgFunctionEnum.ActualData)
-                    {
-                        if (message.MessageType == SerializedMsgTypeEnum.Text)
+                        if (message.MessageFunction == SerializedMsgFunctionEnum.ConnectionData)
                         {
                             ReceiveText(message.Buffer);
                         }
-                        else
+                        else if (message.MessageFunction == SerializedMsgFunctionEnum.ActualData)
                         {
-                            return;
+                            if (message.MessageType == SerializedMsgTypeEnum.Text)
+                            {
+                                ReceiveText(message.Buffer);
+                            }
                         }
                     }
-                    else
-                    {
-                        return;
-                    }
-
-
                 }
                 return;
             }
@@ -1308,7 +1295,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
         {
             try
             {
-                string msgString = JsonHelper.SerializeMessage(Alias,  buffer,
+                string msgString = JsonHelper.SerializeMessage(Alias, buffer,
                                                SerializedMsgTypeEnum.Text, SerializedMsgFunctionEnum.ActualData);
                 return ToolHelper.StringToByteArray(msgString, GetDataFormatEnum());
             }

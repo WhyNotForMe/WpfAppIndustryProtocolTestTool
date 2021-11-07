@@ -49,9 +49,9 @@ namespace WpfAppIndustryProtocolTestTool.BLL.ModbusProtocol
 
         public ushort[] receiveRegisterValues;
 
-        public short[] sendRegisterValues;
+        public short[]? sendRegisterValues;
 
-        public bool[] sendCoilValues;
+        public bool[]? sendCoilValues;
 
         public ushort crc;
     }

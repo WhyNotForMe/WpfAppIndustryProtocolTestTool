@@ -9,13 +9,13 @@ namespace WpfAppIndustryProtocolTestTool.BLL
 
         static Hashtable _viewManager = new Hashtable();
 
-        public static object GetView(string ViewName)
+        public static object? GetView(string ViewName)
         {
             try
             {
                 if (!_viewManager.ContainsKey(ViewName))
                 {
-                    Type type = Type.GetType("WpfAppIndustryProtocolTestTool.View." + ViewName + "View");
+                    Type? type = Type.GetType("WpfAppIndustryProtocolTestTool.View." + ViewName + "View");
                     if (type != null)
                     {
                         UserControl? module = Activator.CreateInstance(type) as UserControl;

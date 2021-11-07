@@ -14,25 +14,25 @@ namespace WpfAppIndustryProtocolTestTool.BLL.OpcProtocol
 
         #region OPC DA Automation Properties
 
-        OPCServer _opcServer;
-        OPCBrowser _opcBrowser;
-        OPCGroups _opcGroups;
-        OPCGroup _opcGroup;
-        OPCItems _opcItems;
-        OPCItem _opcItem;
+        OPCServer? _opcServer;
+        OPCBrowser? _opcBrowser;
+        OPCGroups? _opcGroups;
+        OPCGroup? _opcGroup;
+        OPCItems? _opcItems;
+        OPCItem? _opcItem;
 
         #endregion
 
         public bool IsConnected { get => _opcServer.ServerState == 1; }
         public List<OpcTagItemModel> OpcTagItemList { get; set; }
-        public string ItemChanged { get; set; }
-        public event OnItemValueChange ItemValueChanged;
-        public event OnConnectionChange ConnectionChanged;
+        public string? ItemChanged { get; set; }
+        public event OnItemValueChange? ItemValueChanged;
+        public event OnConnectionChange? ConnectionChanged;
 
         //AddItem (parameters)
-        string _itemID;
+        string? _itemID;
         int _clientHandle;
-        Array _serverHandles;
+        Array? _serverHandles;
 
 
         //OPC tags buffer
@@ -46,7 +46,7 @@ namespace WpfAppIndustryProtocolTestTool.BLL.OpcProtocol
 
 
         //AsyncWrite
-        Array _writeValues;
+        Array? _writeValues;
         int _writeTransactionID;
 
 
@@ -314,7 +314,7 @@ namespace WpfAppIndustryProtocolTestTool.BLL.OpcProtocol
 
                     for (int i = 1; i <= OpcTagItemList.Count; i++)
                     {
-                        object itemValue = itemValues.GetValue(i);
+                        object? itemValue = itemValues.GetValue(i);
                         if (itemValue != null)
                         {
                             OpcTagItemList[i - 1].ItemValue = Convert.ToSingle(itemValue);
@@ -383,7 +383,7 @@ namespace WpfAppIndustryProtocolTestTool.BLL.OpcProtocol
                 {
                     for (int i = 1; i <= NumItems; i++)
                     {
-                        object itemValue = ItemValues.GetValue(i);
+                        object? itemValue = ItemValues.GetValue(i);
                         if (itemValue != null)
                         {
                             OpcTagItemList[i - 1].ItemValue = Convert.ToSingle(itemValue);

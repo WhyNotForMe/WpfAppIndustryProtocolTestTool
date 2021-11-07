@@ -6,7 +6,7 @@ namespace WpfAppIndustryProtocolTestTool.BLL
 {
     public class JsonHelper
     {
-        public static string SerializeMessage(string Name, byte[] Buffer, SerializedMsgTypeEnum MessageType = SerializedMsgTypeEnum.Text, SerializedMsgFunctionEnum MessageFunction = SerializedMsgFunctionEnum.ActualData)
+        public static string SerializeMessage(string Name, byte[]? Buffer, SerializedMsgTypeEnum MessageType = SerializedMsgTypeEnum.Text, SerializedMsgFunctionEnum MessageFunction = SerializedMsgFunctionEnum.ActualData)
         {
             try
             {
@@ -29,7 +29,7 @@ namespace WpfAppIndustryProtocolTestTool.BLL
 
         }
 
-        public static SerializedMessageModel DeserializeMessage(string message)
+        public static SerializedMessageModel? DeserializeMessage(string message)
         {
             try
             {

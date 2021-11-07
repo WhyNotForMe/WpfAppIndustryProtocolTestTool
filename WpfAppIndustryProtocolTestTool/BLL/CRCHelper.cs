@@ -78,6 +78,7 @@ namespace WpfAppIndustryProtocolTestTool.BLL
             try
             {
                 GetCRC32Table();
+
                 uint value = 0xffffffff;
                 int len = InputArray.Length;
                 for (int i = 0; i < len; i++)
@@ -149,7 +150,7 @@ namespace WpfAppIndustryProtocolTestTool.BLL
         }
 
 
-        public static byte[] ValidateCRC(byte[] rawBuffer, CRCEnum cRC)
+        public static byte[]? ValidateCRC(byte[] rawBuffer, CRCEnum cRC)
         {
             try
             {

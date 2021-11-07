@@ -8,16 +8,16 @@ namespace WpfAppIndustryProtocolTestTool.BLL.TcpUdpProtocol
     public class TcpClientHelperIOCP
     {
         Socket _socket;
-        SocketAsyncEventArgs _connectEventArg;
+        SocketAsyncEventArgs? _connectEventArg;
         SocketAsyncEventArgs _readEventArg;
         SocketAsyncEventArgs _writeEventArg;
-        IPEndPoint _remoteEndPoint;
+        IPEndPoint? _remoteEndPoint;
 
-        public event OnConnectComplete ConnectCompleted;
-        public event OnDisconnectComplete DisconnectCompleted;
-        public event OnReceiveComplete ReceiveCompleted;
-        public event OnSendComplete SendCompleted;
-        public event OnMessageInform MessageInformed;
+        public event OnConnectComplete? ConnectCompleted;
+        public event OnDisconnectComplete? DisconnectCompleted;
+        public event OnReceiveComplete? ReceiveCompleted;
+        public event OnSendComplete? SendCompleted;
+        public event OnMessageInform? MessageInformed;
 
 
         public void Connect(IPAddress iPAddress, int port)
@@ -109,7 +109,7 @@ namespace WpfAppIndustryProtocolTestTool.BLL.TcpUdpProtocol
 
         }
 
-        private void _connectArg_Completed(object sender, SocketAsyncEventArgs e)
+        private void _connectArg_Completed(object? sender, SocketAsyncEventArgs e)
         {
             if (e.ConnectSocket != null)
             {
@@ -138,7 +138,7 @@ namespace WpfAppIndustryProtocolTestTool.BLL.TcpUdpProtocol
 
         }
 
-        void IO_Completed(object sender, SocketAsyncEventArgs e)
+        void IO_Completed(object? sender, SocketAsyncEventArgs e)
         {
             // determine which type of operation just completed and call the associated handler
             switch (e.LastOperation)

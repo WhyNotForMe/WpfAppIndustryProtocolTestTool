@@ -111,7 +111,7 @@ namespace WpfAppIndustryProtocolTestTool.BLL.ModbusProtocol
 
         private int port = 502;
 
-        private ModbusProtocol receiveData;
+        private ModbusProtocol? receiveData;
 
         private ModbusProtocol sendData = new ModbusProtocol();
 
@@ -131,23 +131,23 @@ namespace WpfAppIndustryProtocolTestTool.BLL.ModbusProtocol
 
         private string serialPort = "COM1";
 
-        private SerialPort serialport;
+        private SerialPort? serialport;
 
         private byte unitIdentifier = 1;
 
         private int portIn;
 
-        private IPAddress ipAddressIn;
+        private IPAddress? ipAddressIn;
 
-        private UdpClient udpClient;
+        private UdpClient? udpClient;
 
-        private IPEndPoint iPEndPoint;
+        private IPEndPoint? iPEndPoint;
 
-        private TCPHandler tcpHandler;
+        private TCPHandler? tcpHandler;
 
-        private Thread listenerThread;
+        private Thread? listenerThread;
 
-        private Thread clientConnectionThread;
+        private Thread? clientConnectionThread;
 
         private ModbusProtocol[] modbusLogData = new ModbusProtocol[100];
 
@@ -388,17 +388,17 @@ namespace WpfAppIndustryProtocolTestTool.BLL.ModbusProtocol
         }
 
 
-        public event CoilsChangedHandler CoilsChanged;
+        public event CoilsChangedHandler? CoilsChanged;
 
-        public event HoldingRegistersChangedHandler HoldingRegistersChanged;
+        public event HoldingRegistersChangedHandler? HoldingRegistersChanged;
 
-        public event NumberOfConnectedClientsChangedHandler NumberOfConnectedClientsChanged;
+        public event NumberOfConnectedClientsChangedHandler? NumberOfConnectedClientsChanged;
 
-        public event LogDataChangedHandler LogDataChanged;
+        public event LogDataChangedHandler? LogDataChanged;
 
-        public event OnReceiveComplete ReceiveCompleted;
+        public event OnReceiveComplete? ReceiveCompleted;
 
-        public event OnSendComplete SendCompleted;
+        public event OnSendComplete? SendCompleted;
 
         public ModbusSlaveServer()
         {
@@ -534,7 +534,7 @@ namespace WpfAppIndustryProtocolTestTool.BLL.ModbusProtocol
 
                 try
                 {
-                    bytes = udpClient.Receive(ref iPEndPoint);
+                    bytes = udpClient?.Receive(ref iPEndPoint);
                     portIn = iPEndPoint.Port;
                     NetworkConnectionParameter networkConnectionParameter = default(NetworkConnectionParameter);
                     networkConnectionParameter.bytes = bytes;
@@ -1007,7 +1007,7 @@ namespace WpfAppIndustryProtocolTestTool.BLL.ModbusProtocol
                             StoreLogData.Instance.Store("Send Data: " + BitConverter.ToString(array), DateTime.Now);
                         }
 
-                        udpClient.Send(array, array.Length, endPoint);
+                        udpClient?.Send(array, array.Length, endPoint);
                     }
                     else
                     {
@@ -1151,7 +1151,7 @@ namespace WpfAppIndustryProtocolTestTool.BLL.ModbusProtocol
                     else if (udpFlag)
                     {
                         IPEndPoint endPoint = new IPEndPoint(ipAddressIn, portIn);
-                        udpClient.Send(array, array.Length, endPoint);
+                        udpClient?.Send(array, array.Length, endPoint);
                     }
                     else
                     {
@@ -1278,7 +1278,7 @@ namespace WpfAppIndustryProtocolTestTool.BLL.ModbusProtocol
                     else if (udpFlag)
                     {
                         IPEndPoint endPoint = new IPEndPoint(ipAddressIn, portIn);
-                        udpClient.Send(array, array.Length, endPoint);
+                        udpClient?.Send(array, array.Length, endPoint);
                     }
                     else
                     {
@@ -1401,7 +1401,7 @@ namespace WpfAppIndustryProtocolTestTool.BLL.ModbusProtocol
                     else if (udpFlag)
                     {
                         IPEndPoint endPoint = new IPEndPoint(ipAddressIn, portIn);
-                        udpClient.Send(array, array.Length, endPoint);
+                        udpClient?.Send(array, array.Length, endPoint);
                     }
                     else
                     {
@@ -1538,7 +1538,7 @@ namespace WpfAppIndustryProtocolTestTool.BLL.ModbusProtocol
                     else if (udpFlag)
                     {
                         IPEndPoint endPoint = new IPEndPoint(ipAddressIn, portIn);
-                        udpClient.Send(array, array.Length, endPoint);
+                        udpClient?.Send(array, array.Length, endPoint);
                     }
                     else
                     {
@@ -1668,7 +1668,7 @@ namespace WpfAppIndustryProtocolTestTool.BLL.ModbusProtocol
                     else if (udpFlag)
                     {
                         IPEndPoint endPoint = new IPEndPoint(ipAddressIn, portIn);
-                        udpClient.Send(array, array.Length, endPoint);
+                        udpClient?.Send(array, array.Length, endPoint);
                     }
                     else
                     {
@@ -1811,7 +1811,7 @@ namespace WpfAppIndustryProtocolTestTool.BLL.ModbusProtocol
                     else if (udpFlag)
                     {
                         IPEndPoint endPoint = new IPEndPoint(ipAddressIn, portIn);
-                        udpClient.Send(array, array.Length, endPoint);
+                        udpClient?.Send(array, array.Length, endPoint);
                     }
                     else
                     {
@@ -1944,7 +1944,7 @@ namespace WpfAppIndustryProtocolTestTool.BLL.ModbusProtocol
                     else if (udpFlag)
                     {
                         IPEndPoint endPoint = new IPEndPoint(ipAddressIn, portIn);
-                        udpClient.Send(array, array.Length, endPoint);
+                        udpClient?.Send(array, array.Length, endPoint);
                     }
                     else
                     {
@@ -2083,7 +2083,7 @@ namespace WpfAppIndustryProtocolTestTool.BLL.ModbusProtocol
                     else if (udpFlag)
                     {
                         IPEndPoint endPoint = new IPEndPoint(ipAddressIn, portIn);
-                        udpClient.Send(array, array.Length, endPoint);
+                        udpClient?.Send(array, array.Length, endPoint);
                     }
                     else
                     {
@@ -2175,7 +2175,7 @@ namespace WpfAppIndustryProtocolTestTool.BLL.ModbusProtocol
                     else if (udpFlag)
                     {
                         IPEndPoint endPoint = new IPEndPoint(ipAddressIn, portIn);
-                        udpClient.Send(array, array.Length, endPoint);
+                        udpClient?.Send(array, array.Length, endPoint);
                     }
                     else
                     {

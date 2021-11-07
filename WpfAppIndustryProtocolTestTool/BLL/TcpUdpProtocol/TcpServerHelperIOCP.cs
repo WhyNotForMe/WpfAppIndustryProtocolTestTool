@@ -14,20 +14,20 @@ namespace WpfAppIndustryProtocolTestTool.BLL.TcpUdpProtocol
         private int m_receiveBufferSize;    // buffer size to use for each socket I/O operation
         BufferManagerIOCP m_bufferManager;      // represents a large reusable set of buffers for all socket operations
         const int opsToPreAlloc = 2;        // read, write (don't alloc buffer space for accepts)
-        Socket listenSocket;                // the socket used to listen for incoming connection requests
+        Socket? listenSocket;                // the socket used to listen for incoming connection requests
         EventArgsPoolIOCP m_readEventArgsPool;    // pool of reusable SocketAsyncEventArgs objects for write, read and accept socket operations
 
         int m_totalBytesRead;               // counter of the total # bytes received by the server
         int m_numConnectedSockets;          // the total number of clients connected to the server
         Semaphore m_maxNumberAcceptedClients;
 
-        List<AsyncUserTokenIOCP> m_clients;
+        List<AsyncUserTokenIOCP>? m_clients;
 
-        public event OnAcceptComplete AcceptCompleted;
-        public event OnClientNumberChange ClientNumberChanged;
-        public event OnDataReceive DataReceived;
-        public event OnMessageInform MessageInformed;
-        public event OnSendComplete SendCompleted;
+        public event OnAcceptComplete? AcceptCompleted;
+        public event OnClientNumberChange? ClientNumberChanged;
+        public event OnDataReceive? DataReceived;
+        public event OnMessageInform? MessageInformed;
+        public event OnSendComplete? SendCompleted;
 
         public List<AsyncUserTokenIOCP> ClientList { get { return m_clients; } }
 
@@ -159,8 +159,8 @@ namespace WpfAppIndustryProtocolTestTool.BLL.TcpUdpProtocol
             }
             catch (Exception) { }
 
-            listenSocket.Dispose();
-            listenSocket.Close();
+            listenSocket?.Dispose();
+            listenSocket?.Close();
 
             int c_count = m_clients.Count;
             lock (m_clients)
@@ -181,13 +181,16 @@ namespace WpfAppIndustryProtocolTestTool.BLL.TcpUdpProtocol
 
         private void CloseClientSocket(SocketAsyncEventArgs e)
         {
-            AsyncUserTokenIOCP token = e.UserToken as AsyncUserTokenIOCP;
+            AsyncUserTokenIOCP? token = e.UserToken as AsyncUserTokenIOCP;
 
-            lock (m_clients)
+            if (token !=null)
             {
-                m_clients.Remove(token);
+                lock (m_clients)
+                {
+                    m_clients.Remove(token);
+                }
+                ClientNumberChanged?.Invoke(-1, token);
             }
-            ClientNumberChanged?.Invoke(-1, token);
 
             // close the socket associated with the client
             try
@@ -220,7 +223,7 @@ namespace WpfAppIndustryProtocolTestTool.BLL.TcpUdpProtocol
         // Begins an operation to accept a connection request from the client
         //
         // <param name="acceptEventArg">The context object to use when issuing the accept operation on the server's listening socket</param>
-        private void StartAccept(SocketAsyncEventArgs acceptEventArg)
+        private void StartAccept(SocketAsyncEventArgs? acceptEventArg)
         {
             try
             {
@@ -273,20 +276,24 @@ namespace WpfAppIndustryProtocolTestTool.BLL.TcpUdpProtocol
                 SocketAsyncEventArgs readEventArg = m_readEventArgsPool.Pop();
 
                 //((AsyncUserToken)readEventArgs.UserToken).Socket = e.AcceptSocket;
-                AsyncUserTokenIOCP userToken = readEventArg.UserToken as AsyncUserTokenIOCP;
+                AsyncUserTokenIOCP? userToken = readEventArg.UserToken as AsyncUserTokenIOCP;
 
-                userToken.Socket = e.AcceptSocket;          //Socket for Session
-                userToken.ConnectedTime = DateTime.Now;
-
-                MessageInformed?.Invoke($"Client connection accepted.There are {m_numConnectedSockets} clients connected to server");
-                AcceptCompleted?.Invoke(userToken);
-
-                lock (m_clients)
+                if (userToken !=null)
                 {
-                    m_clients.Add(userToken);
-                }
+                    userToken.Socket = e.AcceptSocket;          //Socket for Session
+                    userToken.ConnectedTime = DateTime.Now;
 
-                ClientNumberChanged?.Invoke(1, userToken);
+                    MessageInformed?.Invoke($"Client connection accepted.There are {m_numConnectedSockets} clients connected to server");
+                    AcceptCompleted?.Invoke(userToken);
+
+                    lock (m_clients)
+                    {
+                        m_clients.Add(userToken);
+                    }
+
+                    ClientNumberChanged?.Invoke(1, userToken);
+                }
+                
 
                 // As soon as the client is connected, post a receive to the connection
                 bool willRaiseEvent = e.AcceptSocket.ReceiveAsync(readEventArg);
@@ -338,7 +345,8 @@ namespace WpfAppIndustryProtocolTestTool.BLL.TcpUdpProtocol
             try
             {
                 // check if the remote host closed the connection
-                AsyncUserTokenIOCP token = e.UserToken as AsyncUserTokenIOCP;
+                AsyncUserTokenIOCP? token = e.UserToken as AsyncUserTokenIOCP;
+
                 if (e.BytesTransferred > 0 && e.SocketError == SocketError.Success)
                 {
                     //increment the count of the total bytes receive by the server
@@ -393,7 +401,7 @@ namespace WpfAppIndustryProtocolTestTool.BLL.TcpUdpProtocol
             if (e.SocketError == SocketError.Success)
             {
                 // done echoing data back to the client
-                AsyncUserTokenIOCP token = e.UserToken as AsyncUserTokenIOCP;
+                AsyncUserTokenIOCP? token = e.UserToken as AsyncUserTokenIOCP;
 
                 SendCompleted?.Invoke(e);
             }

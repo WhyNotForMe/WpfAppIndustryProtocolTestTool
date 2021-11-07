@@ -8,7 +8,7 @@ namespace WpfAppIndustryProtocolTestTool.BLL.SerialPortProtocol
     {
         #region Single Instance
 
-        private static SerialPortHelper _instance;
+        private static SerialPortHelper? _instance;
         private static object _locker = new object();
 
         private SerialPortHelper()
@@ -37,12 +37,12 @@ namespace WpfAppIndustryProtocolTestTool.BLL.SerialPortProtocol
 
         #region Fields
 
-        byte[] _receivedTelegraph;
+        byte[]? _receivedTelegraph;
 
         #endregion
 
-        public event OnReceiveComplete ReceiveCompleted;
-        public event OnSendComplete SendCompleted;
+        public event OnReceiveComplete? ReceiveCompleted;
+        public event OnSendComplete? SendCompleted;
 
 
         public SerialPort SerialPort { get; }

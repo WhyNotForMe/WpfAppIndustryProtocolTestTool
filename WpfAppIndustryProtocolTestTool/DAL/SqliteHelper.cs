@@ -8,7 +8,7 @@ namespace WpfAppIndustryProtocolTestTool.DAL
     {
         #region Singleton Pattern
 
-        static SqliteHelper _instance;
+        static SqliteHelper? _instance;
         static readonly object _lockObject = new object();
         SqliteHelper()
         {

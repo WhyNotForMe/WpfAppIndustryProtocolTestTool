@@ -18,11 +18,11 @@ namespace WpfAppIndustryProtocolTestTool.View
             InitializeComponent();
         }
 
-        public IEnumerable<T> GetChildren<T>(DependencyObject p_element, Func<T, bool> p_func = null) where T : UIElement
+        public IEnumerable<T> GetChildren<T>(DependencyObject p_element, Func<T, bool>? p_func = null) where T : UIElement
         {
             for (int i = 0; i < VisualTreeHelper.GetChildrenCount(p_element); i++)
             {
-                UIElement child = VisualTreeHelper.GetChild(p_element, i) as FrameworkElement;
+                UIElement? child = VisualTreeHelper.GetChild(p_element, i) as FrameworkElement;
                 if (child == null)
                 {
                     continue;
@@ -75,7 +75,7 @@ namespace WpfAppIndustryProtocolTestTool.View
         //    scrollViewer.ScrollToVerticalOffset(textBlock.ActualHeight);
         //}
 
-       
+
 
     }
 }

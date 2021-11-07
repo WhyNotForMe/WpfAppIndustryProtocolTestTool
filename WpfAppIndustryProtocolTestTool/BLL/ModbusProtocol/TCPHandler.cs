@@ -37,11 +37,11 @@ namespace WpfAppIndustryProtocolTestTool.BLL.ModbusProtocol
             }
         }
 
-        private TcpListener server = null;
+        private TcpListener server ;
 
         private List<Client> tcpClientLastRequestList = new List<Client>();
 
-        public string ipAddress = null;
+        public string ipAddress ;
 
         private IPAddress localIPAddress = IPAddress.Any;
 
@@ -53,9 +53,9 @@ namespace WpfAppIndustryProtocolTestTool.BLL.ModbusProtocol
 
         public IPAddress LocalIPAddress => localIPAddress;
 
-        public event DataChanged dataChanged;
+        public event DataChanged? dataChanged;
 
-        public event NumberOfClientsChanged numberOfClientsChanged;
+        public event NumberOfClientsChanged? numberOfClientsChanged;
 
         //
         // Summary:
@@ -98,8 +98,8 @@ namespace WpfAppIndustryProtocolTestTool.BLL.ModbusProtocol
                 tcpClient.ReceiveTimeout = 4000;
                 if (ipAddress != null)
                 {
-                    string text = tcpClient.Client.RemoteEndPoint.ToString();
-                    text = text.Split(':')[0];
+                    string? text = tcpClient.Client.RemoteEndPoint.ToString();
+                    text = text?.Split(':')[0];
                     if (text != ipAddress)
                     {
                         tcpClient.Client.Disconnect(reuseSocket: false);
@@ -158,9 +158,12 @@ namespace WpfAppIndustryProtocolTestTool.BLL.ModbusProtocol
         private void ReadCallback(IAsyncResult asyncResult)
         {
             NetworkConnectionParameter networkConnectionParameter = default(NetworkConnectionParameter);
-            Client client = asyncResult.AsyncState as Client;
-            client.Ticks = DateTime.Now.Ticks;
-            NumberOfConnectedClients = GetAndCleanNumberOfConnectedClients(client);
+            Client? client = asyncResult.AsyncState as Client;
+            if (client!=null)
+            {
+                client.Ticks = DateTime.Now.Ticks;
+                NumberOfConnectedClients = GetAndCleanNumberOfConnectedClients(client);
+            }
             if (this.numberOfClientsChanged != null)
             {
                 this.numberOfClientsChanged();
@@ -171,7 +174,7 @@ namespace WpfAppIndustryProtocolTestTool.BLL.ModbusProtocol
                 return;
             }
 
-            NetworkStream networkStream = null;
+            NetworkStream? networkStream = null;
             int num;
             try
             {

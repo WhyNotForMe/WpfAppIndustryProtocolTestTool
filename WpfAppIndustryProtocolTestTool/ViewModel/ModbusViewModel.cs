@@ -20,15 +20,15 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
     {
 
         #region Fields
-        SerialPortCfgModel _nameCfg;
-        SerialPortCfgModel _baudCfg;
-        SerialPortCfgModel _parityCfg;
-        SerialPortCfgModel _dataBitsCfg;
-        SerialPortCfgModel _stopBitsCfg;
-        SerialPort _serialPort;
+        SerialPortCfgModel? _nameCfg;
+        SerialPortCfgModel? _baudCfg;
+        SerialPortCfgModel? _parityCfg;
+        SerialPortCfgModel? _dataBitsCfg;
+        SerialPortCfgModel? _stopBitsCfg;
+        SerialPort? _serialPort;
 
-        ModbusClient _masterClient;
-        ModbusSlaveServer _slaveServer;
+        ModbusClient? _masterClient;
+        ModbusSlaveServer? _slaveServer;
 
         ushort _rxCount;
         ushort _txCount;
