@@ -365,11 +365,11 @@
                                         Margin="0,5"
                                         IsEnabled="{Binding IsOpen}"
                                         Text="{Binding SendingText,UpdateSourceTrigger=PropertyChanged}">
-                                <i:Interaction.Triggers>
-                                    <i:EventTrigger EventName="TextChanged">
-                                        <i:InvokeCommandAction Command="{Binding CmdReviewText}"/>
-                                    </i:EventTrigger>
-                                </i:Interaction.Triggers>
+                                <!--<i:Interaction.Triggers>
+                                        <i:EventTrigger EventName="TextChanged">
+                                            <i:InvokeCommandAction Command="{Binding CmdReviewText}"/>
+                                        </i:EventTrigger>
+                                    </i:Interaction.Triggers>-->
                             </TextBox>
                             <DockPanel Grid.Row="1" LastChildFill="False">
                                 <StackPanel  Orientation="Horizontal" DockPanel.Dock="Left">

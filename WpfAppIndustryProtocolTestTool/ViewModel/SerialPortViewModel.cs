@@ -37,7 +37,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
         SerialPortHelper _serialPortHelper;
 
         Timer _sendTimer;
-        bool _textValid;
+        //bool _textValid;
 
         string _workMode;
         string _gatewayMode;
@@ -348,18 +348,6 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             }
         }
 
-        private RelayCommand _cmdReviewText;
-        public RelayCommand CmdReviewText
-        {
-            get
-            {
-                if (_cmdReviewText == null)
-                {
-                    _cmdReviewText = new RelayCommand(() => ReviewText());
-                }
-                return _cmdReviewText;
-            }
-        }
 
         private RelayCommand _cmdSendText;
         public RelayCommand CmdSendText
@@ -368,7 +356,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             {
                 if (_cmdSendText == null)
                 {
-                    _cmdSendText = new RelayCommand(() => SendText(), () => _textValid && IsOpen ? true : false);
+                    _cmdSendText = new RelayCommand(() => SendText(), () => IsOpen);
                 }
                 return _cmdSendText;
             }
@@ -536,44 +524,20 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
 
         }
 
-        private void ReviewText()
-        {
-            try
-            {
-                if (!string.IsNullOrEmpty(SendingText) && !string.IsNullOrWhiteSpace(SendingText))
-                {
-                    if (GetDataFormatEnum() == DataFormatEnum.HEX)
-                    {
-                        _textValid = ToolHelper.ReviewHexString(SendingText);
-                        if (!_textValid)
-                        {
-                            InfoMessage = "Warning: HEX String is invalid !";
-                        }
-                    }
-                    else
-                    {
-                        _textValid = true;
-                    }
-                }
-                else
-                {
-                    _textValid = false;
-                }
 
-            }
-            catch (Exception ex)
-            {
-
-                InfoMessage = "Error: " + ex.Message.Replace("\n", "");
-            }
-
-        }
 
         private void SendText()
         {
 
             try
             {
+                //ReviewText();
+
+                //if (!_textValid)
+                //{
+                //    return;
+                //}
+
                 if (_sendTimer.Enabled == false && AutoSend)
                 {
                     _sendTimer.Interval = int.Parse(SendCycleTime);
@@ -898,6 +862,39 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                 writer.Write(message);
             }
         }
+
+        //private void ReviewText()
+        //{
+        //    try
+        //    {
+        //        if (!string.IsNullOrEmpty(SendingText) && !string.IsNullOrWhiteSpace(SendingText))
+        //        {
+        //            if (GetDataFormatEnum() == DataFormatEnum.HEX)
+        //            {
+        //                _textValid = ToolHelper.ReviewHexString(SendingText);
+        //                if (!_textValid)
+        //                {
+        //                    InfoMessage = "Warning: HEX String is invalid !";
+        //                }
+        //            }
+        //            else
+        //            {
+        //                _textValid = true;
+        //            }
+        //        }
+        //        else
+        //        {
+        //            _textValid = false;
+        //        }
+
+        //    }
+        //    catch (Exception ex)
+        //    {
+
+        //        InfoMessage = "Error: " + ex.Message.Replace("\n", "");
+        //    }
+
+        //}
 
 
         #endregion
