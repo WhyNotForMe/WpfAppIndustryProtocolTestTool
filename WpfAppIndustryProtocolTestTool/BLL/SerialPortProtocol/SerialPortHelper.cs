@@ -120,7 +120,7 @@ namespace WpfAppIndustryProtocolTestTool.BLL.SerialPortProtocol
                 try
                 {
                     byte[] newBuffer = CRCHelper.AppendCRC(sndBuffer, check);
-                    SerialPort.Write(newBuffer, 0, sndBuffer.Length);
+                    SerialPort.Write(newBuffer, 0, newBuffer.Length);
                     SendCompleted?.Invoke(newBuffer);
                     SerialPort.DiscardOutBuffer();
                 }
