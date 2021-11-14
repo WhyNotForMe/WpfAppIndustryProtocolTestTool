@@ -8,11 +8,11 @@ namespace WpfAppIndustryProtocolTestTool.Model.SerializedMessage
 {
     public class SerializedMessageModel
     {
-        public string? Name { get; set; }
+        public string Name { get; set; }
         public SerializedMsgTypeEnum MessageType { get; set; }
         public SerializedMsgFunctionEnum MessageFunction { get; set; }
 
-        public byte[]? Buffer { get; set; }
+        public byte[] Buffer { get; set; }
 
     }
 }

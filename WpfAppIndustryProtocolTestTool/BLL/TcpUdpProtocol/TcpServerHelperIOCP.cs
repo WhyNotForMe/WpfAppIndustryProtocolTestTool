@@ -183,7 +183,7 @@ namespace WpfAppIndustryProtocolTestTool.BLL.TcpUdpProtocol
         {
             AsyncUserTokenIOCP? token = e.UserToken as AsyncUserTokenIOCP;
 
-            if (token !=null)
+            if (token != null)
             {
                 lock (m_clients)
                 {
@@ -278,7 +278,7 @@ namespace WpfAppIndustryProtocolTestTool.BLL.TcpUdpProtocol
                 //((AsyncUserToken)readEventArgs.UserToken).Socket = e.AcceptSocket;
                 AsyncUserTokenIOCP? userToken = readEventArg.UserToken as AsyncUserTokenIOCP;
 
-                if (userToken !=null)
+                if (userToken != null)
                 {
                     userToken.Socket = e.AcceptSocket;          //Socket for Session
                     userToken.ConnectedTime = DateTime.Now;
@@ -293,7 +293,7 @@ namespace WpfAppIndustryProtocolTestTool.BLL.TcpUdpProtocol
 
                     ClientNumberChanged?.Invoke(1, userToken);
                 }
-                
+
 
                 // As soon as the client is connected, post a receive to the connection
                 bool willRaiseEvent = e.AcceptSocket.ReceiveAsync(readEventArg);
@@ -427,7 +427,7 @@ namespace WpfAppIndustryProtocolTestTool.BLL.TcpUdpProtocol
                 SocketAsyncEventArgs sendEventArg = new SocketAsyncEventArgs();
                 sendEventArg.UserToken = token;
                 sendEventArg.RemoteEndPoint = token.Socket.RemoteEndPoint;
-                sendEventArg.Completed += new EventHandler<SocketAsyncEventArgs>(IO_Completed);
+                sendEventArg.Completed += IO_Completed;
                 sendEventArg.SetBuffer(buffer, 0, buffer.Length);
 
                 bool willRaiseEvent = token.Socket.SendAsync(sendEventArg);

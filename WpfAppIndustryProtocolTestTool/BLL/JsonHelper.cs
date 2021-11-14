@@ -6,16 +6,16 @@ namespace WpfAppIndustryProtocolTestTool.BLL
 {
     public class JsonHelper
     {
-        public static string SerializeMessage(string Name, byte[]? Buffer, SerializedMsgTypeEnum MessageType = SerializedMsgTypeEnum.Text, SerializedMsgFunctionEnum MessageFunction = SerializedMsgFunctionEnum.ActualData)
+        public static string SerializeMessage(string name, byte[] buffer, SerializedMsgTypeEnum MessageType = SerializedMsgTypeEnum.Text, SerializedMsgFunctionEnum MessageFunction = SerializedMsgFunctionEnum.ActualData)
         {
             try
             {
                 SerializedMessageModel sMessage = new SerializedMessageModel
                 {
-                    Name = Name,
+                    Name = name,
                     MessageType = MessageType,
                     MessageFunction = MessageFunction,
-                    Buffer = Buffer
+                    Buffer = buffer
                 };
 
                 return JsonConvert.SerializeObject(sMessage);

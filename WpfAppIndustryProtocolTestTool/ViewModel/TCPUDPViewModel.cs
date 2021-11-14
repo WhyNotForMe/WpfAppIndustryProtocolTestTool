@@ -31,7 +31,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
         TcpUdpWorkRoleEnum _workRole;
 
         bool _castConfirm;
-        bool _textValid;
+        //bool _textValid;
         System.Timers.Timer _sendTimer;
         ushort _codeCount;
 
@@ -862,20 +862,20 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
         {
             //if (_textValid)
             //{
-                switch (_workRole)
-                {
-                    case TcpUdpWorkRoleEnum.TcpServer:
-                    case TcpUdpWorkRoleEnum.TcpClient:
+            switch (_workRole)
+            {
+                case TcpUdpWorkRoleEnum.TcpServer:
+                case TcpUdpWorkRoleEnum.TcpClient:
 
-                        return IsRunning;
-                    case TcpUdpWorkRoleEnum.UdpServer:
-                    case TcpUdpWorkRoleEnum.UdpClient:
+                    return IsRunning;
+                case TcpUdpWorkRoleEnum.UdpServer:
+                case TcpUdpWorkRoleEnum.UdpClient:
 
-                        return IsRunning && _castConfirm;
-                    default:
+                    return IsRunning && _castConfirm;
+                default:
 
-                        return false;
-                }
+                    return false;
+            }
             //}
             //else
             //{
@@ -949,12 +949,13 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                 {
                     if (string.IsNullOrEmpty(Alias))
                     {
-                        Alias = "TCP Server01";
+                        Alias = "TCP Server";
                     }
 
-                    string msgString = JsonHelper.SerializeMessage($" <{Alias}>  ", msg,
+                    string msgString = JsonHelper.SerializeMessage(Alias, msg,
                                                     SerializedMsgTypeEnum.Object, SerializedMsgFunctionEnum.ConnectionData);
                     byte[] msgArray = ToolHelper.StringToByteArray(msgString, GetDataFormatEnum());
+
                     _tcpServer.SendAsync(token, msgArray);
                 }
                 else
@@ -1014,7 +1015,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                     SerializedMessageModel? message = JsonHelper.DeserializeMessage(msgString);
                     if (message != null)
                     {
-                        App.Current.Dispatcher.Invoke(() => RemoteName = message.Name);
+                        App.Current.Dispatcher.Invoke(() => RemoteName = $" <{message.Name}> ");
                         App.Current.Dispatcher.Invoke(() => RemoteEndPoint = token.Socket?.RemoteEndPoint?.ToString());
 
                         if (message.MessageFunction == SerializedMsgFunctionEnum.ConnectionData)
@@ -1076,9 +1077,11 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                     {
                         Alias = "TCP Client";
                     }
-                    string MsgString = JsonHelper.SerializeMessage(" <" + Alias + ">  ", null,
+                    byte[] clientInfo= ToolHelper.StringToByteArray(string.Empty, GetDataFormatEnum());
+                    string MsgString = JsonHelper.SerializeMessage(Alias, clientInfo,
                                                   SerializedMsgTypeEnum.Object, SerializedMsgFunctionEnum.ConnectionData);
                     byte[] MsgArray = ToolHelper.StringToByteArray(MsgString, GetDataFormatEnum());
+
                     _tcpClient.SendAsync(MsgArray);
                 }
                 else
@@ -1163,7 +1166,17 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             try
             {
                 TxPieces++;
-                string sendedText = ToolHelper.ByteArrayToString(e.Buffer, GetDataFormatEnum());
+                string sendedText;
+                if (JsonSerialized)
+                {
+                    string jsonString = ToolHelper.ByteArrayToString(e.Buffer);
+                    SerializedMessageModel? message = JsonHelper.DeserializeMessage(jsonString);
+                    sendedText = ToolHelper.ByteArrayToString(message.Buffer);
+                }
+                else
+                {
+                    sendedText = ToolHelper.ByteArrayToString(e.Buffer, GetDataFormatEnum());
+                }
 
                 if (DisplayTxRxLog)
                 {
@@ -1263,7 +1276,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                 SerializedMessageModel? message = JsonHelper.DeserializeMessage(msgString);
                 if (message != null)
                 {
-                    App.Current.Dispatcher.Invoke(() => RemoteName = message.Name);
+                    App.Current.Dispatcher.Invoke(() => RemoteName = $" <{message.Name}> ");
                     App.Current.Dispatcher.Invoke(() => RemoteEndPoint = e.RemoteEndPoint?.ToString());
 
                     if (message.Buffer != null)
@@ -1295,9 +1308,8 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
         {
             try
             {
-                string msgString = JsonHelper.SerializeMessage(Alias, buffer,
-                                               SerializedMsgTypeEnum.Text, SerializedMsgFunctionEnum.ActualData);
-                return ToolHelper.StringToByteArray(msgString, GetDataFormatEnum());
+                string msgString = JsonHelper.SerializeMessage(Alias, buffer);
+                return ToolHelper.StringToByteArray(msgString);
             }
             catch (Exception ex)
             {

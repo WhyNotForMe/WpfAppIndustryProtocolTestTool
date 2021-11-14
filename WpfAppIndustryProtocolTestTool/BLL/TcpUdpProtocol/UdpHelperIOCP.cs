@@ -53,7 +53,7 @@ namespace WpfAppIndustryProtocolTestTool.BLL.TcpUdpProtocol
 
                 _destinationEP = new IPEndPoint(multicastGroup, multicastPort);
 
-                MessageInformed?.Invoke($"Warning: Multicast to Group({multicastGroup}:{multicastPort}) !");
+                MessageInformed?.Invoke($"Warning: Add Into Multicast Group({multicastGroup}:{multicastPort}) !");
             }
             catch (Exception)
             {

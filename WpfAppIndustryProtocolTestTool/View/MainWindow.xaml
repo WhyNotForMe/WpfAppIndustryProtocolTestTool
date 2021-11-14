@@ -16,7 +16,7 @@
         mc:Ignorable="d"
         DataContext="{Binding MainWindow,Source={StaticResource Locator}}"
         Title="MainWindow" 
-        Height="710" Width="1300" 
+        Height="720" Width="1300" 
         WindowStartupLocation="CenterScreen" 
         ShowInTaskbar="True" 
         Icon="/Asset/Images/Ethernet.ico" 
