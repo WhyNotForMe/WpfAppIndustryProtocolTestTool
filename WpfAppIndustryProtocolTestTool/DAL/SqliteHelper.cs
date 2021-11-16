@@ -10,10 +10,7 @@ namespace WpfAppIndustryProtocolTestTool.DAL
 
         static SqliteHelper? _instance;
         static readonly object _lockObject = new object();
-        SqliteHelper()
-        {
-
-        }
+        SqliteHelper() { }
 
         public static SqliteHelper GetSqliteHelpeInstance()
         {

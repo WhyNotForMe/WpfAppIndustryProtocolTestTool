@@ -225,6 +225,10 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                 if (_infoMessage == value) { return; }
                 _infoMessage = value;
                 RaisePropertyChanged();
+                if (SaveToSQLite && _connectionID > 0)
+                {
+                    _sqlitehelper.InsertIntoTableInfoMsg("EthernetPort", _infoMessage, _connectionID);
+                }
             }
         }
 
@@ -944,7 +948,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
 
 
                 //send : Connected to Server
-                byte[] msg = ToolHelper.StringToByteArray($"Connected to Server ({token.Socket.LocalEndPoint}) \n", GetDataFormatEnum());
+                byte[] msgArray = ToolHelper.StringToByteArray($"Connected to Server ({token.Socket.LocalEndPoint}) \n", GetDataFormatEnum());
                 if (JsonSerialized)
                 {
                     if (string.IsNullOrEmpty(Alias))
@@ -952,15 +956,15 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                         Alias = "TCP Server";
                     }
 
-                    string msgString = JsonHelper.SerializeMessage(Alias, msg,
+                    string jsonString = JsonHelper.SerializeMessage(Alias, msgArray,
                                                     SerializedMsgTypeEnum.Object, SerializedMsgFunctionEnum.ConnectionData);
-                    byte[] msgArray = ToolHelper.StringToByteArray(msgString, GetDataFormatEnum());
+                    byte[] jsonArray = ToolHelper.StringToByteArray(jsonString);
 
-                    _tcpServer.SendAsync(token, msgArray);
+                    _tcpServer.SendAsync(token, jsonArray);
                 }
                 else
                 {
-                    _tcpServer.SendAsync(token, msg);
+                    _tcpServer.SendAsync(token, msgArray);
                 }
 
             }
@@ -1003,16 +1007,17 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                 }
 
                 RxPieces++;
+
                 if (SaveToSQLite)
                 {
-                    string receivedText = ToolHelper.ByteArrayToString(buffer, GetDataFormatEnum());
+                    string receivedText = GetReceivedText(buffer);
                     _sqlitehelper.InsertIntoTableEthernetPortMsg(_connectionID, "Rx", receivedText, $"{token.Socket.RemoteEndPoint}");
                 }
 
                 if (JsonSerialized)
                 {
-                    string msgString = ToolHelper.ByteArrayToString(buffer);
-                    SerializedMessageModel? message = JsonHelper.DeserializeMessage(msgString);
+                    string jsonString = ToolHelper.ByteArrayToString(buffer);
+                    SerializedMessageModel? message = JsonHelper.DeserializeMessage(jsonString);
                     if (message != null)
                     {
                         App.Current.Dispatcher.Invoke(() => RemoteName = $" <{message.Name}> ");
@@ -1077,12 +1082,12 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                     {
                         Alias = "TCP Client";
                     }
-                    byte[] clientInfo= ToolHelper.StringToByteArray(string.Empty, GetDataFormatEnum());
-                    string MsgString = JsonHelper.SerializeMessage(Alias, clientInfo,
+                    byte[] clientInfo = ToolHelper.StringToByteArray(string.Empty);
+                    string jsonString = JsonHelper.SerializeMessage(Alias, clientInfo,
                                                   SerializedMsgTypeEnum.Object, SerializedMsgFunctionEnum.ConnectionData);
-                    byte[] MsgArray = ToolHelper.StringToByteArray(MsgString, GetDataFormatEnum());
+                    byte[] jsonArray = ToolHelper.StringToByteArray(jsonString);
 
-                    _tcpClient.SendAsync(MsgArray);
+                    _tcpClient.SendAsync(jsonArray);
                 }
                 else
                 {
@@ -1134,7 +1139,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
 
                 if (SaveToSQLite)
                 {
-                    string receivedText = ToolHelper.ByteArrayToString(buffer, GetDataFormatEnum());
+                    string receivedText = GetReceivedText(buffer);
                     _sqlitehelper.InsertIntoTableEthernetPortMsg(_connectionID, "Rx", receivedText, $"{e.RemoteEndPoint}");
                 }
 
@@ -1149,11 +1154,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
         {
             try
             {
-                InfoMessage = message;
-                if (SaveToSQLite && _connectionID > 0)
-                {
-                    _sqlitehelper.InsertIntoTableInfoMsg("EthernetPort", message, _connectionID);
-                }
+                InfoMessage = message;                
             }
             catch (Exception ex)
             {
@@ -1171,27 +1172,28 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                 {
                     string jsonString = ToolHelper.ByteArrayToString(e.Buffer);
                     SerializedMessageModel? message = JsonHelper.DeserializeMessage(jsonString);
-                    sendedText = ToolHelper.ByteArrayToString(message.Buffer);
+                    sendedText = ToolHelper.ByteArrayToString(message.Buffer, GetDataFormatEnum());
+                    TxCount = ToolHelper.CalcCountBytes(message.Buffer, TxCountIncrement, TxCount);
                 }
                 else
                 {
                     sendedText = ToolHelper.ByteArrayToString(e.Buffer, GetDataFormatEnum());
+                    TxCount = ToolHelper.CalcCountBytes(e.Buffer, TxCountIncrement, TxCount);
                 }
 
                 if (DisplayTxRxLog)
                 {
                     ReceivedText += $"{ToolHelper.SetTime(true, false)}Tx {TxPieces} -> {sendedText}";
                 }
-                TxCount = ToolHelper.CalcCountBytes(e.Buffer, TxCountIncrement, TxCount);
-
-                if (TxPieces == 1 && _workRole == TcpUdpWorkRoleEnum.UdpClient)
-                {
-                    _udpHelper?.ReceiveFromAsync(e.RemoteEndPoint);
-                }
 
                 if (SaveToSQLite)
                 {
                     _sqlitehelper.InsertIntoTableEthernetPortMsg(_connectionID, "Tx", sendedText, $"{e.RemoteEndPoint}");
+                }
+
+                if (TxPieces == 1 && _workRole == TcpUdpWorkRoleEnum.UdpClient)
+                {
+                    _udpHelper?.ReceiveFromAsync(e.RemoteEndPoint);
                 }
             }
             catch (Exception ex)
@@ -1272,8 +1274,8 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
         {
             try
             {
-                string msgString = ToolHelper.ByteArrayToString(buffer);
-                SerializedMessageModel? message = JsonHelper.DeserializeMessage(msgString);
+                string jsonString = ToolHelper.ByteArrayToString(buffer);
+                SerializedMessageModel? message = JsonHelper.DeserializeMessage(jsonString);
                 if (message != null)
                 {
                     App.Current.Dispatcher.Invoke(() => RemoteName = $" <{message.Name}> ");
@@ -1308,8 +1310,8 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
         {
             try
             {
-                string msgString = JsonHelper.SerializeMessage(Alias, buffer);
-                return ToolHelper.StringToByteArray(msgString);
+                string jsonString = JsonHelper.SerializeMessage(Alias, buffer);
+                return ToolHelper.StringToByteArray(jsonString);
             }
             catch (Exception ex)
             {
@@ -1349,7 +1351,22 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
         }
 
 
+        private string GetReceivedText(byte[] buffer)
+        {
+            string receivedText;
 
+            if (JsonSerialized)
+            {
+                string jsonString = ToolHelper.ByteArrayToString(buffer);
+                SerializedMessageModel? message = JsonHelper.DeserializeMessage(jsonString);
+                receivedText = ToolHelper.ByteArrayToString(message.Buffer, GetDataFormatEnum());
+            }
+            else
+            {
+                receivedText = ToolHelper.ByteArrayToString(buffer, GetDataFormatEnum());
+            }
+            return receivedText;
+        }
 
 
         #endregion

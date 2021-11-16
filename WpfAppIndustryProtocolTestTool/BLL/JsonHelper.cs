@@ -25,8 +25,6 @@ namespace WpfAppIndustryProtocolTestTool.BLL
 
                 throw;
             }
-
-
         }
 
         public static SerializedMessageModel? DeserializeMessage(string message)
