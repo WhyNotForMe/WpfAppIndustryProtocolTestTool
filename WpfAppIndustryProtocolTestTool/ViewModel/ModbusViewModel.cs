@@ -686,7 +686,6 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                     {
                         _sendTimer.Interval = int.Parse(SendCycleTime);
                         _sendTimer.Enabled = true;
-
                     }
 
                     bool[] boolValueArray;
@@ -1351,8 +1350,6 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             }
 
         }
-
-
 
         private void _slaveServer_CoilsChanged(int startCoil, int numberOfCoils)
         {

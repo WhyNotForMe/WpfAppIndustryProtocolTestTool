@@ -451,7 +451,8 @@
                                 <ComboBox  Grid.Row="1"
                                            materialDesign:HintAssist.Hint="Select an ItemID above"
                                            materialDesign:HintAssist.HintOpacity=".26"
-                                           materialDesign:HintAssist.IsFloating="True"                                           
+                                           materialDesign:HintAssist.IsFloating="True"  
+                                           materialDesign:HintAssist.FloatingScale="1.1"                                           
                                            Margin="25,5"
                                            ItemsSource="{Binding ChartItemIDCollection}"
                                            SelectedItem="{Binding SelectedItemID02}" >
