@@ -33,6 +33,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include=".DLL\opcdaauto.dll" />
     <None Include="WpfAppIndustryProtocolTestTool.csproj" />
   </ItemGroup>
 

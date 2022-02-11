@@ -13,6 +13,7 @@ using WpfAppIndustryProtocolTestTool.Model;
 using WpfAppIndustryProtocolTestTool.Model.Enum;
 using System.Timers;
 using GalaSoft.MvvmLight.Messaging;
+using System.Threading.Tasks;
 
 namespace WpfAppIndustryProtocolTestTool.ViewModel
 {
@@ -326,7 +327,6 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                 {
                     _sendTimer.Enabled = false;
                 }
-
             };
 
             Messenger.Default.Register<string>(this, "Close", (msg) =>

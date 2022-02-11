@@ -696,7 +696,6 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
         {
             try
             {
-
                 if (!ExchangeEnable && AsyncRead)
                 {
                     _opcCalssicDAHelper.ReadItemValueAsync();
@@ -705,7 +704,6 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                 {
                     _opcCalssicDAHelper.WriteItemValueSync();
                 }
-
             }
             catch (Exception ex)
             {

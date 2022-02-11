@@ -15,6 +15,8 @@ using WpfAppIndustryProtocolTestTool.Model.Enum;
 using System.Windows.Input;
 using System.IO;
 using Microsoft.Win32;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace WpfAppIndustryProtocolTestTool.ViewModel
 {
@@ -36,7 +38,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
 
         SerialPortHelper _serialPortHelper;
 
-        Timer _sendTimer;
+        System.Timers.Timer _sendTimer;
         //bool _textValid;
 
         string _workMode;
@@ -47,6 +49,8 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
 
         DirectoryInfo _dirInfo;
         FileInfo _fileInfo;
+
+        CancellationTokenSource _cancellationTokenSource;
         #endregion
 
         #region UI --> Source
@@ -392,15 +396,15 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
         }
 
 
-        public ICommand CmdQueryRxLog { get => new RelayCommand(() => RxDataTable = _sqlitehelper.QuerySerialPortMsg(_portID, "Rx")); }
+        public ICommand CmdQueryRxLog { get => new RelayCommand(async () => RxDataTable = await _sqlitehelper.QuerySerialPortMsg(_portID, "Rx")); }
 
         public ICommand CmdClearRxLog { get => new RelayCommand(() => { RxDataTable.Clear(); _sqlitehelper.DeleteSerialPortMsg(_portID, "Rx"); }, () => CanClearRxLog()); }
 
-        public ICommand CmdQueryInfoLog { get => new RelayCommand(() => InfoDataTable = _sqlitehelper.QueryInfoMsg("SerialPort", _portID)); }
+        public ICommand CmdQueryInfoLog { get => new RelayCommand(async () => InfoDataTable = await _sqlitehelper.QueryInfoMsg("SerialPort", _portID)); }
 
         public ICommand CmdClearInfoLog { get => new RelayCommand(() => { InfoDataTable.Clear(); _sqlitehelper.DeleteInfoMsg("SerialPort", _portID); }, () => CanClearInfoLog()); }
 
-        public ICommand CmdQueryTxLog { get => new RelayCommand(() => TxDataTable = _sqlitehelper.QuerySerialPortMsg(_portID, "Tx")); }
+        public ICommand CmdQueryTxLog { get => new RelayCommand(async () => TxDataTable = await _sqlitehelper.QuerySerialPortMsg(_portID, "Tx")); }
 
         public ICommand CmdClearTxLog { get => new RelayCommand(() => { TxDataTable.Clear(); _sqlitehelper.DeleteSerialPortMsg(_portID, "Tx"); }, () => CanClearTxLog()); }
 
@@ -423,7 +427,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             _serialPortHelper.ReceiveCompleted += _serialPortHelper_ReceiveCompleted;
             _serialPortHelper.SendCompleted += _serialPortHelper_SendCompleted;
 
-            _sendTimer = new Timer();
+            _sendTimer = new System.Timers.Timer();
             _sendTimer.Elapsed += (sender, e) =>
             {
                 if (AutoSend)
@@ -434,16 +438,15 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                 {
                     _sendTimer.Enabled = false;
                 }
-
             };
 
             Messenger.Default.Register<string>(this, "WorkMode", (workMode) => _workMode = workMode);
             Messenger.Default.Register<string>(this, "GatewayMode", (gatewayMode) => _gatewayMode = gatewayMode);
             Messenger.Default.Register<string>(this, "EthernetPortInput", (msg) =>
-            {
-                SendingText = msg;
-                SendText();
-            });
+           {
+               SendingText = msg;
+               SendText();
+           });
             Messenger.Default.Register<string>(this, "Close", (msg) =>
             {
                 if (msg == "CloseConnection")
@@ -457,16 +460,19 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
 
             _sqlitehelper = SqliteHelper.GetSqliteHelpeInstance();
             InitializeLogFile();
+
+            _cancellationTokenSource = new CancellationTokenSource();
         }
 
         public override void Cleanup()
         {
             base.Cleanup();
+            _cancellationTokenSource.Cancel();
         }
 
         #region Command Methods
 
-        private void OpenClosePort()
+        private async void OpenClosePort()
         {
             try
             {
@@ -476,7 +482,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                     SetSerialPortPara();
                     if (SaveToSQLite)
                     {
-                        _portID = _sqlitehelper.InsertIntoTableSerialPortInfo(_nameCfg.SelectedValue, _baudCfg.SelectedValue, _parityCfg.SelectedValue,
+                        _portID = await _sqlitehelper.InsertIntoTableSerialPortInfo(_nameCfg.SelectedValue, _baudCfg.SelectedValue, _parityCfg.SelectedValue,
                                                                                _dataBitsCfg.SelectedValue, _stopBitsCfg.SelectedValue, _handshakeCfg.SelectedValue);
                     }
                     _serialPortHelper.OpenPort();
@@ -487,8 +493,9 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                 }
                 else if (IsOpen)
                 {
-                    _serialPortHelper.ClosePort();
+                    _serialPortHelper?.ClosePort();
                     _sendTimer.Enabled = false;
+                    _cancellationTokenSource?.Cancel();
 
                     PortOperation = "Open Port";
                     IsOpen = _serialPortHelper.SerialPort.IsOpen;
@@ -501,9 +508,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             }
             catch (Exception ex)
             {
-
                 InfoMessage = "Error: " + ex.Message.Replace("\n", "");
-
             }
 
 
@@ -523,8 +528,6 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             return result;
 
         }
-
-
 
         private void SendText()
         {
@@ -547,17 +550,16 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                 string messageStr = $"{ToolHelper.SetWordWrap(SendWithWordWrap)}{ToolHelper.SetTime(SendWithDateTime, SendWithWordWrap)}{SendingText}";
                 byte[] sendingMsg = ToolHelper.StringToByteArray(messageStr, GetDataFormatEnum());
 
-                _serialPortHelper.SendData(sendingMsg, GetCRCEnum());
+                _serialPortHelper?.SendData(sendingMsg, GetCRCEnum());
 
                 if (SaveToSQLite)
                 {
-                    _sqlitehelper.InsertIntoTableSerialPortMsg(_portID, "Tx", SendingText);
+                    _sqlitehelper?.InsertIntoTableSerialPortMsg(_portID, "Tx", SendingText);
                 }
 
             }
             catch (Exception ex)
             {
-
                 InfoMessage = "Error: " + ex.Message.Replace("\n", "");
             }
         }
@@ -626,7 +628,11 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
 
                 if (DisplayInRcvArea || SaveToTxtFile)
                 {
-                    ReceivedText += $"{ToolHelper.SetTime(true, false)}Tx {TxPieces} -> {TxString}";
+                    Task.Run(async () =>
+                    {
+                        App.Current.Dispatcher.Invoke(() => ReceivedText += $"{ToolHelper.SetTime(true, false)}Tx {TxPieces} -> {TxString}");
+                        await Task.Delay(20);
+                    }, _cancellationTokenSource.Token);
 
                     if (SaveToTxtFile)
                     {
@@ -664,17 +670,27 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                     }
                     RxPieces++;
                     DataFormatEnum dataFormat = GetDataFormatEnum();
-                    byte[] actualArray = CRCHelper.ValidateCRC(rcvArray, GetCRCEnum());
-                    string actualString = ToolHelper.ByteArrayToString(actualArray, dataFormat);
-
-                    if (SaveToSQLite)
+                    byte[]? actualArray = CRCHelper.ValidateCRC(rcvArray, GetCRCEnum());
+                    string actualString = string.Empty;
+                    if (actualArray != null)
                     {
-                        _sqlitehelper.InsertIntoTableSerialPortMsg(_portID, "Rx", actualString);
+                        actualString = ToolHelper.ByteArrayToString(actualArray, dataFormat);
+                        if (SaveToSQLite)
+                        {
+                            _sqlitehelper.InsertIntoTableSerialPortMsg(_portID, "Rx", actualString);
+                        }
+
                     }
+
 
                     if (DisplayInRcvArea || SaveToTxtFile)
                     {
-                        ReceivedText += $"{ToolHelper.SetTime(true, false)}Rx {RxPieces} -> {ToolHelper.ByteArrayToString(rcvArray, dataFormat)}";
+                        Task.Run(async () =>
+                        {
+                            App.Current.Dispatcher.Invoke(() => ReceivedText += $"{ToolHelper.SetTime(true, false)}Rx {RxPieces} -> {ToolHelper.ByteArrayToString(rcvArray, dataFormat)}");
+                            await Task.Delay(20);
+                        }, _cancellationTokenSource.Token);
+
                         if (SaveToTxtFile)
                         {
                             AppendLogText($"{ToolHelper.SetTime(true, false)}Rx {RxPieces} -> {ToolHelper.ByteArrayToString(rcvArray, dataFormat)}");
@@ -857,10 +873,14 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
 
         private void AppendLogText(string message)
         {
-            using (StreamWriter writer = new StreamWriter(FilePath, true))
+            Task.Run(async () =>
             {
-                writer.Write(message);
-            }
+                using (StreamWriter writer = new StreamWriter(FilePath, true))
+                {
+                    writer.Write(message);
+                }
+                await Task.Delay(50);
+            }, _cancellationTokenSource.Token);
         }
 
         //private void ReviewText()

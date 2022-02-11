@@ -9,6 +9,7 @@ using WpfAppIndustryProtocolTestTool.Model;
 using WpfAppIndustryProtocolTestTool.BLL;
 using WpfAppIndustryProtocolTestTool.DAL;
 using GalaSoft.MvvmLight.Messaging;
+using System.Threading.Tasks;
 
 namespace WpfAppIndustryProtocolTestTool.ViewModel
 {
@@ -273,6 +274,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
         private void StatusTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
             Time = DateTime.Now.ToLocalTime().ToString();
+
         }
 
         #endregion
@@ -336,7 +338,6 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             });
 
         }
-
 
         private void InitStatusBar()
         {

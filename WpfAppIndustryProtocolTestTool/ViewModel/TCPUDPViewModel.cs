@@ -9,6 +9,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using WpfAppIndustryProtocolTestTool.BLL;
 using WpfAppIndustryProtocolTestTool.BLL.TcpUdpProtocol;
@@ -453,15 +454,15 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             }
         }
 
-        public ICommand CmdQueryRxLog { get => new RelayCommand(() => RxDataTable = _sqlitehelper.QueryEthernetPortMsg(_connectionID, $"{_workRole}", "Rx")); }
+        public ICommand CmdQueryRxLog { get => new RelayCommand(async () => RxDataTable = await _sqlitehelper.QueryEthernetPortMsg(_connectionID, $"{_workRole}", "Rx")); }
 
         public ICommand CmdClearRxLog { get => new RelayCommand(() => { RxDataTable.Clear(); _sqlitehelper.DeleteEthernetPortMsg(_connectionID, $"{_workRole}", "Rx"); }, () => CanClearRxLog()); }
 
-        public ICommand CmdQueryInfoLog { get => new RelayCommand(() => InfoDataTable = _sqlitehelper.QueryInfoMsg("EthernetPort", _connectionID)); }
+        public ICommand CmdQueryInfoLog { get => new RelayCommand(async () => InfoDataTable = await _sqlitehelper.QueryInfoMsg("EthernetPort", _connectionID)); }
 
         public ICommand CmdClearInfoLog { get => new RelayCommand(() => { InfoDataTable.Clear(); _sqlitehelper.DeleteInfoMsg("EthernetPort", _connectionID); }, () => CanClearInfoLog()); }
 
-        public ICommand CmdQueryTxLog { get => new RelayCommand(() => TxDataTable = _sqlitehelper.QueryEthernetPortMsg(_connectionID, $"{_workRole}", "Tx")); }
+        public ICommand CmdQueryTxLog { get => new RelayCommand(async () => TxDataTable = await _sqlitehelper.QueryEthernetPortMsg(_connectionID, $"{_workRole}", "Tx")); }
 
         public ICommand CmdClearTxLog { get => new RelayCommand(() => { TxDataTable.Clear(); _sqlitehelper.DeleteEthernetPortMsg(_connectionID, $"{_workRole}", "Tx"); }, () => CanClearTxLog()); }
 
@@ -490,7 +491,6 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                 {
                     _sendTimer.Enabled = false;
                 }
-
             };
 
 
@@ -524,7 +524,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
 
         #region Command Methods
 
-        private void StartOrStop()
+        private async void StartOrStop()
         {
             try
             {
@@ -533,7 +533,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                 System.Net.IPAddress iPAddress = _workRole == TcpUdpWorkRoleEnum.UdpClient ? System.Net.IPAddress.None : System.Net.IPAddress.Parse(IPAddress.Trim());
                 if (SaveToSQLite && !IsRunning)
                 {
-                    _connectionID = _sqlitehelper.InsertIntoTableEthernetPortInfo($"{_workRole}", IPAddress, $"{Port}", $"{MaxiConnections}", $"{ReceiveBufferSize} KB");
+                    _connectionID = await _sqlitehelper.InsertIntoTableEthernetPortInfo($"{_workRole}", IPAddress, $"{Port}", $"{MaxiConnections}", $"{ReceiveBufferSize} KB");
                 }
 
                 switch (_workRole)
@@ -778,82 +778,84 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
         {
             try
             {
-                if (_sendTimer.Enabled == false && AutoSend)
+                Task.Factory.StartNew(() =>
                 {
-                    _sendTimer.Interval = int.Parse(SendCycleTime);
-                    _sendTimer.Enabled = true;
+                    if (_sendTimer.Enabled == false && AutoSend)
+                    {
+                        _sendTimer.Interval = int.Parse(SendCycleTime);
+                        _sendTimer.Enabled = true;
 
-                }
-                byte[] sendingMsg = ToolHelper.StringToByteArray(SendingText, GetDataFormatEnum());
+                    }
+                    byte[] sendingMsg = ToolHelper.StringToByteArray(SendingText, GetDataFormatEnum());
 
-                switch (_workRole)
-                {
-                    case TcpUdpWorkRoleEnum.TcpServer:
-                        if (_toolWorkMode != "Gateway" && !(TcpClientViewModelCollection.ToList().Count(c => c.IsChecked) > 0))
-                        {
-                            InfoMessage = "Warning: Please Select at least one client for sending message!";
-                            return;
-                        }
-                        if (TcpClientViewModelCollection.ToList().Exists(client => client.IsChecked))
-                        {
-                            List<TcpClientModel> sendingClientList = TcpClientViewModelCollection.ToList().FindAll(client => client.IsChecked);
-
-                            foreach (var item in sendingClientList)
+                    switch (_workRole)
+                    {
+                        case TcpUdpWorkRoleEnum.TcpServer:
+                            if (_toolWorkMode != "Gateway" && !(TcpClientViewModelCollection.ToList().Count(c => c.IsChecked) > 0))
                             {
-                                AsyncUserTokenIOCP? sendingUserToken = _tcpServer.ClientList.Find(client => client.Socket.RemoteEndPoint.ToString().Equals(item.EndPoint));
+                                InfoMessage = "Warning: Please Select at least one client for sending message!";
+                                return;
+                            }
+                            if (TcpClientViewModelCollection.ToList().Exists(client => client.IsChecked))
+                            {
+                                List<TcpClientModel> sendingClientList = TcpClientViewModelCollection.ToList().FindAll(client => client.IsChecked);
 
-                                if (sendingUserToken != null)
+                                foreach (var item in sendingClientList)
                                 {
-                                    if (JsonSerialized)
+                                    AsyncUserTokenIOCP? sendingUserToken = _tcpServer.ClientList.Find(client => client.Socket.RemoteEndPoint.ToString().Equals(item.EndPoint));
+
+                                    if (sendingUserToken != null)
                                     {
-                                        _tcpServer?.SendAsync(sendingUserToken, SerializeText(sendingMsg));
-                                    }
-                                    else
-                                    {
-                                        _tcpServer?.SendAsync(sendingUserToken, sendingMsg);
+                                        if (JsonSerialized)
+                                        {
+                                            _tcpServer?.SendAsync(sendingUserToken, SerializeText(sendingMsg));
+                                        }
+                                        else
+                                        {
+                                            _tcpServer?.SendAsync(sendingUserToken, sendingMsg);
+                                        }
                                     }
                                 }
+
                             }
 
-                        }
+                            break;
+                        case TcpUdpWorkRoleEnum.TcpClient:
+                            if (JsonSerialized)
+                            {
+                                _tcpClient?.SendAsync(SerializeText(sendingMsg));
+                            }
+                            else
+                            {
+                                _tcpClient?.SendAsync(sendingMsg);
+                            }
+                            break;
+                        case TcpUdpWorkRoleEnum.UdpServer:
+                            if (JsonSerialized)
+                            {
+                                _udpHelper?.SendToAsync(SerializeText(sendingMsg));
+                            }
+                            else
+                            {
+                                _udpHelper?.SendToAsync(sendingMsg);
+                            }
+                            break;
+                        case TcpUdpWorkRoleEnum.UdpClient:
+                            if (JsonSerialized)
+                            {
+                                _udpHelper?.SendToAsync(SerializeText(sendingMsg));
+                            }
+                            else
+                            {
+                                _udpHelper?.SendToAsync(sendingMsg);
+                            }
 
-                        break;
-                    case TcpUdpWorkRoleEnum.TcpClient:
-                        if (JsonSerialized)
-                        {
-                            _tcpClient?.SendAsync(SerializeText(sendingMsg));
-                        }
-                        else
-                        {
-                            _tcpClient?.SendAsync(sendingMsg);
-                        }
-                        break;
-                    case TcpUdpWorkRoleEnum.UdpServer:
-                        if (JsonSerialized)
-                        {
-                            _udpHelper?.SendToAsync(SerializeText(sendingMsg));
-                        }
-                        else
-                        {
-                            _udpHelper?.SendToAsync(sendingMsg);
-                        }
-                        break;
-                    case TcpUdpWorkRoleEnum.UdpClient:
-                        if (JsonSerialized)
-                        {
-                            _udpHelper?.SendToAsync(SerializeText(sendingMsg));
-                        }
-                        else
-                        {
-                            _udpHelper?.SendToAsync(sendingMsg);
-                        }
+                            break;
+                        default:
 
-                        break;
-                    default:
-
-                        break;
-                }
-
+                            break;
+                    }
+                }, TaskCreationOptions.LongRunning);
             }
             catch (Exception ex)
             {
@@ -1154,7 +1156,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
         {
             try
             {
-                InfoMessage = message;                
+                InfoMessage = message;
             }
             catch (Exception ex)
             {

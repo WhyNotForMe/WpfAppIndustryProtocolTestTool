@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO.Ports;
+using System.Threading.Tasks;
 using WpfAppIndustryProtocolTestTool.Model.Enum;
 
 namespace WpfAppIndustryProtocolTestTool.BLL.SerialPortProtocol
@@ -111,25 +112,29 @@ namespace WpfAppIndustryProtocolTestTool.BLL.SerialPortProtocol
 
         public void SendData(byte[] sndBuffer, CRCEnum check = CRCEnum.None)
         {
-            if (!SerialPort.IsOpen)
+            Task.Run(async () =>
             {
-                throw new Exception("Serial Port is not Open!");
-            }
-            else
-            {
-                try
+                if (!SerialPort.IsOpen)
                 {
-                    byte[] newBuffer = CRCHelper.AppendCRC(sndBuffer, check);
-                    SerialPort.Write(newBuffer, 0, newBuffer.Length);
-                    SendCompleted?.Invoke(newBuffer);
-                    SerialPort.DiscardOutBuffer();
+                    throw new Exception("Serial Port is not Open!");
                 }
-                catch (Exception)
+                else
                 {
-                    throw;
+                    try
+                    {
+                        byte[] newBuffer = CRCHelper.AppendCRC(sndBuffer, check);
+                        SerialPort?.Write(newBuffer, 0, newBuffer.Length);
+                        SendCompleted?.Invoke(newBuffer);
+                        SerialPort?.DiscardOutBuffer();
+                    }
+                    catch (Exception)
+                    {
+                        throw;
+                    }
                 }
+                await Task.Delay(30);
+            });
 
-            }
         }
 
 
