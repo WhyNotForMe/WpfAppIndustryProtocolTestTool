@@ -414,10 +414,9 @@ namespace WpfAppIndustryProtocolTestTool.BLL.TcpUdpProtocol
 
         #endregion
 
-        public void SendAsync(AsyncUserTokenIOCP token, byte[] buffer)
+        public void SendAsync(AsyncUserTokenIOCP token, byte[]? buffer)
         {
-
-            if (token == null || token.Socket == null || !token.Socket.Connected)
+            if (token == null || token.Socket == null || !token.Socket.Connected || buffer == null)
             {
                 return;
             }

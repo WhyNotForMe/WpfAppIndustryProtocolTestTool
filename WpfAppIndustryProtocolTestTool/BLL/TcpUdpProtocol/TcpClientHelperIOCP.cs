@@ -66,8 +66,12 @@ namespace WpfAppIndustryProtocolTestTool.BLL.TcpUdpProtocol
 
         }
 
-        public void SendAsync(byte[] sndData)
+        public void SendAsync(byte[]? sndData)
         {
+            if (sndData == null)
+            {
+                return;
+            }
             try
             {
                 byte[] buffer = new byte[sndData.Length];
@@ -157,7 +161,7 @@ namespace WpfAppIndustryProtocolTestTool.BLL.TcpUdpProtocol
 
         private void ProcessReceive(SocketAsyncEventArgs e)
         {
-            
+
             try
             {
                 if (e.SocketError == SocketError.OperationAborted)

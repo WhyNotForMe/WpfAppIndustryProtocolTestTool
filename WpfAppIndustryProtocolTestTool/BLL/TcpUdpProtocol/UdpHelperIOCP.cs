@@ -126,8 +126,12 @@ namespace WpfAppIndustryProtocolTestTool.BLL.TcpUdpProtocol
 
 
 
-        public void SendToAsync(byte[] sndData)
+        public void SendToAsync(byte[]? sndData)
         {
+            if (sndData == null)
+            {
+                return;
+            }
             try
             {
                 byte[] buffer = new byte[sndData.Length];

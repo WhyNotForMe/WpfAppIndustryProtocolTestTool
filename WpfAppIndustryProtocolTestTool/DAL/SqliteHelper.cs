@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace WpfAppIndustryProtocolTestTool.DAL
 {
-    public class SqliteHelper
+    public class SqliteHelper: IDatabaseHelper
     {
         #region Singleton Pattern
 
@@ -29,7 +29,6 @@ namespace WpfAppIndustryProtocolTestTool.DAL
         }
 
         #endregion
-
 
         SqliteConnectionStringBuilder connnectionCfg = new SqliteConnectionStringBuilder
         {
@@ -105,7 +104,7 @@ namespace WpfAppIndustryProtocolTestTool.DAL
 
         #region Private Methods
 
-        private Task<SqliteCommand> PrepareCommand(SqliteConnection connection, string commandText, params SqliteParameter[] parameters)
+        private Task<SqliteCommand> PrepareCommandAsync(SqliteConnection connection, string commandText, params SqliteParameter[] parameters)
         {
             return Task.Run(() =>
              {
@@ -137,7 +136,7 @@ namespace WpfAppIndustryProtocolTestTool.DAL
             {
                 string commandText = @"SELECT * FROM sqlite_master WHERE type='table' AND name=$tableName ";
                 SqliteParameter paraTableName = new SqliteParameter("$tableName", tblName);
-                var command = await PrepareCommand(connection, commandText, paraTableName);
+                var command = await PrepareCommandAsync(connection, commandText, paraTableName);
 
                 bool result;
                 using (var reader = command.ExecuteReader())
@@ -146,7 +145,7 @@ namespace WpfAppIndustryProtocolTestTool.DAL
                 }
                 if (!result)
                 {
-                    command = await PrepareCommand(connection, cmdText);
+                    command = await PrepareCommandAsync(connection, cmdText);
                     command.ExecuteNonQuery();
                 }
             }
@@ -162,7 +161,7 @@ namespace WpfAppIndustryProtocolTestTool.DAL
             {
                 string commandText = @"SELECT * FROM sqlite_master WHERE type='trigger' AND name=$triggerName ";
                 SqliteParameter paraName = new SqliteParameter("$triggerName", triggerName);
-                var command = await PrepareCommand(connection, commandText, paraName);
+                var command = await PrepareCommandAsync(connection, commandText, paraName);
 
                 bool result;
                 using (var reader = command.ExecuteReader())
@@ -171,7 +170,7 @@ namespace WpfAppIndustryProtocolTestTool.DAL
                 }
                 if (!result)
                 {
-                    command = await PrepareCommand(connection, cmdText);
+                    command = await PrepareCommandAsync(connection, cmdText);
                     command.ExecuteNonQuery();
                 }
             }
@@ -182,7 +181,7 @@ namespace WpfAppIndustryProtocolTestTool.DAL
 
         }
 
-        private Task<DataTable> FillData(SqliteCommand command)
+        private Task<DataTable> FillDataAsync(SqliteCommand command)
         {
             return Task.Run(() =>
             {
@@ -251,7 +250,7 @@ namespace WpfAppIndustryProtocolTestTool.DAL
                     SqliteParameter paraStopBits = new SqliteParameter("$stop_bits", stopBits);
                     SqliteParameter paraHandShake = new SqliteParameter("$hand_shake", handShake);
 
-                    var command = await PrepareCommand(connection, commandText, paraPortName, paraRate, paraParity, paraDataBits, paraStopBits, paraHandShake);
+                    var command = await PrepareCommandAsync(connection, commandText, paraPortName, paraRate, paraParity, paraDataBits, paraStopBits, paraHandShake);
                     using (var reader = command.ExecuteReader())
                     {
                         return reader.Read() ? reader.GetInt32("port_id") : -1;
@@ -280,7 +279,7 @@ namespace WpfAppIndustryProtocolTestTool.DAL
                     SqliteParameter paraBufferSize = new SqliteParameter("$receive_buffer_size", receiveBufferSize);
                     SqliteParameter paraRole = new SqliteParameter("$work_role", workRole);
 
-                    var command = await PrepareCommand(connection, commandText, paraAddress, paraPort, paraMaxiClients, paraBufferSize, paraRole);
+                    var command = await PrepareCommandAsync(connection, commandText, paraAddress, paraPort, paraMaxiClients, paraBufferSize, paraRole);
                     using (var reader = command.ExecuteReader())
                     {
                         return reader.Read() ? reader.GetInt32("connection_id") : -1;
@@ -304,9 +303,9 @@ namespace WpfAppIndustryProtocolTestTool.DAL
                                                   WHERE info_source=$info_source AND info_source_id=$info_source_id ";
                     SqliteParameter paraSource = new SqliteParameter("$info_source", source);
                     SqliteParameter paraSourceID = new SqliteParameter("$info_source_id", sourceID);
-                    var command = await PrepareCommand(connection, commandText, paraSource, paraSourceID);
+                    var command = await PrepareCommandAsync(connection, commandText, paraSource, paraSourceID);
 
-                    return await FillData(command);
+                    return await FillDataAsync(command);
                 }
                 catch (Exception)
                 {
@@ -330,9 +329,9 @@ namespace WpfAppIndustryProtocolTestTool.DAL
                     SqliteParameter paraPortID = new SqliteParameter("$port_id", portID);
                     SqliteParameter paraTxRx = new SqliteParameter("$send_receive", txOrRx);
 
-                    var command = await PrepareCommand(connection, commandText, paraPortID, paraTxRx);
+                    var command = await PrepareCommandAsync(connection, commandText, paraPortID, paraTxRx);
 
-                    return await FillData(command);
+                    return await FillDataAsync(command);
                 }
                 catch (Exception)
                 {
@@ -361,9 +360,9 @@ namespace WpfAppIndustryProtocolTestTool.DAL
                     SqliteParameter paraTxRx = new SqliteParameter("$send_receive", txOrRx);
 
 
-                    var command = await PrepareCommand(connection, commandText, paraConnectionID, paraRole, paraTxRx);
+                    var command = await PrepareCommandAsync(connection, commandText, paraConnectionID, paraRole, paraTxRx);
 
-                    return await FillData(command);
+                    return await FillDataAsync(command);
                 }
                 catch (Exception)
                 {
@@ -397,11 +396,11 @@ namespace WpfAppIndustryProtocolTestTool.DAL
                     SqliteParameter paraStopBits = new SqliteParameter("$stop_bits", stopBits);
                     SqliteParameter paraHandShake = new SqliteParameter("$hand_shake", handShake);
 
-                    var command = await PrepareCommand(connection, cmdText, paraPortName, paraRate, paraParity, paraDataBits, paraStopBits, paraHandShake);
+                    var command = await PrepareCommandAsync(connection, cmdText, paraPortName, paraRate, paraParity, paraDataBits, paraStopBits, paraHandShake);
                     int count = command.ExecuteNonQuery();
                     if (count > 0)
                     {
-                        command = await PrepareCommand(connection, @"SELECT last_insert_rowid()");
+                        command = await PrepareCommandAsync(connection, @"SELECT last_insert_rowid()");
                         return Convert.ToInt32(command.ExecuteScalar());
                     }
                     else
@@ -436,11 +435,11 @@ namespace WpfAppIndustryProtocolTestTool.DAL
                     SqliteParameter paraMaxiClients = new SqliteParameter("$maximum_clients", maximum_clients);
                     SqliteParameter paraBufferSize = new SqliteParameter("$receive_buffer_size", receiveBufferSize);
 
-                    var command = await PrepareCommand(connection, commandText, paraRole, paraAddress, paraPort, paraMaxiClients, paraBufferSize);
+                    var command = await PrepareCommandAsync(connection, commandText, paraRole, paraAddress, paraPort, paraMaxiClients, paraBufferSize);
                     int count = command.ExecuteNonQuery();
                     if (count > 0)
                     {
-                        command = await PrepareCommand(connection, @"SELECT last_insert_rowid()");
+                        command = await PrepareCommandAsync(connection, @"SELECT last_insert_rowid()");
                         return Convert.ToInt32(command.ExecuteScalar());
                     }
                     else
@@ -468,7 +467,7 @@ namespace WpfAppIndustryProtocolTestTool.DAL
                     SqliteParameter paraContent = new SqliteParameter("$content", content);
                     SqliteParameter paraTimeStamp = new SqliteParameter("$time_stamp", DateTime.Now.ToLocalTime().ToString("yyyy-M-dd HH:mm:ss.FFF"));
 
-                    var command = await PrepareCommand(connection, cmdText, paraPortID, paraTxRx, paraContent, paraTimeStamp);
+                    var command = await PrepareCommandAsync(connection, cmdText, paraPortID, paraTxRx, paraContent, paraTimeStamp);
                     int count = command.ExecuteNonQuery();
                 }
                 catch (Exception)
@@ -493,7 +492,7 @@ namespace WpfAppIndustryProtocolTestTool.DAL
                     SqliteParameter paraRemote = new SqliteParameter("$remote_endpoint", remoteEndpoint);
 
 
-                    var command = await PrepareCommand(connection, commandText, paraConnectionID, paraTxRx, paraContent, paraTimeStamp, paraRemote);
+                    var command = await PrepareCommandAsync(connection, commandText, paraConnectionID, paraTxRx, paraContent, paraTimeStamp, paraRemote);
                     int count = command.ExecuteNonQuery();
                 }
                 catch (Exception)
@@ -531,7 +530,7 @@ namespace WpfAppIndustryProtocolTestTool.DAL
                     SqliteParameter paraTimeStamp = new SqliteParameter("$info_time_stamp", DateTime.Now.ToLocalTime().ToString("yyyy-M-dd HH:mm:ss.FFF"));
                     SqliteParameter paraSourceID = new SqliteParameter("$info_source_id", sourceID);
 
-                    var command = await PrepareCommand(connection, commandText, paraLevel, paraSource, paraContent, paraTimeStamp, paraSourceID);
+                    var command = await PrepareCommandAsync(connection, commandText, paraLevel, paraSource, paraContent, paraTimeStamp, paraSourceID);
                     int count = command.ExecuteNonQuery();
 
                 }
@@ -556,7 +555,7 @@ namespace WpfAppIndustryProtocolTestTool.DAL
                     SqliteParameter paraSource = new SqliteParameter("$info_source", source);
                     SqliteParameter paraSourceID = new SqliteParameter("$info_source_id", sourceID);
 
-                    var command = await PrepareCommand(connection, commandText, paraSource, paraSourceID);
+                    var command = await PrepareCommandAsync(connection, commandText, paraSource, paraSourceID);
                     int count = command.ExecuteNonQuery();
                     if (count > 0)
                     {
@@ -581,7 +580,7 @@ namespace WpfAppIndustryProtocolTestTool.DAL
                     SqliteParameter paraPortID = new SqliteParameter("$port_id", portID);
                     SqliteParameter paraTxRx = new SqliteParameter("$send_receive", txOrRx);
 
-                    var command = await PrepareCommand(connection, commandText, paraPortID, paraTxRx);
+                    var command = await PrepareCommandAsync(connection, commandText, paraPortID, paraTxRx);
                     int count = command.ExecuteNonQuery();
                     if (count > 0)
                     {
@@ -607,7 +606,7 @@ namespace WpfAppIndustryProtocolTestTool.DAL
                     SqliteParameter paraRole = new SqliteParameter("$work_role", workRole);
                     SqliteParameter paraTxRx = new SqliteParameter("$send_receive", txOrRx);
 
-                    var command = await PrepareCommand(connection, commandText, paraConnectionID, paraRole, paraTxRx);
+                    var command = await PrepareCommandAsync(connection, commandText, paraConnectionID, paraRole, paraTxRx);
                     int count = command.ExecuteNonQuery();
                     if (count > 0)
                     {
@@ -637,7 +636,7 @@ namespace WpfAppIndustryProtocolTestTool.DAL
                     SqliteParameter paraAddress = new SqliteParameter("$ipv4_address", ipv4Address);
                     SqliteParameter paraPort = new SqliteParameter("$port", port);
 
-                    var command = await PrepareCommand(connection, commandText, paraConnectionID, paraAddress, paraPort);
+                    var command = await PrepareCommandAsync(connection, commandText, paraConnectionID, paraAddress, paraPort);
                     command.ExecuteNonQuery();
                 }
                 catch (Exception)

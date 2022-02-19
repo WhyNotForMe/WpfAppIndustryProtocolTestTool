@@ -44,7 +44,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
         string _workMode;
         string _gatewayMode;
 
-        SqliteHelper _sqlitehelper;
+        IDatabaseHelper _sqlitehelper;
         int _portID;
 
         DirectoryInfo _dirInfo;
