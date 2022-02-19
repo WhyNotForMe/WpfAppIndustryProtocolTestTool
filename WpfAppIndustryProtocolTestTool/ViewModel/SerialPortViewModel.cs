@@ -123,7 +123,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                 RaisePropertyChanged();
                 if (SaveToSQLite && _portID > 0)
                 {
-                    _sqlitehelper.InsertIntoTableInfoMsg("SerialPort", _infoMessage, _portID);
+                    _sqlitehelper.InsertInfoMsgAsync("SerialPort", _infoMessage, _portID);
                 }
                 if (SaveToTxtFile)
                 {
@@ -396,17 +396,17 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
         }
 
 
-        public ICommand CmdQueryRxLog { get => new RelayCommand(async () => RxDataTable = await _sqlitehelper.QuerySerialPortMsg(_portID, "Rx")); }
+        public ICommand CmdQueryRxLog { get => new RelayCommand(async () => RxDataTable = await _sqlitehelper.QuerySerialPortMsgAsync(_portID, "Rx")); }
 
-        public ICommand CmdClearRxLog { get => new RelayCommand(() => { RxDataTable.Clear(); _sqlitehelper.DeleteSerialPortMsg(_portID, "Rx"); }, () => CanClearRxLog()); }
+        public ICommand CmdClearRxLog { get => new RelayCommand(() => { RxDataTable.Clear(); _sqlitehelper.DeleteSerialPortMsgAsync(_portID, "Rx"); }, () => CanClearRxLog()); }
 
-        public ICommand CmdQueryInfoLog { get => new RelayCommand(async () => InfoDataTable = await _sqlitehelper.QueryInfoMsg("SerialPort", _portID)); }
+        public ICommand CmdQueryInfoLog { get => new RelayCommand(async () => InfoDataTable = await _sqlitehelper.QueryInfoMsgAsync("SerialPort", _portID)); }
 
-        public ICommand CmdClearInfoLog { get => new RelayCommand(() => { InfoDataTable.Clear(); _sqlitehelper.DeleteInfoMsg("SerialPort", _portID); }, () => CanClearInfoLog()); }
+        public ICommand CmdClearInfoLog { get => new RelayCommand(() => { InfoDataTable.Clear(); _sqlitehelper.DeleteInfoMsgAsync("SerialPort", _portID); }, () => CanClearInfoLog()); }
 
-        public ICommand CmdQueryTxLog { get => new RelayCommand(async () => TxDataTable = await _sqlitehelper.QuerySerialPortMsg(_portID, "Tx")); }
+        public ICommand CmdQueryTxLog { get => new RelayCommand(async () => TxDataTable = await _sqlitehelper.QuerySerialPortMsgAsync(_portID, "Tx")); }
 
-        public ICommand CmdClearTxLog { get => new RelayCommand(() => { TxDataTable.Clear(); _sqlitehelper.DeleteSerialPortMsg(_portID, "Tx"); }, () => CanClearTxLog()); }
+        public ICommand CmdClearTxLog { get => new RelayCommand(() => { TxDataTable.Clear(); _sqlitehelper.DeleteSerialPortMsgAsync(_portID, "Tx"); }, () => CanClearTxLog()); }
 
 
         public ICommand CmdChangeDirectory { get => new RelayCommand(() => ChangeDirectory(), () => !IsOpen); }
@@ -482,8 +482,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                     SetSerialPortPara();
                     if (SaveToSQLite)
                     {
-                        _portID = await _sqlitehelper.InsertIntoTableSerialPortInfo(_nameCfg.SelectedValue, _baudCfg.SelectedValue, _parityCfg.SelectedValue,
-                                                                               _dataBitsCfg.SelectedValue, _stopBitsCfg.SelectedValue, _handshakeCfg.SelectedValue);
+                        _portID = await _sqlitehelper.InsertSerialPortInfoAsync(_nameCfg.SelectedValue, _baudCfg.SelectedValue, _parityCfg.SelectedValue, _dataBitsCfg.SelectedValue, _stopBitsCfg.SelectedValue, _handshakeCfg.SelectedValue);
                     }
                     _serialPortHelper.OpenPort();
                     PortOperation = "Close Port";
@@ -554,7 +553,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
 
                 if (SaveToSQLite)
                 {
-                    _sqlitehelper?.InsertIntoTableSerialPortMsg(_portID, "Tx", SendingText);
+                    _sqlitehelper?.InsertSerialPortMsgAsync(_portID, "Tx", SendingText);
                 }
 
             }
@@ -628,11 +627,10 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
 
                 if (DisplayInRcvArea || SaveToTxtFile)
                 {
-                    Task.Run(async () =>
-                    {
-                        App.Current.Dispatcher.Invoke(() => ReceivedText += $"{ToolHelper.SetTime(true, false)}Tx {TxPieces} -> {TxString}");
-                        await Task.Delay(20);
-                    }, _cancellationTokenSource.Token);
+                    Task.Run(() =>
+                   {
+                       App.Current.Dispatcher.Invoke(() => ReceivedText += $"{ToolHelper.SetTime(true, false)}Tx {TxPieces} -> {TxString}");
+                   }, _cancellationTokenSource.Token);
 
                     if (SaveToTxtFile)
                     {
@@ -677,7 +675,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                         actualString = ToolHelper.ByteArrayToString(actualArray, dataFormat);
                         if (SaveToSQLite)
                         {
-                            _sqlitehelper.InsertIntoTableSerialPortMsg(_portID, "Rx", actualString);
+                            _sqlitehelper.InsertSerialPortMsgAsync(_portID, "Rx", actualString);
                         }
 
                     }
@@ -685,11 +683,10 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
 
                     if (DisplayInRcvArea || SaveToTxtFile)
                     {
-                        Task.Run(async () =>
-                        {
-                            App.Current.Dispatcher.Invoke(() => ReceivedText += $"{ToolHelper.SetTime(true, false)}Rx {RxPieces} -> {ToolHelper.ByteArrayToString(rcvArray, dataFormat)}");
-                            await Task.Delay(20);
-                        }, _cancellationTokenSource.Token);
+                        Task.Run(() =>
+                       {
+                           App.Current.Dispatcher.Invoke(() => ReceivedText += $"{ToolHelper.SetTime(true, false)}Rx {RxPieces} -> {ToolHelper.ByteArrayToString(rcvArray, dataFormat)}");
+                       }, _cancellationTokenSource.Token);
 
                         if (SaveToTxtFile)
                         {

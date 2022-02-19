@@ -112,28 +112,27 @@ namespace WpfAppIndustryProtocolTestTool.BLL.SerialPortProtocol
 
         public void SendData(byte[] sndBuffer, CRCEnum check = CRCEnum.None)
         {
-            Task.Run(async () =>
-            {
-                if (!SerialPort.IsOpen)
-                {
-                    throw new Exception("Serial Port is not Open!");
-                }
-                else
-                {
-                    try
-                    {
-                        byte[] newBuffer = CRCHelper.AppendCRC(sndBuffer, check);
-                        SerialPort?.Write(newBuffer, 0, newBuffer.Length);
-                        SendCompleted?.Invoke(newBuffer);
-                        SerialPort?.DiscardOutBuffer();
-                    }
-                    catch (Exception)
-                    {
-                        throw;
-                    }
-                }
-                await Task.Delay(30);
-            });
+            Task.Run(() =>
+           {
+               if (!SerialPort.IsOpen)
+               {
+                   throw new Exception("Serial Port is not Open!");
+               }
+               else
+               {
+                   try
+                   {
+                       byte[] newBuffer = CRCHelper.AppendCRC(sndBuffer, check);
+                       SerialPort?.Write(newBuffer, 0, newBuffer.Length);
+                       SendCompleted?.Invoke(newBuffer);
+                       SerialPort?.DiscardOutBuffer();
+                   }
+                   catch (Exception)
+                   {
+                       throw;
+                   }
+               }
+           });
 
         }
 

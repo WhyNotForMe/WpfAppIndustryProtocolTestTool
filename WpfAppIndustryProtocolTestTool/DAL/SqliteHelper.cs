@@ -131,35 +131,32 @@ namespace WpfAppIndustryProtocolTestTool.DAL
 
         }
 
-        private void CreateTable(SqliteConnection connection, string tblName, string cmdText)
+        private async void CreateTableAsync(SqliteConnection connection, string tblName, string cmdText)
         {
-            Task.Run(async () =>
+            try
             {
-                try
-                {
-                    string commandText = @"SELECT * FROM sqlite_master WHERE type='table' AND name=$tableName ";
-                    SqliteParameter paraTableName = new SqliteParameter("$tableName", tblName);
-                    var command = await PrepareCommand(connection, commandText, paraTableName);
+                string commandText = @"SELECT * FROM sqlite_master WHERE type='table' AND name=$tableName ";
+                SqliteParameter paraTableName = new SqliteParameter("$tableName", tblName);
+                var command = await PrepareCommand(connection, commandText, paraTableName);
 
-                    bool result;
-                    using (var reader = command.ExecuteReader())
-                    {
-                        result = reader.HasRows;
-                    }
-                    if (!result)
-                    {
-                        command = await PrepareCommand(connection, cmdText);
-                        command.ExecuteNonQuery();
-                    }
-                }
-                catch (Exception)
+                bool result;
+                using (var reader = command.ExecuteReader())
                 {
-                    throw;
+                    result = reader.HasRows;
                 }
-            });
+                if (!result)
+                {
+                    command = await PrepareCommand(connection, cmdText);
+                    command.ExecuteNonQuery();
+                }
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
 
-        private async void CreateTrigger(SqliteConnection connection, string triggerName, string cmdText)
+        private async void CreateTriggerAsync(SqliteConnection connection, string triggerName, string cmdText)
         {
             try
             {
@@ -228,149 +225,129 @@ namespace WpfAppIndustryProtocolTestTool.DAL
         {
             using (var connection = new SqliteConnection(connnectionCfg.ConnectionString))
             {
-                CreateTable(connection, "serial_port_information", tblSerialPortInfo);
-                CreateTable(connection, "serial_port_message", tblSerialPortMsg);
-                CreateTable(connection, "info_message", tblInfoMsg);
-                CreateTable(connection, "ethernet_connection_information", tblEthernetPortInfo);
-                CreateTable(connection, "ethernet_port_message", tblEthernetPortMsg);
+                CreateTableAsync(connection, "serial_port_information", tblSerialPortInfo);
+                CreateTableAsync(connection, "serial_port_message", tblSerialPortMsg);
+                CreateTableAsync(connection, "info_message", tblInfoMsg);
+                CreateTableAsync(connection, "ethernet_connection_information", tblEthernetPortInfo);
+                CreateTableAsync(connection, "ethernet_port_message", tblEthernetPortMsg);
             }
         }
 
-
         #region Query
 
-        public Task<int> QuerySerialPortInfo(string portName, string baudRate, string parity, string dataBits, string stopBits, string handShake)
+        public async Task<int> QuerySerialPortInfoAsync(string portName, string baudRate, string parity, string dataBits, string stopBits, string handShake)
         {
-            return Task.Run(async () =>
-             {
-                 using (var connection = new SqliteConnection(connnectionCfg.ConnectionString))
-                 {
-                     try
-                     {
-                         string commandText = @"SELECT port_id FROM serial_port_information 
+            using (var connection = new SqliteConnection(connnectionCfg.ConnectionString))
+            {
+                try
+                {
+                    string commandText = @"SELECT port_id FROM serial_port_information 
                                                   WHERE port_name=$port_name AND baud_rate=$baud_rate AND parity=$parity AND
                                                         data_bits=$data_bits AND stop_bits=$stop_bits AND hand_shake=$hand_shake";
-                         SqliteParameter paraPortName = new SqliteParameter("$port_name", portName);
-                         SqliteParameter paraRate = new SqliteParameter("$baud_rate", baudRate);
-                         SqliteParameter paraParity = new SqliteParameter("$parity", parity);
-                         SqliteParameter paraDataBits = new SqliteParameter("$data_bits", dataBits);
-                         SqliteParameter paraStopBits = new SqliteParameter("$stop_bits", stopBits);
-                         SqliteParameter paraHandShake = new SqliteParameter("$hand_shake", handShake);
+                    SqliteParameter paraPortName = new SqliteParameter("$port_name", portName);
+                    SqliteParameter paraRate = new SqliteParameter("$baud_rate", baudRate);
+                    SqliteParameter paraParity = new SqliteParameter("$parity", parity);
+                    SqliteParameter paraDataBits = new SqliteParameter("$data_bits", dataBits);
+                    SqliteParameter paraStopBits = new SqliteParameter("$stop_bits", stopBits);
+                    SqliteParameter paraHandShake = new SqliteParameter("$hand_shake", handShake);
 
-                         var command = await PrepareCommand(connection, commandText, paraPortName, paraRate, paraParity, paraDataBits, paraStopBits, paraHandShake);
-                         using (var reader = command.ExecuteReader())
-                         {
-                             return reader.Read() ? reader.GetInt32("port_id") : -1;
-                         }
-                     }
-                     catch (Exception)
-                     {
-                         throw;
-                     }
-                 }
-
-             });
-        }
-
-        public Task<int> QueryEthernetPortInfo(string workRole, string ipv4Address, string port, string maximum_clients, string receiveBufferSize)
-        {
-            return Task.Run(async () =>
-             {
-                 using (var connection = new SqliteConnection(connnectionCfg.ConnectionString))
-                 {
-                     try
-                     {
-                         string commandText = @"SELECT connection_id FROM ethernet_connection_information 
-                                                        WHERE ipv4_address=$ipv4_address AND port=$port AND maximum_clients=$maximum_clients 
-                                                                                         AND receive_buffer_size=$receive_buffer_size AND work_role=$work_role";
-                         SqliteParameter paraAddress = new SqliteParameter("$ipv4_address", ipv4Address);
-                         SqliteParameter paraPort = new SqliteParameter("$port", port);
-                         SqliteParameter paraMaxiClients = new SqliteParameter("$maximum_clients", maximum_clients);
-                         SqliteParameter paraBufferSize = new SqliteParameter("$receive_buffer_size", receiveBufferSize);
-                         SqliteParameter paraRole = new SqliteParameter("$work_role", workRole);
-
-                         var command = await PrepareCommand(connection, commandText, paraAddress, paraPort, paraMaxiClients, paraBufferSize, paraRole);
-                         using (var reader = command.ExecuteReader())
-                         {
-                             return reader.Read() ? reader.GetInt32("connection_id") : -1;
-                         }
-                     }
-                     catch (Exception)
-                     {
-                         throw;
-                     }
-
-                 }
-
-             });
-
-        }
-
-        public Task<DataTable> QueryInfoMsg(string source, int sourceID)
-        {
-            return Task.Run(async () =>
-            {
-                using (var connection = new SqliteConnection(connnectionCfg.ConnectionString))
-                {
-                    try
+                    var command = await PrepareCommand(connection, commandText, paraPortName, paraRate, paraParity, paraDataBits, paraStopBits, paraHandShake);
+                    using (var reader = command.ExecuteReader())
                     {
-                        string commandText = @"SELECT info_id AS ID,info_level AS Level,info_content AS Content,info_time_stamp AS TimeStamp
-                                                  FROM info_message 
-                                                  WHERE info_source=$info_source AND info_source_id=$info_source_id ";
-                        SqliteParameter paraSource = new SqliteParameter("$info_source", source);
-                        SqliteParameter paraSourceID = new SqliteParameter("$info_source_id", sourceID);
-                        var command = await PrepareCommand(connection, commandText, paraSource, paraSourceID);
-
-                        return await FillData(command);
-                    }
-                    catch (Exception)
-                    {
-                        throw;
+                        return reader.Read() ? reader.GetInt32("port_id") : -1;
                     }
                 }
-            });
+                catch (Exception)
+                {
+                    throw;
+                }
+            }
 
         }
 
-        public Task<DataTable> QuerySerialPortMsg(int portID, string txOrRx)
+        public async Task<int> QueryEthernetPortInfoAsync(string workRole, string ipv4Address, string port, string maximum_clients, string receiveBufferSize)
         {
-            return Task.Run(async () =>
-             {
-                 using (var connection = new SqliteConnection(connnectionCfg.ConnectionString))
-                 {
-                     try
-                     {
-                         string commandText = @"SELECT  message_id AS ID, content AS Content,time_stamp AS TimeStamp ,
+            using (var connection = new SqliteConnection(connnectionCfg.ConnectionString))
+            {
+                try
+                {
+                    string commandText = @"SELECT connection_id FROM ethernet_connection_information 
+                                                        WHERE ipv4_address=$ipv4_address AND port=$port AND maximum_clients=$maximum_clients 
+                                                                                         AND receive_buffer_size=$receive_buffer_size AND work_role=$work_role";
+                    SqliteParameter paraAddress = new SqliteParameter("$ipv4_address", ipv4Address);
+                    SqliteParameter paraPort = new SqliteParameter("$port", port);
+                    SqliteParameter paraMaxiClients = new SqliteParameter("$maximum_clients", maximum_clients);
+                    SqliteParameter paraBufferSize = new SqliteParameter("$receive_buffer_size", receiveBufferSize);
+                    SqliteParameter paraRole = new SqliteParameter("$work_role", workRole);
+
+                    var command = await PrepareCommand(connection, commandText, paraAddress, paraPort, paraMaxiClients, paraBufferSize, paraRole);
+                    using (var reader = command.ExecuteReader())
+                    {
+                        return reader.Read() ? reader.GetInt32("connection_id") : -1;
+                    }
+                }
+                catch (Exception)
+                {
+                    throw;
+                }
+            }
+        }
+
+        public async Task<DataTable> QueryInfoMsgAsync(string source, int sourceID)
+        {
+            using (var connection = new SqliteConnection(connnectionCfg.ConnectionString))
+            {
+                try
+                {
+                    string commandText = @"SELECT info_id AS ID,info_level AS Level,info_content AS Content,info_time_stamp AS TimeStamp
+                                                  FROM info_message 
+                                                  WHERE info_source=$info_source AND info_source_id=$info_source_id ";
+                    SqliteParameter paraSource = new SqliteParameter("$info_source", source);
+                    SqliteParameter paraSourceID = new SqliteParameter("$info_source_id", sourceID);
+                    var command = await PrepareCommand(connection, commandText, paraSource, paraSourceID);
+
+                    return await FillData(command);
+                }
+                catch (Exception)
+                {
+                    throw;
+                }
+            }
+        }
+
+        public async Task<DataTable> QuerySerialPortMsgAsync(int portID, string txOrRx)
+        {
+            using (var connection = new SqliteConnection(connnectionCfg.ConnectionString))
+            {
+                try
+                {
+                    string commandText = @"SELECT  message_id AS ID, content AS Content,time_stamp AS TimeStamp ,
                                                    port_name AS PortName, baud_rate AS BaudRate ,parity AS Parity,data_bits AS DataBits,stop_bits AS StopBits, hand_shake AS HandShake                                                 
                                                    FROM serial_port_message  
                                                    LEFT OUTER JOIN serial_port_information 
                                                    ON serial_port_message.port_id=serial_port_information.port_id 
                                                    WHERE serial_port_information.port_id=$port_id AND serial_port_message.send_receive=$send_receive ";
-                         SqliteParameter paraPortID = new SqliteParameter("$port_id", portID);
-                         SqliteParameter paraTxRx = new SqliteParameter("$send_receive", txOrRx);
+                    SqliteParameter paraPortID = new SqliteParameter("$port_id", portID);
+                    SqliteParameter paraTxRx = new SqliteParameter("$send_receive", txOrRx);
 
-                         var command = await PrepareCommand(connection, commandText, paraPortID, paraTxRx);
+                    var command = await PrepareCommand(connection, commandText, paraPortID, paraTxRx);
 
-                         return await FillData(command);
-                     }
-                     catch (Exception)
-                     {
-                         throw;
-                     }
-                 }
-             });
-
+                    return await FillData(command);
+                }
+                catch (Exception)
+                {
+                    throw;
+                }
+            }
         }
 
-        public Task<DataTable> QueryEthernetPortMsg(int connectionID, string workRole, string txOrRx)
+        public async Task<DataTable> QueryEthernetPortMsgAsync(int connectionID, string workRole, string txOrRx)
         {
-            return Task.Run(async () =>
-             {
-                 using (var connection = new SqliteConnection(connnectionCfg.ConnectionString))
-                 {
-                     try
-                     {
-                         string commandText = @"SELECT  message_id AS ID, content AS Content,time_stamp AS TimeStamp ,remote_endpoint AS RemoteEndPoint,
+            using (var connection = new SqliteConnection(connnectionCfg.ConnectionString))
+            {
+                try
+                {
+                    string commandText = @"SELECT  message_id AS ID, content AS Content,time_stamp AS TimeStamp ,remote_endpoint AS RemoteEndPoint,
                                                    work_role AS WorkRole, ipv4_address AS IPv4Address ,port AS Port,maximum_clients AS MaximumClients,
                                                    receive_buffer_size AS ReceiveBufferSize                                                   
                                                    FROM ethernet_port_message  
@@ -379,222 +356,197 @@ namespace WpfAppIndustryProtocolTestTool.DAL
                                                    WHERE ethernet_connection_information.connection_id=$connection_id AND 
                                                             ethernet_connection_information.work_role=$work_role AND 
                                                             ethernet_port_message.send_receive=$send_receive";
-                         SqliteParameter paraConnectionID = new SqliteParameter("$connection_id", connectionID);
-                         SqliteParameter paraRole = new SqliteParameter("$work_role", workRole);
-                         SqliteParameter paraTxRx = new SqliteParameter("$send_receive", txOrRx);
+                    SqliteParameter paraConnectionID = new SqliteParameter("$connection_id", connectionID);
+                    SqliteParameter paraRole = new SqliteParameter("$work_role", workRole);
+                    SqliteParameter paraTxRx = new SqliteParameter("$send_receive", txOrRx);
 
 
-                         var command = await PrepareCommand(connection, commandText, paraConnectionID, paraRole, paraTxRx);
+                    var command = await PrepareCommand(connection, commandText, paraConnectionID, paraRole, paraTxRx);
 
-                         return await FillData(command);
-                     }
-                     catch (Exception)
-                     {
-                         throw;
-                     }
-                 }
-             });
+                    return await FillData(command);
+                }
+                catch (Exception)
+                {
+                    throw;
+                }
+            }
         }
 
         #endregion
 
         #region Insert
 
-        public Task<int> InsertIntoTableSerialPortInfo(string portName, string baudRate, string parity, string dataBits, string stopBits, string handShake)
+        public async Task<int> InsertSerialPortInfoAsync(string portName, string baudRate, string parity, string dataBits, string stopBits, string handShake)
         {
-            return Task.Run(async () =>
-             {
-                 int portID = await QuerySerialPortInfo(portName, baudRate, parity, dataBits, stopBits, handShake);
-                 if (portID > 0)
-                 {
-                     return portID;
-                 }
+            int portID = await QuerySerialPortInfoAsync(portName, baudRate, parity, dataBits, stopBits, handShake);
+            if (portID > 0)
+            {
+                return portID;
+            }
 
-                 using (var connection = new SqliteConnection(connnectionCfg.ConnectionString))
-                 {
-                     try
-                     {
-                         string cmdText = @"INSERT OR IGNORE INTO serial_port_information(port_name,baud_rate,parity,data_bits,stop_bits,hand_shake) 
+            using (var connection = new SqliteConnection(connnectionCfg.ConnectionString))
+            {
+                try
+                {
+                    string cmdText = @"INSERT OR IGNORE INTO serial_port_information(port_name,baud_rate,parity,data_bits,stop_bits,hand_shake) 
                                                              VALUES($port_name,$baud_rate,$parity,$data_bits,$stop_bits,$hand_shake)";
-                         SqliteParameter paraPortName = new SqliteParameter("$port_name", portName);
-                         SqliteParameter paraRate = new SqliteParameter("$baud_rate", baudRate);
-                         SqliteParameter paraParity = new SqliteParameter("$parity", parity);
-                         SqliteParameter paraDataBits = new SqliteParameter("$data_bits", dataBits);
-                         SqliteParameter paraStopBits = new SqliteParameter("$stop_bits", stopBits);
-                         SqliteParameter paraHandShake = new SqliteParameter("$hand_shake", handShake);
+                    SqliteParameter paraPortName = new SqliteParameter("$port_name", portName);
+                    SqliteParameter paraRate = new SqliteParameter("$baud_rate", baudRate);
+                    SqliteParameter paraParity = new SqliteParameter("$parity", parity);
+                    SqliteParameter paraDataBits = new SqliteParameter("$data_bits", dataBits);
+                    SqliteParameter paraStopBits = new SqliteParameter("$stop_bits", stopBits);
+                    SqliteParameter paraHandShake = new SqliteParameter("$hand_shake", handShake);
 
-
-                         var command = await PrepareCommand(connection, cmdText, paraPortName, paraRate, paraParity, paraDataBits, paraStopBits, paraHandShake);
-                         int count = command.ExecuteNonQuery();
-                         if (count > 0)
-                         {
-                             command = await PrepareCommand(connection, @"SELECT last_insert_rowid()");
-                             return Convert.ToInt32(command.ExecuteScalar());
-                         }
-                         else
-                         {
-                             return -1;
-                         }
-                     }
-                     catch (Exception)
-                     {
-                         throw;
-                     }
-                 }
-             });
-
-
+                    var command = await PrepareCommand(connection, cmdText, paraPortName, paraRate, paraParity, paraDataBits, paraStopBits, paraHandShake);
+                    int count = command.ExecuteNonQuery();
+                    if (count > 0)
+                    {
+                        command = await PrepareCommand(connection, @"SELECT last_insert_rowid()");
+                        return Convert.ToInt32(command.ExecuteScalar());
+                    }
+                    else
+                    {
+                        return -1;
+                    }
+                }
+                catch (Exception)
+                {
+                    throw;
+                }
+            }
         }
 
-        public Task<int> InsertIntoTableEthernetPortInfo(string workRole, string ipv4Address, string port, string maximum_clients, string receiveBufferSize)
+        public async Task<int> InsertEthernetPortInfoAsync(string workRole, string ipv4Address, string port, string maximum_clients, string receiveBufferSize)
         {
-            return Task.Run(async () =>
-             {
-                 int connectionID = await QueryEthernetPortInfo(workRole, ipv4Address, port, maximum_clients, receiveBufferSize);
-                 if (connectionID > 0)
-                 {
-                     return connectionID;
-                 }
+            int connectionID = await QueryEthernetPortInfoAsync(workRole, ipv4Address, port, maximum_clients, receiveBufferSize);
+            if (connectionID > 0)
+            {
+                return connectionID;
+            }
 
-                 using (var connection = new SqliteConnection(connnectionCfg.ConnectionString))
-                 {
-                     try
-                     {
-                         string commandText = @"INSERT OR IGNORE INTO ethernet_connection_information(work_role, ipv4_address, port,maximum_clients, receive_buffer_size) 
+            using (var connection = new SqliteConnection(connnectionCfg.ConnectionString))
+            {
+                try
+                {
+                    string commandText = @"INSERT OR IGNORE INTO ethernet_connection_information(work_role, ipv4_address, port,maximum_clients, receive_buffer_size) 
                                                             VALUES($work_role, $ipv4_address, $port,$maximum_clients, $receive_buffer_size)";
-                         SqliteParameter paraRole = new SqliteParameter("$work_role", workRole);
-                         SqliteParameter paraAddress = new SqliteParameter("$ipv4_address", ipv4Address);
-                         SqliteParameter paraPort = new SqliteParameter("$port", port);
-                         SqliteParameter paraMaxiClients = new SqliteParameter("$maximum_clients", maximum_clients);
-                         SqliteParameter paraBufferSize = new SqliteParameter("$receive_buffer_size", receiveBufferSize);
+                    SqliteParameter paraRole = new SqliteParameter("$work_role", workRole);
+                    SqliteParameter paraAddress = new SqliteParameter("$ipv4_address", ipv4Address);
+                    SqliteParameter paraPort = new SqliteParameter("$port", port);
+                    SqliteParameter paraMaxiClients = new SqliteParameter("$maximum_clients", maximum_clients);
+                    SqliteParameter paraBufferSize = new SqliteParameter("$receive_buffer_size", receiveBufferSize);
 
-                         var command = await PrepareCommand(connection, commandText, paraRole, paraAddress, paraPort, paraMaxiClients, paraBufferSize);
-                         int count = command.ExecuteNonQuery();
-                         if (count > 0)
-                         {
-                             command = await PrepareCommand(connection, @"SELECT last_insert_rowid()");
-                             return Convert.ToInt32(command.ExecuteScalar());
-                         }
-                         else
-                         {
-                             return -1;
-                         }
-                     }
-                     catch (Exception)
-                     {
-                         throw;
-                     }
-                 }
-             });
-
-
+                    var command = await PrepareCommand(connection, commandText, paraRole, paraAddress, paraPort, paraMaxiClients, paraBufferSize);
+                    int count = command.ExecuteNonQuery();
+                    if (count > 0)
+                    {
+                        command = await PrepareCommand(connection, @"SELECT last_insert_rowid()");
+                        return Convert.ToInt32(command.ExecuteScalar());
+                    }
+                    else
+                    {
+                        return -1;
+                    }
+                }
+                catch (Exception)
+                {
+                    throw;
+                }
+            }
         }
 
-        public void InsertIntoTableSerialPortMsg(int portID, string txOrRx, string content)
+        public async Task InsertSerialPortMsgAsync(int portID, string txOrRx, string content)
         {
-            Task.Run(async () =>
+            using (var connection = new SqliteConnection(connnectionCfg.ConnectionString))
             {
-                using (var connection = new SqliteConnection(connnectionCfg.ConnectionString))
+                try
                 {
-                    try
-                    {
-                        string cmdText = @"INSERT OR IGNORE INTO serial_port_message(port_id,send_receive,content,time_stamp) 
+                    string cmdText = @"INSERT OR IGNORE INTO serial_port_message(port_id,send_receive,content,time_stamp) 
                                                             VALUES($port_id,$send_receive,$content,$time_stamp)";
-                        SqliteParameter paraPortID = new SqliteParameter("$port_id", portID);
-                        SqliteParameter paraTxRx = new SqliteParameter("$send_receive", txOrRx);
-                        SqliteParameter paraContent = new SqliteParameter("$content", content);
-                        SqliteParameter paraTimeStamp = new SqliteParameter("$time_stamp", DateTime.Now.ToLocalTime().ToString("yyyy-M-dd HH:mm:ss.FFF"));
+                    SqliteParameter paraPortID = new SqliteParameter("$port_id", portID);
+                    SqliteParameter paraTxRx = new SqliteParameter("$send_receive", txOrRx);
+                    SqliteParameter paraContent = new SqliteParameter("$content", content);
+                    SqliteParameter paraTimeStamp = new SqliteParameter("$time_stamp", DateTime.Now.ToLocalTime().ToString("yyyy-M-dd HH:mm:ss.FFF"));
 
-                        var command = await PrepareCommand(connection, cmdText, paraPortID, paraTxRx, paraContent, paraTimeStamp);
-                        int count = command.ExecuteNonQuery();
-                    }
-                    catch (Exception)
-                    {
-                        throw;
-                    }
+                    var command = await PrepareCommand(connection, cmdText, paraPortID, paraTxRx, paraContent, paraTimeStamp);
+                    int count = command.ExecuteNonQuery();
                 }
-
-            });
+                catch (Exception)
+                {
+                    throw;
+                }
+            }
         }
 
-        public void InsertIntoTableEthernetPortMsg(int connectionID, string txOrRx, string content, string remoteEndpoint)
+        public async Task InsertEthernetPortMsgAsync(int connectionID, string txOrRx, string content, string remoteEndpoint)
         {
-            Task.Run(async () =>
+            using (var connection = new SqliteConnection(connnectionCfg.ConnectionString))
             {
-                using (var connection = new SqliteConnection(connnectionCfg.ConnectionString))
+                try
                 {
-                    try
-                    {
-                        string commandText = @"INSERT OR IGNORE INTO ethernet_port_message(connection_id, send_receive,content,time_stamp,remote_endpoint) 
+                    string commandText = @"INSERT OR IGNORE INTO ethernet_port_message(connection_id, send_receive,content,time_stamp,remote_endpoint) 
                                                             VALUES($connection_id,$send_receive,$content,$time_stamp,$remote_endpoint)";
-                        SqliteParameter paraConnectionID = new SqliteParameter("$connection_id", connectionID);
-                        SqliteParameter paraTxRx = new SqliteParameter("$send_receive", txOrRx);
-                        SqliteParameter paraContent = new SqliteParameter("$content", content);
-                        SqliteParameter paraTimeStamp = new SqliteParameter("$time_stamp", DateTime.Now.ToLocalTime().ToString("yyyy-M-dd HH:mm:ss.FFF"));
-                        SqliteParameter paraRemote = new SqliteParameter("$remote_endpoint", remoteEndpoint);
+                    SqliteParameter paraConnectionID = new SqliteParameter("$connection_id", connectionID);
+                    SqliteParameter paraTxRx = new SqliteParameter("$send_receive", txOrRx);
+                    SqliteParameter paraContent = new SqliteParameter("$content", content);
+                    SqliteParameter paraTimeStamp = new SqliteParameter("$time_stamp", DateTime.Now.ToLocalTime().ToString("yyyy-M-dd HH:mm:ss.FFF"));
+                    SqliteParameter paraRemote = new SqliteParameter("$remote_endpoint", remoteEndpoint);
 
 
-                        var command = await PrepareCommand(connection, commandText, paraConnectionID, paraTxRx, paraContent, paraTimeStamp, paraRemote);
-                        int count = command.ExecuteNonQuery();
-                    }
-                    catch (Exception)
-                    {
-                        throw;
-                    }
+                    var command = await PrepareCommand(connection, commandText, paraConnectionID, paraTxRx, paraContent, paraTimeStamp, paraRemote);
+                    int count = command.ExecuteNonQuery();
                 }
-
-            });
-        }
-
-        public void InsertIntoTableInfoMsg(string source, string content, int sourceID)
-        {
-            Task.Run(async () =>
-            {
-                using (var connection = new SqliteConnection(connnectionCfg.ConnectionString))
+                catch (Exception)
                 {
-                    try
-                    {
-                        string level;
-                        if (content.StartsWith("Error"))
-                        {
-                            level = "Error";
-                        }
-                        else if (content.StartsWith("Warning"))
-                        {
-                            level = "Warning";
-                        }
-                        else
-                        {
-                            level = "Notice";
-                        }
-
-                        string commandText = @"INSERT OR IGNORE INTO info_message(info_level, info_source,info_content,info_time_stamp,info_source_id) 
-                                                            VALUES($info_level, $info_source,$info_content,$info_time_stamp,$info_source_id)";
-                        SqliteParameter paraLevel = new SqliteParameter("$info_level", level);
-                        SqliteParameter paraSource = new SqliteParameter("$info_source", source);
-                        SqliteParameter paraContent = new SqliteParameter("$info_content", content);
-                        SqliteParameter paraTimeStamp = new SqliteParameter("$info_time_stamp", DateTime.Now.ToLocalTime().ToString("yyyy-M-dd HH:mm:ss.FFF"));
-                        SqliteParameter paraSourceID = new SqliteParameter("$info_source_id", sourceID);
-
-                        var command = await PrepareCommand(connection, commandText, paraLevel, paraSource, paraContent, paraTimeStamp, paraSourceID);
-                        int count = command.ExecuteNonQuery();
-
-                    }
-                    catch (Exception)
-                    {
-                        throw;
-                    }
+                    throw;
                 }
-
-            });
+            }
         }
 
+        public async Task InsertInfoMsgAsync(string source, string content, int sourceID)
+        {
+            using (var connection = new SqliteConnection(connnectionCfg.ConnectionString))
+            {
+                try
+                {
+                    string level;
+                    if (content.StartsWith("Error"))
+                    {
+                        level = "Error";
+                    }
+                    else if (content.StartsWith("Warning"))
+                    {
+                        level = "Warning";
+                    }
+                    else
+                    {
+                        level = "Notice";
+                    }
+
+                    string commandText = @"INSERT OR IGNORE INTO info_message(info_level, info_source,info_content,info_time_stamp,info_source_id) 
+                                                            VALUES($info_level, $info_source,$info_content,$info_time_stamp,$info_source_id)";
+                    SqliteParameter paraLevel = new SqliteParameter("$info_level", level);
+                    SqliteParameter paraSource = new SqliteParameter("$info_source", source);
+                    SqliteParameter paraContent = new SqliteParameter("$info_content", content);
+                    SqliteParameter paraTimeStamp = new SqliteParameter("$info_time_stamp", DateTime.Now.ToLocalTime().ToString("yyyy-M-dd HH:mm:ss.FFF"));
+                    SqliteParameter paraSourceID = new SqliteParameter("$info_source_id", sourceID);
+
+                    var command = await PrepareCommand(connection, commandText, paraLevel, paraSource, paraContent, paraTimeStamp, paraSourceID);
+                    int count = command.ExecuteNonQuery();
+
+                }
+                catch (Exception)
+                {
+                    throw;
+                }
+            }
+        }
 
         #endregion
 
         #region Delete
 
-        public async void DeleteInfoMsg(string source, int sourceID)
+        public async void DeleteInfoMsgAsync(string source, int sourceID)
         {
             using (var connection = new SqliteConnection(connnectionCfg.ConnectionString))
             {
@@ -608,7 +560,7 @@ namespace WpfAppIndustryProtocolTestTool.DAL
                     int count = command.ExecuteNonQuery();
                     if (count > 0)
                     {
-                        QueryInfoMsg(source, sourceID);
+                        await QueryInfoMsgAsync(source, sourceID);
                     }
                 }
                 catch (Exception)
@@ -618,7 +570,7 @@ namespace WpfAppIndustryProtocolTestTool.DAL
             }
         }
 
-        public async void DeleteSerialPortMsg(int portID, string txOrRx)
+        public async void DeleteSerialPortMsgAsync(int portID, string txOrRx)
         {
             using (var connection = new SqliteConnection(connnectionCfg.ConnectionString))
             {
@@ -633,7 +585,7 @@ namespace WpfAppIndustryProtocolTestTool.DAL
                     int count = command.ExecuteNonQuery();
                     if (count > 0)
                     {
-                        QuerySerialPortMsg(portID, txOrRx);
+                        await QuerySerialPortMsgAsync(portID, txOrRx);
                     }
                 }
                 catch (Exception)
@@ -643,7 +595,7 @@ namespace WpfAppIndustryProtocolTestTool.DAL
             }
         }
 
-        public async void DeleteEthernetPortMsg(int connectionID, string workRole, string txOrRx)
+        public async void DeleteEthernetPortMsgAsync(int connectionID, string workRole, string txOrRx)
         {
             using (var connection = new SqliteConnection(connnectionCfg.ConnectionString))
             {
@@ -659,7 +611,7 @@ namespace WpfAppIndustryProtocolTestTool.DAL
                     int count = command.ExecuteNonQuery();
                     if (count > 0)
                     {
-                        QueryEthernetPortMsg(connectionID, workRole, txOrRx);
+                        await QueryEthernetPortMsgAsync(connectionID, workRole, txOrRx);
                     }
                 }
                 catch (Exception)
@@ -669,12 +621,11 @@ namespace WpfAppIndustryProtocolTestTool.DAL
             }
         }
 
-
         #endregion
 
         #region Update
 
-        public async void UpdateEthernetPortInfo(int connectionID, string ipv4Address, string port)
+        public async void UpdateEthernetPortInfoAsync(int connectionID, string ipv4Address, string port)
         {
             using (var connection = new SqliteConnection(connnectionCfg.ConnectionString))
             {
@@ -693,9 +644,7 @@ namespace WpfAppIndustryProtocolTestTool.DAL
                 {
                     throw;
                 }
-
             }
-
         }
 
         #endregion

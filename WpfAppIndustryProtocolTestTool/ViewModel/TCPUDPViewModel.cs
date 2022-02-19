@@ -228,7 +228,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                 RaisePropertyChanged();
                 if (SaveToSQLite && _connectionID > 0)
                 {
-                    _sqlitehelper.InsertIntoTableInfoMsg("EthernetPort", _infoMessage, _connectionID);
+                    _sqlitehelper.InsertInfoMsgAsync("EthernetPort", _infoMessage, _connectionID);
                 }
             }
         }
@@ -454,17 +454,17 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             }
         }
 
-        public ICommand CmdQueryRxLog { get => new RelayCommand(async () => RxDataTable = await _sqlitehelper.QueryEthernetPortMsg(_connectionID, $"{_workRole}", "Rx")); }
+        public ICommand CmdQueryRxLog { get => new RelayCommand(async () => RxDataTable = await _sqlitehelper.QueryEthernetPortMsgAsync(_connectionID, $"{_workRole}", "Rx")); }
 
-        public ICommand CmdClearRxLog { get => new RelayCommand(() => { RxDataTable.Clear(); _sqlitehelper.DeleteEthernetPortMsg(_connectionID, $"{_workRole}", "Rx"); }, () => CanClearRxLog()); }
+        public ICommand CmdClearRxLog { get => new RelayCommand(() => { RxDataTable.Clear(); _sqlitehelper.DeleteEthernetPortMsgAsync(_connectionID, $"{_workRole}", "Rx"); }, () => CanClearRxLog()); }
 
-        public ICommand CmdQueryInfoLog { get => new RelayCommand(async () => InfoDataTable = await _sqlitehelper.QueryInfoMsg("EthernetPort", _connectionID)); }
+        public ICommand CmdQueryInfoLog { get => new RelayCommand(async () => InfoDataTable = await _sqlitehelper.QueryInfoMsgAsync("EthernetPort", _connectionID)); }
 
-        public ICommand CmdClearInfoLog { get => new RelayCommand(() => { InfoDataTable.Clear(); _sqlitehelper.DeleteInfoMsg("EthernetPort", _connectionID); }, () => CanClearInfoLog()); }
+        public ICommand CmdClearInfoLog { get => new RelayCommand(() => { InfoDataTable.Clear(); _sqlitehelper.DeleteInfoMsgAsync("EthernetPort", _connectionID); }, () => CanClearInfoLog()); }
 
-        public ICommand CmdQueryTxLog { get => new RelayCommand(async () => TxDataTable = await _sqlitehelper.QueryEthernetPortMsg(_connectionID, $"{_workRole}", "Tx")); }
+        public ICommand CmdQueryTxLog { get => new RelayCommand(async () => TxDataTable = await _sqlitehelper.QueryEthernetPortMsgAsync(_connectionID, $"{_workRole}", "Tx")); }
 
-        public ICommand CmdClearTxLog { get => new RelayCommand(() => { TxDataTable.Clear(); _sqlitehelper.DeleteEthernetPortMsg(_connectionID, $"{_workRole}", "Tx"); }, () => CanClearTxLog()); }
+        public ICommand CmdClearTxLog { get => new RelayCommand(() => { TxDataTable.Clear(); _sqlitehelper.DeleteEthernetPortMsgAsync(_connectionID, $"{_workRole}", "Tx"); }, () => CanClearTxLog()); }
 
 
 
@@ -533,7 +533,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                 System.Net.IPAddress iPAddress = _workRole == TcpUdpWorkRoleEnum.UdpClient ? System.Net.IPAddress.None : System.Net.IPAddress.Parse(IPAddress.Trim());
                 if (SaveToSQLite && !IsRunning)
                 {
-                    _connectionID = await _sqlitehelper.InsertIntoTableEthernetPortInfo($"{_workRole}", IPAddress, $"{Port}", $"{MaxiConnections}", $"{ReceiveBufferSize} KB");
+                    _connectionID = await _sqlitehelper.InsertEthernetPortInfoAsync($"{_workRole}", IPAddress, $"{Port}", $"{MaxiConnections}", $"{ReceiveBufferSize} KB");
                 }
 
                 switch (_workRole)
@@ -1013,7 +1013,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                 if (SaveToSQLite)
                 {
                     string receivedText = GetReceivedText(buffer);
-                    _sqlitehelper.InsertIntoTableEthernetPortMsg(_connectionID, "Rx", receivedText, $"{token.Socket.RemoteEndPoint}");
+                    _sqlitehelper.InsertEthernetPortMsgAsync(_connectionID, "Rx", receivedText, $"{token.Socket.RemoteEndPoint}");
                 }
 
                 if (JsonSerialized)
@@ -1072,7 +1072,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                 if (SaveToSQLite)
                 {
                     string[] localEndPoint = e.ConnectSocket.LocalEndPoint.ToString().Split(':');
-                    _sqlitehelper.UpdateEthernetPortInfo(_connectionID, localEndPoint[0], localEndPoint[1]);
+                    _sqlitehelper.UpdateEthernetPortInfoAsync(_connectionID, localEndPoint[0], localEndPoint[1]);
                 }
 
                 RemoteName = String.Empty;
@@ -1118,7 +1118,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             if (SaveToSQLite && RxPieces < 2)
             {
                 string[] localEndPoint = socket.LocalEndPoint.ToString().Split(':');
-                _sqlitehelper.UpdateEthernetPortInfo(_connectionID, localEndPoint[0], localEndPoint[1]);
+                _sqlitehelper.UpdateEthernetPortInfoAsync(_connectionID, localEndPoint[0], localEndPoint[1]);
             }
         }
 
@@ -1142,7 +1142,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                 if (SaveToSQLite)
                 {
                     string receivedText = GetReceivedText(buffer);
-                    _sqlitehelper.InsertIntoTableEthernetPortMsg(_connectionID, "Rx", receivedText, $"{e.RemoteEndPoint}");
+                    _sqlitehelper.InsertEthernetPortMsgAsync(_connectionID, "Rx", receivedText, $"{e.RemoteEndPoint}");
                 }
 
             }
@@ -1190,7 +1190,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
 
                 if (SaveToSQLite)
                 {
-                    _sqlitehelper.InsertIntoTableEthernetPortMsg(_connectionID, "Tx", sendedText, $"{e.RemoteEndPoint}");
+                    _sqlitehelper.InsertEthernetPortMsgAsync(_connectionID, "Tx", sendedText, $"{e.RemoteEndPoint}");
                 }
 
                 if (TxPieces == 1 && _workRole == TcpUdpWorkRoleEnum.UdpClient)
