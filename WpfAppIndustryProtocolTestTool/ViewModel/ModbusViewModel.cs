@@ -14,6 +14,7 @@ using WpfAppIndustryProtocolTestTool.Model.Enum;
 using System.Timers;
 using GalaSoft.MvvmLight.Messaging;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace WpfAppIndustryProtocolTestTool.ViewModel
 {
@@ -34,7 +35,11 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
         ushort _rxCount;
         ushort _txCount;
 
-        Timer _sendTimer;
+        System.Timers.Timer _sendTimer;
+
+        CancellationTokenSource _cancellationTokenSource;
+        static readonly object _locker = new object();
+
         #endregion
 
         #region UI-> Source
@@ -111,8 +116,6 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
         }
 
 
-
-
         private bool _isRunning;
         public bool IsRunning
         {
@@ -151,8 +154,6 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                 RaisePropertyChanged();
             }
         }
-
-
 
         #endregion
 
@@ -287,9 +288,6 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             }
         }
 
-
-
-
         #endregion
 
 
@@ -316,7 +314,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
 
             RegisterDataCollection = new ObservableCollection<ModbusRegisterModel>();
 
-            _sendTimer = new Timer();
+            _sendTimer = new System.Timers.Timer();
             _sendTimer.Elapsed += (sender, e) =>
             {
                 if (AutoSend)
@@ -344,11 +342,11 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                 }
             });
 
-
         }
 
         public override void Cleanup()
         {
+            _cancellationTokenSource.Cancel();
             base.Cleanup();
         }
 
@@ -680,36 +678,43 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
         {
             try
             {
-                if (MasterOrClientMode)
+                if (_sendTimer.Enabled == false && AutoSend)
                 {
-                    if (_sendTimer.Enabled == false && AutoSend)
-                    {
-                        _sendTimer.Interval = int.Parse(SendCycleTime);
-                        _sendTimer.Enabled = true;
-                    }
+                    _sendTimer.Interval = int.Parse(SendCycleTime);
+                    _sendTimer.Enabled = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                InfoMessage = "Error: " + ex.Message.Replace("\n", "");
+            }
 
-                    bool[] boolValueArray;
-                    int[] registerValueArray;
-                    bool newBoolValue;
-                    int[] intValueArray;
-                    ModbusClient.RegisterOrder registerOrder = GetRegisterOrder();
 
+            bool[] boolValueArray;
+            int[] registerValueArray;
+            bool newBoolValue;
+            int[] intValueArray;
+            ModbusClient.RegisterOrder registerOrder = GetRegisterOrder();
+            Task.Run(() =>
+            {
+                try
+                {
                     switch (SelectedMasterFunction)
                     {
                         //0 : Fn01_ReadCoils_0x,
                         case (int)ModbusMasterFunctionEnum.Fn01_ReadCoils_0x:
-                            boolValueArray = _masterClient.ReadCoils(StartAddress, RegisterQuantity);
+                            boolValueArray = _masterClient?.ReadCoils(StartAddress, RegisterQuantity);
                             for (int i = 0; i < boolValueArray.Length; i++)
                             {
-                                RegisterDataCollection[i].Value = boolValueArray[i].ToString();
+                                App.Current.Dispatcher.Invoke(() => RegisterDataCollection[i].Value = boolValueArray[i].ToString());
                             }
                             break;
                         //1 : Fn02_ReadDiscreteInputs_1x,
                         case (int)ModbusMasterFunctionEnum.Fn02_ReadDiscreteInputs_1x:
-                            boolValueArray = _masterClient.ReadDiscreteInputs(StartAddress, RegisterQuantity);
+                            boolValueArray = _masterClient?.ReadDiscreteInputs(StartAddress, RegisterQuantity);
                             for (int i = 0; i < boolValueArray.Length; i++)
                             {
-                                RegisterDataCollection[i].Value = boolValueArray[i].ToString();
+                                App.Current.Dispatcher.Invoke(() => RegisterDataCollection[i].Value = boolValueArray[i].ToString());
                             }
                             break;
                         //2 : Fn03_ReadHoldingRegisters_4x,
@@ -764,7 +769,6 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                             int[] rcvIntArray;
                             switch (SelectedDataType)
                             {
-
                                 //0: Bool_TrueFalse,
                                 case (int)ModbusMasterDataTypeEnum.Bool_TrueFalse:
                                     for (int i = 0; i < RegisterQuantity; i++)
@@ -850,22 +854,18 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                                     break;
                                 //None Operation !
                                 default:
-
                                     break;
                             }
                             break;
                     }
+
                 }
-                else if (SlaveOrServerMode)
+                catch (Exception ex)
                 {
-
+                    InfoMessage = "Error: " + ex.Message.Replace("\n", "");
                 }
-            }
-            catch (Exception ex)
-            {
 
-                InfoMessage = "Error: " + ex.Message.Replace("\n", "");
-            }
+            }, _cancellationTokenSource.Token);
 
         }
 
@@ -876,184 +876,176 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
 
         private void ExeUpdateRegister()
         {
-            try
+
+            _slaveServer.UnitIdentifier = SlaveID;
+
+            int[] rcvIntArray;
+            ModbusClient.RegisterOrder registerOrder = GetRegisterOrder();
+
+            Task.Run(() =>
             {
-                _slaveServer.UnitIdentifier = SlaveID;
-
-                int[] rcvIntArray;
-                ModbusClient.RegisterOrder registerOrder = GetRegisterOrder();
-
-                switch (SelectedSlaveFunction)
+                try
                 {
-                    //0: Coils_0x,
-                    case (int)ModbusSlaveFunctionEnum.Coils_0x:
-                        for (int i = 0; i < RegisterQuantity; i++)
-                        {
-                            _slaveServer.coils[StartAddress + i + 1] = Convert.ToBoolean(RegisterDataCollection[i].Value);
-                        }
-                        break;
+                    switch (SelectedSlaveFunction)
+                    {
+                        //0: Coils_0x,
+                        case (int)ModbusSlaveFunctionEnum.Coils_0x:
+                            for (int i = 0; i < RegisterQuantity; i++)
+                            {
+                                _slaveServer.coils[StartAddress + i + 1] = Convert.ToBoolean(RegisterDataCollection[i].Value);
+                            }
+                            break;
 
-                    //1: DiscreteInputs_1x,
-                    case (int)ModbusSlaveFunctionEnum.DiscreteInputs_1x:
-                        for (int i = 0; i < RegisterQuantity; i++)
-                        {
-                            _slaveServer.discreteInputs[StartAddress + i + 1] = Convert.ToBoolean(RegisterDataCollection[i].Value);
-                        }
-                        break;
+                        //1: DiscreteInputs_1x,
+                        case (int)ModbusSlaveFunctionEnum.DiscreteInputs_1x:
+                            for (int i = 0; i < RegisterQuantity; i++)
+                            {
+                                _slaveServer.discreteInputs[StartAddress + i + 1] = Convert.ToBoolean(RegisterDataCollection[i].Value);
+                            }
+                            break;
 
-                    //2: HoldingRegisters_4x,
-                    case (int)ModbusSlaveFunctionEnum.HoldingRegisters_4x:
+                        //2: HoldingRegisters_4x,
+                        case (int)ModbusSlaveFunctionEnum.HoldingRegisters_4x:
 
-                        switch (SelectedDataType)
-                        {
+                            switch (SelectedDataType)
+                            {
 
-                            //1: Signed_16bits,
-                            case (int)ModbusSlaveDataTypeEnum.Signed_16bits:
-                                for (int i = 0; i < RegisterQuantity; i++)
-                                {
-                                    _slaveServer.holdingRegisters[StartAddress + i + 1] = Convert.ToInt16(RegisterDataCollection[i].Value);
-                                }
-                                break;
+                                //1: Signed_16bits,
+                                case (int)ModbusSlaveDataTypeEnum.Signed_16bits:
+                                    for (int i = 0; i < RegisterQuantity; i++)
+                                    {
+                                        _slaveServer.holdingRegisters[StartAddress + i + 1] = Convert.ToInt16(RegisterDataCollection[i].Value);
+                                    }
+                                    break;
 
-                            //2 :Signed_32bits,
-                            case (int)ModbusSlaveDataTypeEnum.Signed_32bits:
-                                for (int i = 0; i < RegisterQuantity; i += 2)
-                                {
-                                    rcvIntArray = ModbusClient.ConvertIntToRegisters(Convert.ToInt32(RegisterDataCollection[i / 2].Value), registerOrder);
-                                    _slaveServer.holdingRegisters[StartAddress + i + 1] = Convert.ToInt16(rcvIntArray[0]);
-                                    _slaveServer.holdingRegisters[StartAddress + i + 2] = Convert.ToInt16(rcvIntArray[1]);
-                                }
+                                //2 :Signed_32bits,
+                                case (int)ModbusSlaveDataTypeEnum.Signed_32bits:
+                                    for (int i = 0; i < RegisterQuantity; i += 2)
+                                    {
+                                        rcvIntArray = ModbusClient.ConvertIntToRegisters(Convert.ToInt32(RegisterDataCollection[i / 2].Value), registerOrder);
+                                        _slaveServer.holdingRegisters[StartAddress + i + 1] = Convert.ToInt16(rcvIntArray[0]);
+                                        _slaveServer.holdingRegisters[StartAddress + i + 2] = Convert.ToInt16(rcvIntArray[1]);
+                                    }
+                                    break;
 
-                                break;
+                                //3: Float_32bits,
+                                case (int)ModbusSlaveDataTypeEnum.Float_32bits:
+                                    for (int i = 0; i < RegisterQuantity; i += 2)
+                                    {
+                                        rcvIntArray = ModbusClient.ConvertFloatToRegisters(Convert.ToSingle(RegisterDataCollection[i / 2].Value), registerOrder);
+                                        _slaveServer.holdingRegisters[StartAddress + i + 1] = ConvertInt32ToInt16(rcvIntArray[0]);
+                                        _slaveServer.holdingRegisters[StartAddress + i + 2] = ConvertInt32ToInt16(rcvIntArray[1]);
 
-                            //3: Float_32bits,
-                            case (int)ModbusSlaveDataTypeEnum.Float_32bits:
-                                for (int i = 0; i < RegisterQuantity; i += 2)
-                                {
-                                    rcvIntArray = ModbusClient.ConvertFloatToRegisters(Convert.ToSingle(RegisterDataCollection[i / 2].Value), registerOrder);
-                                    _slaveServer.holdingRegisters[StartAddress + i + 1] = ConvertInt32ToInt16(rcvIntArray[0]);
-                                    _slaveServer.holdingRegisters[StartAddress + i + 2] = ConvertInt32ToInt16(rcvIntArray[1]);
+                                    }
+                                    break;
 
-                                }
+                                //4: Signed_64bits,
+                                case (int)ModbusSlaveDataTypeEnum.Signed_64bits:
+                                    for (int i = 0; i < RegisterQuantity; i += 4)
+                                    {
+                                        rcvIntArray = ModbusClient.ConvertLongToRegisters(Convert.ToInt64(RegisterDataCollection[i / 4].Value), registerOrder);
+                                        _slaveServer.holdingRegisters[StartAddress + i + 1] = ConvertInt32ToInt16(rcvIntArray[0]);
+                                        _slaveServer.holdingRegisters[StartAddress + i + 2] = ConvertInt32ToInt16(rcvIntArray[1]);
+                                        _slaveServer.holdingRegisters[StartAddress + i + 3] = ConvertInt32ToInt16(rcvIntArray[2]);
+                                        _slaveServer.holdingRegisters[StartAddress + i + 4] = ConvertInt32ToInt16(rcvIntArray[3]);
+                                    }
+                                    break;
 
-                                break;
+                                //5: Double_64bits
+                                case (int)ModbusSlaveDataTypeEnum.Double_64bits:
+                                    for (int i = 0; i < RegisterQuantity; i += 4)
+                                    {
+                                        rcvIntArray = ModbusClient.ConvertDoubleToRegisters(Convert.ToDouble(RegisterDataCollection[i / 4].Value), registerOrder);
+                                        _slaveServer.holdingRegisters[StartAddress + i + 1] = ConvertInt32ToInt16(rcvIntArray[0]);
+                                        _slaveServer.holdingRegisters[StartAddress + i + 2] = ConvertInt32ToInt16(rcvIntArray[1]);
+                                        _slaveServer.holdingRegisters[StartAddress + i + 3] = ConvertInt32ToInt16(rcvIntArray[2]);
+                                        _slaveServer.holdingRegisters[StartAddress + i + 4] = ConvertInt32ToInt16(rcvIntArray[3]);
+                                    }
+                                    break;
+                                //None Operation !
+                                default:
 
-                            //4: Signed_64bits,
-                            case (int)ModbusSlaveDataTypeEnum.Signed_64bits:
-                                for (int i = 0; i < RegisterQuantity; i += 4)
-                                {
-                                    rcvIntArray = ModbusClient.ConvertLongToRegisters(Convert.ToInt64(RegisterDataCollection[i / 4].Value), registerOrder);
-                                    _slaveServer.holdingRegisters[StartAddress + i + 1] = ConvertInt32ToInt16(rcvIntArray[0]);
-                                    _slaveServer.holdingRegisters[StartAddress + i + 2] = ConvertInt32ToInt16(rcvIntArray[1]);
-                                    _slaveServer.holdingRegisters[StartAddress + i + 3] = ConvertInt32ToInt16(rcvIntArray[2]);
-                                    _slaveServer.holdingRegisters[StartAddress + i + 4] = ConvertInt32ToInt16(rcvIntArray[3]);
-                                }
+                                    break;
+                            }
+                            break;
 
-                                break;
+                        //3: InputRegisters_3x
+                        case (int)ModbusSlaveFunctionEnum.InputRegisters_3x:
 
-                            //5: Double_64bits
-                            case (int)ModbusSlaveDataTypeEnum.Double_64bits:
-                                for (int i = 0; i < RegisterQuantity; i += 4)
-                                {
-                                    rcvIntArray = ModbusClient.ConvertDoubleToRegisters(Convert.ToDouble(RegisterDataCollection[i / 4].Value), registerOrder);
-                                    _slaveServer.holdingRegisters[StartAddress + i + 1] = ConvertInt32ToInt16(rcvIntArray[0]);
-                                    _slaveServer.holdingRegisters[StartAddress + i + 2] = ConvertInt32ToInt16(rcvIntArray[1]);
-                                    _slaveServer.holdingRegisters[StartAddress + i + 3] = ConvertInt32ToInt16(rcvIntArray[2]);
-                                    _slaveServer.holdingRegisters[StartAddress + i + 4] = ConvertInt32ToInt16(rcvIntArray[3]);
-                                }
+                            switch (SelectedDataType)
+                            {
+                                //1: Signed_16bits,
+                                case (int)ModbusSlaveDataTypeEnum.Signed_16bits:
+                                    for (int i = 0; i < RegisterQuantity; i++)
+                                    {
+                                        _slaveServer.inputRegisters[StartAddress + i + 1] = Convert.ToInt16(RegisterDataCollection[i].Value);
+                                    }
+                                    break;
 
-                                break;
-                            //None Operation !
-                            default:
+                                //2 :Signed_32bits,
+                                case (int)ModbusSlaveDataTypeEnum.Signed_32bits:
+                                    for (int i = 0; i < RegisterQuantity; i += 2)
+                                    {
+                                        rcvIntArray = ModbusClient.ConvertIntToRegisters(Convert.ToInt32(RegisterDataCollection[i / 2].Value), registerOrder);
+                                        _slaveServer.inputRegisters[StartAddress + i + 1] = ConvertInt32ToInt16(rcvIntArray[0]);
+                                        _slaveServer.inputRegisters[StartAddress + i + 2] = ConvertInt32ToInt16(rcvIntArray[1]);
+                                    }
+                                    break;
 
-                                break;
-                        }
-                        break;
+                                //3: Float_32bits,
+                                case (int)ModbusSlaveDataTypeEnum.Float_32bits:
+                                    for (int i = 0; i < RegisterQuantity; i += 2)
+                                    {
+                                        rcvIntArray = ModbusClient.ConvertFloatToRegisters(Convert.ToSingle(RegisterDataCollection[i / 2].Value), registerOrder);
+                                        _slaveServer.inputRegisters[StartAddress + i + 1] = ConvertInt32ToInt16(rcvIntArray[0]);
+                                        _slaveServer.inputRegisters[StartAddress + i + 2] = ConvertInt32ToInt16(rcvIntArray[1]);
+                                    }
 
-                    //3: InputRegisters_3x
-                    case (int)ModbusSlaveFunctionEnum.InputRegisters_3x:
+                                    break;
 
-                        switch (SelectedDataType)
-                        {
-                            //1: Signed_16bits,
-                            case (int)ModbusSlaveDataTypeEnum.Signed_16bits:
-                                for (int i = 0; i < RegisterQuantity; i++)
-                                {
-                                    _slaveServer.inputRegisters[StartAddress + i + 1] = Convert.ToInt16(RegisterDataCollection[i].Value);
-                                }
-                                break;
+                                //4: Signed_64bits,
+                                case (int)ModbusSlaveDataTypeEnum.Signed_64bits:
+                                    for (int i = 0; i < RegisterQuantity; i += 4)
+                                    {
+                                        rcvIntArray = ModbusClient.ConvertLongToRegisters(Convert.ToInt64(RegisterDataCollection[i / 4].Value), registerOrder);
+                                        _slaveServer.inputRegisters[StartAddress + i + 1] = ConvertInt32ToInt16(rcvIntArray[0]);
+                                        _slaveServer.inputRegisters[StartAddress + i + 2] = ConvertInt32ToInt16(rcvIntArray[1]);
+                                        _slaveServer.inputRegisters[StartAddress + i + 3] = ConvertInt32ToInt16(rcvIntArray[2]);
+                                        _slaveServer.inputRegisters[StartAddress + i + 4] = ConvertInt32ToInt16(rcvIntArray[3]);
+                                    }
+                                    break;
 
-                            //2 :Signed_32bits,
-                            case (int)ModbusSlaveDataTypeEnum.Signed_32bits:
-                                for (int i = 0; i < RegisterQuantity; i += 2)
-                                {
-                                    rcvIntArray = ModbusClient.ConvertIntToRegisters(Convert.ToInt32(RegisterDataCollection[i / 2].Value), registerOrder);
-                                    _slaveServer.inputRegisters[StartAddress + i + 1] = ConvertInt32ToInt16(rcvIntArray[0]);
-                                    _slaveServer.inputRegisters[StartAddress + i + 2] = ConvertInt32ToInt16(rcvIntArray[1]);
-                                }
+                                //5: Double_64bits
+                                case (int)ModbusSlaveDataTypeEnum.Double_64bits:
+                                    for (int i = 0; i < RegisterQuantity; i += 4)
+                                    {
+                                        rcvIntArray = ModbusClient.ConvertDoubleToRegisters(Convert.ToDouble(RegisterDataCollection[i / 4].Value), registerOrder);
+                                        _slaveServer.inputRegisters[StartAddress + i + 1] = ConvertInt32ToInt16(rcvIntArray[0]);
+                                        _slaveServer.inputRegisters[StartAddress + i + 2] = ConvertInt32ToInt16(rcvIntArray[1]);
+                                        _slaveServer.inputRegisters[StartAddress + i + 3] = ConvertInt32ToInt16(rcvIntArray[2]);
+                                        _slaveServer.inputRegisters[StartAddress + i + 4] = ConvertInt32ToInt16(rcvIntArray[3]);
+                                    }
+                                    break;
 
-                                break;
+                                //None Operation !
+                                default:
+                                    break;
+                            }
+                            break;
 
-                            //3: Float_32bits,
-                            case (int)ModbusSlaveDataTypeEnum.Float_32bits:
-                                for (int i = 0; i < RegisterQuantity; i += 2)
-                                {
-                                    rcvIntArray = ModbusClient.ConvertFloatToRegisters(Convert.ToSingle(RegisterDataCollection[i / 2].Value), registerOrder);
-                                    _slaveServer.inputRegisters[StartAddress + i + 1] = ConvertInt32ToInt16(rcvIntArray[0]);
-                                    _slaveServer.inputRegisters[StartAddress + i + 2] = ConvertInt32ToInt16(rcvIntArray[1]);
-                                }
-
-                                break;
-
-                            //4: Signed_64bits,
-                            case (int)ModbusSlaveDataTypeEnum.Signed_64bits:
-                                for (int i = 0; i < RegisterQuantity; i += 4)
-                                {
-                                    rcvIntArray = ModbusClient.ConvertLongToRegisters(Convert.ToInt64(RegisterDataCollection[i / 4].Value), registerOrder);
-                                    _slaveServer.inputRegisters[StartAddress + i + 1] = ConvertInt32ToInt16(rcvIntArray[0]);
-                                    _slaveServer.inputRegisters[StartAddress + i + 2] = ConvertInt32ToInt16(rcvIntArray[1]);
-                                    _slaveServer.inputRegisters[StartAddress + i + 3] = ConvertInt32ToInt16(rcvIntArray[2]);
-                                    _slaveServer.inputRegisters[StartAddress + i + 4] = ConvertInt32ToInt16(rcvIntArray[3]);
-                                }
-
-                                break;
-
-                            //5: Double_64bits
-                            case (int)ModbusSlaveDataTypeEnum.Double_64bits:
-                                for (int i = 0; i < RegisterQuantity; i += 4)
-                                {
-                                    rcvIntArray = ModbusClient.ConvertDoubleToRegisters(Convert.ToDouble(RegisterDataCollection[i / 4].Value), registerOrder);
-                                    _slaveServer.inputRegisters[StartAddress + i + 1] = ConvertInt32ToInt16(rcvIntArray[0]);
-                                    _slaveServer.inputRegisters[StartAddress + i + 2] = ConvertInt32ToInt16(rcvIntArray[1]);
-                                    _slaveServer.inputRegisters[StartAddress + i + 3] = ConvertInt32ToInt16(rcvIntArray[2]);
-                                    _slaveServer.inputRegisters[StartAddress + i + 4] = ConvertInt32ToInt16(rcvIntArray[3]);
-                                }
-
-                                break;
-                            //None Operation !
-                            default:
-
-                                break;
-                        }
-                        break;
-
-                    //None
-                    default:
-
-
-                        break;
+                        //None
+                        default:
+                            break;
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
+                catch (Exception ex)
+                {
+                    InfoMessage = "Error: " + ex.Message.Replace("\n", "");
+                }
 
-                InfoMessage = "Error: " + ex.Message.Replace("\n", "");
-
-            }
+            }, _cancellationTokenSource.Token);
 
         }
-
-
 
 
         #endregion
@@ -1072,9 +1064,9 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             return RegisterOrderSwap ? ModbusClient.RegisterOrder.LowHigh : ModbusClient.RegisterOrder.HighLow;
         }
 
-
         private void ConvertRegisterValue(int[] registerValueArray, ModbusClient.RegisterOrder registerOrder)
         {
+
             int[] intValueArray;
 
             switch (SelectedDataType)
@@ -1083,7 +1075,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                 case (int)ModbusMasterDataTypeEnum.Unsigned_16bits:
                     for (int i = 0; i < registerValueArray.Length; i++)
                     {
-                        RegisterDataCollection[i].Value = registerValueArray[i].ToString();
+                        App.Current.Dispatcher.Invoke(() => RegisterDataCollection[i].Value = registerValueArray[i].ToString());
                     }
                     break;
 
@@ -1091,8 +1083,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                     for (int i = 0; i < registerValueArray.Length; i += 2)
                     {
                         intValueArray = new int[2] { registerValueArray[i], registerValueArray[i + 1] };
-                        RegisterDataCollection[i / 2].Value =
-                            ModbusClient.ConvertRegistersToInt(intValueArray, registerOrder).ToString();
+                        App.Current.Dispatcher.Invoke(() => RegisterDataCollection[i / 2].Value = ModbusClient.ConvertRegistersToInt(intValueArray, registerOrder).ToString());
                     }
                     break;
 
@@ -1100,8 +1091,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                     for (int i = 0; i < registerValueArray.Length; i += 2)
                     {
                         intValueArray = new int[2] { registerValueArray[i], registerValueArray[i + 1] };
-                        RegisterDataCollection[i / 2].Value =
-                           Convert.ToUInt32(ModbusClient.ConvertRegistersToLong(intValueArray, registerOrder)).ToString();
+                        App.Current.Dispatcher.Invoke(() => RegisterDataCollection[i / 2].Value = Convert.ToUInt32(ModbusClient.ConvertRegistersToLong(intValueArray, registerOrder)).ToString());
                     }
                     break;
 
@@ -1109,8 +1099,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                     for (int i = 0; i < registerValueArray.Length; i += 2)
                     {
                         intValueArray = new int[2] { registerValueArray[i], registerValueArray[i + 1] };
-                        RegisterDataCollection[i / 2].Value =
-                            ModbusClient.ConvertRegistersToFloat(intValueArray, registerOrder).ToString();
+                        App.Current.Dispatcher.Invoke(() => RegisterDataCollection[i / 2].Value = ModbusClient.ConvertRegistersToFloat(intValueArray, registerOrder).ToString());
                     }
                     break;
 
@@ -1124,8 +1113,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                            registerValueArray[i + 2],
                            registerValueArray[i + 3]
                         };
-                        RegisterDataCollection[i / 4].Value =
-                            ModbusClient.ConvertRegistersToFloat(intValueArray, registerOrder).ToString();
+                        App.Current.Dispatcher.Invoke(() => RegisterDataCollection[i / 4].Value = ModbusClient.ConvertRegistersToFloat(intValueArray, registerOrder).ToString());
                     }
                     break;
 
@@ -1139,15 +1127,13 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                            registerValueArray[i + 2],
                            registerValueArray[i + 3]
                         };
-                        RegisterDataCollection[i / 4].Value =
-                            ModbusClient.ConvertRegistersToDouble(intValueArray, registerOrder).ToString();
+                        App.Current.Dispatcher.Invoke(() => RegisterDataCollection[i / 4].Value = ModbusClient.ConvertRegistersToDouble(intValueArray, registerOrder).ToString());
                     }
                     break;
-                default:
 
+                default:
                     break;
             }
-
         }
 
 
@@ -1312,42 +1298,50 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
 
 
         }
+
         private void _masterClient_SendDataChanged(object sender)
         {
-            try
+            Task.Run(() =>
             {
-                _txCount++;
-                string sndMsg = ToolHelper.byteArrToHexStr(_masterClient.sendData);
-                RawTelegraph += ToolHelper.SetTime(DisplayTime, true) + $"Tx {_txCount}-> {sndMsg}\n";
-                if (_txCount == ushort.MaxValue)
+                try
                 {
-                    _txCount = 0;
+                    _txCount++;
+                    string sndMsg = ToolHelper.byteArrToHexStr(_masterClient.sendData);
+                    App.Current.Dispatcher.Invoke(() => RawTelegraph += ToolHelper.SetTime(DisplayTime, true) + $"Tx {_txCount}-> {sndMsg}\n");
+                    if (_txCount == ushort.MaxValue)
+                    {
+                        _txCount = 0;
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
+                catch (Exception ex)
+                {
+                    InfoMessage = "Error: " + ex.Message.Replace("\n", "");
+                }
 
-                InfoMessage = "Error: " + ex.Message.Replace("\n", "");
-            }
+            }, _cancellationTokenSource.Token);
 
         }
+
         private void _masterClient_ReceiveDataChanged(object sender)
         {
-            try
+            Task.Run(() =>
             {
-                _rxCount++;
-                string rcvMsg = ToolHelper.byteArrToHexStr(_masterClient.receiveData);
-                RawTelegraph += ToolHelper.SetTime(DisplayTime, true) + $"Rx {_rxCount}-> {rcvMsg}\n";
-                if (_rxCount == ushort.MaxValue)
+                try
                 {
-                    _rxCount = 0;
+                    _rxCount++;
+                    string rcvMsg = ToolHelper.byteArrToHexStr(_masterClient.receiveData);
+                    App.Current.Dispatcher.Invoke(() => RawTelegraph += ToolHelper.SetTime(DisplayTime, true) + $"Rx {_rxCount}-> {rcvMsg}\n");
+                    if (_rxCount == ushort.MaxValue)
+                    {
+                        _rxCount = 0;
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
+                catch (Exception ex)
+                {
+                    InfoMessage = "Error: " + ex.Message.Replace("\n", "");
+                }
 
-                InfoMessage = "Error: " + ex.Message.Replace("\n", "");
-            }
+            }, _cancellationTokenSource.Token);
 
         }
 
@@ -1480,40 +1474,45 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
 
         private void _slaveServer_ReceiveCompleted(byte[] rcvArray)
         {
-            try
+            Task.Run(() =>
             {
-                _rxCount++;
-                string rcvMsg = ToolHelper.byteArrToHexStr(rcvArray);
-                RawTelegraph += ToolHelper.SetTime(DisplayTime, true) + $"Rx {_rxCount}-> {rcvMsg}\n";
-                if (_rxCount == ushort.MaxValue)
+                try
                 {
-                    _rxCount = 0;
+                    _rxCount++;
+                    string rcvMsg = ToolHelper.byteArrToHexStr(rcvArray);
+                    App.Current.Dispatcher.Invoke(() => RawTelegraph += ToolHelper.SetTime(DisplayTime, true) + $"Rx {_rxCount}-> {rcvMsg}\n");
+                    if (_rxCount == ushort.MaxValue)
+                    {
+                        _rxCount = 0;
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
-
-                InfoMessage = "Error: " + ex.Message.Replace("\n", "");
-            }
+                catch (Exception ex)
+                {
+                    InfoMessage = "Error: " + ex.Message.Replace("\n", "");
+                }
+            }, _cancellationTokenSource.Token);
         }
 
         private void _slaveServer_SendCompleted(byte[] sndArray)
         {
-            try
+            Task.Run(() =>
             {
-                _txCount++;
-                string sndMsg = ToolHelper.byteArrToHexStr(sndArray);
-                RawTelegraph += ToolHelper.SetTime(DisplayTime, true) + $"Tx {_txCount}-> {sndMsg}\n";
-                if (_txCount == ushort.MaxValue)
+                try
                 {
-                    _txCount = 0;
+                    _txCount++;
+                    string sndMsg = ToolHelper.byteArrToHexStr(sndArray);
+                    App.Current.Dispatcher.Invoke(() => RawTelegraph += ToolHelper.SetTime(DisplayTime, true) + $"Tx {_txCount}-> {sndMsg}\n");
+                    if (_txCount == ushort.MaxValue)
+                    {
+                        _txCount = 0;
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
+                catch (Exception ex)
+                {
+                    InfoMessage = "Error: " + ex.Message.Replace("\n", "");
+                }
 
-                InfoMessage = "Error: " + ex.Message.Replace("\n", "");
-            }
+            });
         }
 
         #endregion

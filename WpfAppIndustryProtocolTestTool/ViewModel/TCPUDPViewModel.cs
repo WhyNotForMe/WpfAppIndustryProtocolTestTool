@@ -522,8 +522,8 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
 
         public override void Cleanup()
         {
-            base.Cleanup();
             _cancellationTokenSource.Cancel();
+            base.Cleanup();
         }
 
         #region Command Methods

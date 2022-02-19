@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading.Tasks;
 using WpfAppIndustryProtocolTestTool.Model;
 
 namespace WpfAppIndustryProtocolTestTool.BLL.OpcProtocol
@@ -135,7 +136,7 @@ namespace WpfAppIndustryProtocolTestTool.BLL.OpcProtocol
                 _opcGroup.IsActive = groupProperty.IsActive;
                 _opcGroup.IsSubscribed = groupProperty.IsSubscribed;
                 _opcGroup.UpdateRate = groupProperty.UpdateRate;
-                _opcGroup.AsyncReadComplete += IKepGroup_AsyncReadComplete;
+                _opcGroup.AsyncReadComplete += IOpcGroup_AsyncReadComplete;
 
 
                 _opcItems = _opcGroup.OPCItems;
@@ -144,7 +145,6 @@ namespace WpfAppIndustryProtocolTestTool.BLL.OpcProtocol
             }
             catch (Exception)
             {
-
                 throw;
             }
 
@@ -227,7 +227,7 @@ namespace WpfAppIndustryProtocolTestTool.BLL.OpcProtocol
                 //For OPC Group item
                 _itemID = SelectedTag;
                 //_clientHandle = _serverHandleList.Count;
-                _clientHandle ++;
+                _clientHandle++;
 
                 _opcItem = _opcItems.AddItem(_itemID, _clientHandle);
                 _opcItemList.Add(_opcItem);
@@ -332,10 +332,8 @@ namespace WpfAppIndustryProtocolTestTool.BLL.OpcProtocol
 
                 }
             }
-
             catch (Exception)
             {
-
                 throw;
             }
 
@@ -352,7 +350,6 @@ namespace WpfAppIndustryProtocolTestTool.BLL.OpcProtocol
                     _readTransactionID++;
                     _serverHandles = _serverHandleList.ToArray();
 
-
                     _opcGroup.AsyncRead(OpcTagItemList.Count, ref _serverHandles, out Array readErrors, _readTransactionID, out int readCancelID);
 
                     if (_readTransactionID == int.MaxValue)
@@ -360,21 +357,18 @@ namespace WpfAppIndustryProtocolTestTool.BLL.OpcProtocol
                         _readTransactionID = 0;
                     }
 
-
                 }
 
             }
             catch (Exception)
             {
-
                 throw;
             }
-
         }
 
 
 
-        private void IKepGroup_AsyncReadComplete(int TransactionID, int NumItems, ref Array ClientHandles, ref Array ItemValues,
+        private void IOpcGroup_AsyncReadComplete(int TransactionID, int NumItems, ref Array ClientHandles, ref Array ItemValues,
                                                  ref Array Qualities, ref Array TimeStamps, ref Array Errors)
         {
             try
@@ -392,7 +386,6 @@ namespace WpfAppIndustryProtocolTestTool.BLL.OpcProtocol
                             OpcTagItemList[i - 1].ClientHandle = Convert.ToInt32(ClientHandles.GetValue(i));
                             OpcTagItemList[i - 1].TransactionID = TransactionID;
                         }
-
                     }
                     ItemValueChanged?.Invoke($"{NumItems} Items ReadAsync");
                 }

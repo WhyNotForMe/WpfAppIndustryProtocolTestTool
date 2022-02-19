@@ -600,8 +600,6 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             }
         }
 
-
-
         private void ExeRemoveSelectedTag()
         {
             try
@@ -627,7 +625,6 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
         {
             return SelectedTagCollection.Count(item => item.IsSelected) > 0 && !IsReadingOrWriting;
         }
-
 
         private void ExeAddIntoCharts()
         {
