@@ -38,7 +38,6 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
         System.Timers.Timer _sendTimer;
 
         CancellationTokenSource _cancellationTokenSource;
-        static readonly object _locker = new object();
 
         #endregion
 
@@ -341,6 +340,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                     }
                 }
             });
+            _cancellationTokenSource = new CancellationTokenSource();
 
         }
 

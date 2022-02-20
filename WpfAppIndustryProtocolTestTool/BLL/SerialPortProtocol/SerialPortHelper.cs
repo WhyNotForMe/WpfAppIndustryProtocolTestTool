@@ -63,7 +63,7 @@ namespace WpfAppIndustryProtocolTestTool.BLL.SerialPortProtocol
                 if (count > 0)
                 {
                     ReceiveCompleted?.Invoke(_receivedTelegraph);
-                    SerialPort.DiscardInBuffer();
+                    SerialPort?.DiscardInBuffer();
                 }
 
             }
@@ -81,7 +81,7 @@ namespace WpfAppIndustryProtocolTestTool.BLL.SerialPortProtocol
                     SerialPort.Close();
                 }
                 SerialPort.DataReceived += SerialPort_DataReceived;
-                SerialPort.Open();
+                SerialPort?.Open();
             }
             catch (Exception)
             {
@@ -113,26 +113,26 @@ namespace WpfAppIndustryProtocolTestTool.BLL.SerialPortProtocol
         public void SendData(byte[] sndBuffer, CRCEnum check = CRCEnum.None)
         {
             Task.Run(() =>
-           {
-               if (!SerialPort.IsOpen)
-               {
-                   throw new Exception("Serial Port is not Open!");
-               }
-               else
-               {
-                   try
-                   {
-                       byte[] newBuffer = CRCHelper.AppendCRC(sndBuffer, check);
-                       SerialPort?.Write(newBuffer, 0, newBuffer.Length);
-                       SendCompleted?.Invoke(newBuffer);
-                       SerialPort?.DiscardOutBuffer();
-                   }
-                   catch (Exception)
-                   {
-                       throw;
-                   }
-               }
-           });
+          {
+              if (!SerialPort.IsOpen)
+              {
+                  throw new Exception("Serial Port is not Open!");
+              }
+              else
+              {
+                  try
+                  {
+                      byte[] newBuffer = CRCHelper.AppendCRC(sndBuffer, check);
+                      SerialPort?.Write(newBuffer, 0, newBuffer.Length);
+                      SendCompleted?.Invoke(newBuffer);
+                      SerialPort?.DiscardOutBuffer();
+                  }
+                  catch (Exception)
+                  {
+                      throw;
+                  }
+              }
+          });
 
         }
 

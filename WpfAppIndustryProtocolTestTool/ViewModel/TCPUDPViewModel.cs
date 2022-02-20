@@ -517,7 +517,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
             });
 
             _sqlitehelper = SqliteHelper.GetSqliteHelpeInstance();
-
+            _cancellationTokenSource = new CancellationTokenSource();
         }
 
         public override void Cleanup()
@@ -1014,7 +1014,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                 if (SaveToSQLite)
                 {
                     string receivedText = await GetReceivedTextAsync(buffer);
-                    await _sqlitehelper.InsertEthernetPortMsgAsync(_connectionID, "Rx", receivedText, $"{token.Socket.RemoteEndPoint}");
+                     _sqlitehelper.InsertEthernetPortMsgAsync(_connectionID, "Rx", receivedText, $"{token.Socket.RemoteEndPoint}");
                 }
 
                 if (JsonSerialized)
@@ -1143,7 +1143,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                 if (SaveToSQLite)
                 {
                     string receivedText = await GetReceivedTextAsync(buffer);
-                    await _sqlitehelper.InsertEthernetPortMsgAsync(_connectionID, "Rx", receivedText, $"{e.RemoteEndPoint}");
+                     _sqlitehelper.InsertEthernetPortMsgAsync(_connectionID, "Rx", receivedText, $"{e.RemoteEndPoint}");
                 }
 
             }

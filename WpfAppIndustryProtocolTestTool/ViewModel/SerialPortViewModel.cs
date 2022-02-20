@@ -127,7 +127,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                 }
                 if (SaveToTxtFile)
                 {
-                    AppendLogText($"{ToolHelper.SetTime(true, false)}Info -> {_infoMessage}");
+                    AppendLogTextAsync($"{ToolHelper.SetTime(true, false)}Info -> {_infoMessage}");
                 }
             }
         }
@@ -625,17 +625,14 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                 TxPieces++;
                 string TxString = ToolHelper.ByteArrayToString(sndArray, GetDataFormatEnum());
 
-                if (DisplayInRcvArea || SaveToTxtFile)
+                if (DisplayInRcvArea)
                 {
-                    Task.Run(() =>
-                   {
-                       App.Current.Dispatcher.Invoke(() => ReceivedText += $"{ToolHelper.SetTime(true, false)}Tx {TxPieces} -> {TxString}");
-                   }, _cancellationTokenSource.Token);
+                    ReceivedText += $"{ToolHelper.SetTime(true, false)}Tx {TxPieces} -> {TxString}";
+                }
 
-                    if (SaveToTxtFile)
-                    {
-                        AppendLogText($"{ToolHelper.SetTime(true, false)}Tx {TxPieces} -> {TxString}");
-                    }
+                if (SaveToTxtFile)
+                {
+                    AppendLogTextAsync($"{ToolHelper.SetTime(true, false)}Tx {TxPieces} -> {TxString}");
                 }
 
             }
@@ -667,9 +664,16 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
                         RxCount = Convert.ToUInt16(rcvArray.Length);
                     }
                     RxPieces++;
+
                     DataFormatEnum dataFormat = GetDataFormatEnum();
+                    if (SaveToTxtFile)
+                    {
+                        AppendLogTextAsync($"{ToolHelper.SetTime(true, false)}Rx {RxPieces} -> {ToolHelper.ByteArrayToString(rcvArray, dataFormat)}");
+                    }
+
                     byte[]? actualArray = CRCHelper.ValidateCRC(rcvArray, GetCRCEnum());
                     string actualString = string.Empty;
+
                     if (actualArray != null)
                     {
                         actualString = ToolHelper.ByteArrayToString(actualArray, dataFormat);
@@ -680,30 +684,16 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
 
                     }
 
-
-                    if (DisplayInRcvArea || SaveToTxtFile)
-                    {
-                        Task.Run(() =>
-                       {
-                           App.Current.Dispatcher.Invoke(() => ReceivedText += $"{ToolHelper.SetTime(true, false)}Rx {RxPieces} -> {ToolHelper.ByteArrayToString(rcvArray, dataFormat)}");
-                       }, _cancellationTokenSource.Token);
-
-                        if (SaveToTxtFile)
-                        {
-                            AppendLogText($"{ToolHelper.SetTime(true, false)}Rx {RxPieces} -> {ToolHelper.ByteArrayToString(rcvArray, dataFormat)}");
-                        }
-                    }
+                    if (DisplayInRcvArea)
+                        ReceivedText += $"{ToolHelper.SetTime(true, false)}Rx {RxPieces} -> {ToolHelper.ByteArrayToString(rcvArray, dataFormat)}";
                     else
+                        ReceivedText += $"{ ToolHelper.SetTime(DisplayDateTime, ReceiveWordWrap)}{actualString}";
+
+                    if (_workMode == "Gateway" && _gatewayMode == "Serial Port --> TCP/UDP")
                     {
-                        ReceivedText += $"{ ToolHelper.SetWordWrap(ReceiveWordWrap)}{ ToolHelper.SetTime(DisplayDateTime, ReceiveWordWrap)}{actualString}";
-
-                        if (_workMode == "Gateway" && _gatewayMode == "Serial Port --> TCP/UDP")
-                        {
-                            string newMessage = ToolHelper.ByteArrayToString(actualArray, dataFormat);
-                            Messenger.Default.Send<string>(newMessage, "SerialPortInput");
-                        }
+                        string newMessage = ToolHelper.ByteArrayToString(actualArray, dataFormat);
+                        Messenger.Default.Send<string>(newMessage, "SerialPortInput");
                     }
-
                 }
             }
             catch (Exception ex)
@@ -868,7 +858,7 @@ namespace WpfAppIndustryProtocolTestTool.ViewModel
 
         }
 
-        private void AppendLogText(string message)
+        private void AppendLogTextAsync(string message)
         {
             Task.Run(async () =>
             {
