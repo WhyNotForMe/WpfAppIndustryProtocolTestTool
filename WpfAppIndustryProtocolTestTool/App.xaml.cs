@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Data;
-using System.Linq;
+﻿
+using System;
 using System.Threading.Tasks;
 using System.Windows;
 
@@ -20,6 +17,7 @@ namespace WpfAppIndustryProtocolTestTool
             TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 
             base.OnStartup(e);
+
         }
 
         private void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
@@ -33,7 +31,7 @@ namespace WpfAppIndustryProtocolTestTool
             //Exception ex = e.ExceptionObject as Exception;
             if (e.ExceptionObject is Exception ex)
             {
-                MessageBox.Show($"{ex.Message}\n\n{ex.StackTrace}", "Current Domain Unhandled Exception",  MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"{ex.Message}\n\n{ex.StackTrace}", "Current Domain Unhandled Exception", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -42,5 +40,7 @@ namespace WpfAppIndustryProtocolTestTool
             MessageBox.Show($"{e.Exception.Message}\n\n{e.Exception.StackTrace}", "Dispatcher Unhandled Exception", MessageBoxButton.OK, MessageBoxImage.Error);
             e.Handled = true;
         }
+
+
     }
 }
